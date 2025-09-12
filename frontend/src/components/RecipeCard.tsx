@@ -103,7 +103,7 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
 
         <Button
           onClick={() => onViewRecipe(recipe)}
-          className="w-full bg-primary hover:bg-primary/90 shadow-sm hover:shadow-md transition-all duration-200 group-hover:bg-primary group-hover:scale-[1.02]"
+          className="w-full text-white bg-[#9dc257]/70 hover:bg-[#9dc257]/80 shadow-sm hover:shadow-md transition-all duration-200 group-hover:bg-[#9dc257]/80 group-hover:scale-[1.02]"
         >
           <span className="flex items-center gap-2">
             View Recipe

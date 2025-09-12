@@ -68,14 +68,15 @@ export default function App() {
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
+  //bg-gradient-to-br from--300 via-white to-blue-300">
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="min-h-screen bg-[#bee378]/40">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-green-100 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-green-100 to-green-200 p-3 rounded-xl shadow-sm">
+              <div className="bg-gradient-to-br from-[#9dc257]/70 to-green-200 p-3 rounded-xl shadow-sm">
                 <Leaf className="h-8 w-8 text-green-600" />
               </div>
               <div>
@@ -115,12 +116,12 @@ export default function App() {
         {/* Search Section */}
         <div className="relative max-w-lg mx-auto">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-900" />
             <Input
               placeholder="Search recipes, ingredients, or cuisine..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-3 bg-white/80 backdrop-blur-sm border-gray-200 rounded-xl shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-200 focus:border-green-400"
+              className="pl-12 pr-4 py-3 bg-white/80 backdrop-blur-sm border-gray-200 rounded-xl shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-200 focus:border-[#9dc257]-400"
             />
           </div>
         </div>
