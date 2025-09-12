@@ -90,7 +90,7 @@ export function SearchBar({
             placeholder={placeholder}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-12 pr-20 py-3 bg-white backdrop-blur-sm border-gray-200 rounded-xl shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-200 focus:border-[#9dc257]-400"
+            className="pl-12 pr-20 py-3 bg-white border-gray-100 rounded-xl shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-200 focus:border-[#9dc257]-400"
           />
 
           {/* Clear Search Button */}

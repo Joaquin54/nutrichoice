@@ -70,7 +70,7 @@ export default function App() {
 
   //bg-gradient-to-br from--300 via-white to-blue-300">
   return (
-    <div className="min-h-screen bg-[#bee378]/40">
+    <div className="min-h-screen bg-[#bee378]/35">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-green-100 shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -96,8 +96,8 @@ export default function App() {
         {/* Hero Section */}
         <section className="text-center py-12 relative">
           <div className="flex items-center justify-center mb-4">
-            <Leaf className="h-6 w-6 text-green-600 mr-2" />
-            <span className="text-green-600 font-medium">
+            <Leaf className="h-6 w-6 text-[#69823b] mr-2" />
+            <span className="text-[#69823b] font-medium">
               Fresh • Seasonal • Delicious
             </span>
           </div>
@@ -121,7 +121,7 @@ export default function App() {
               placeholder="Search recipes, ingredients, or cuisine..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-3 bg-white/80 backdrop-blur-sm border-gray-200 rounded-xl shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-200 focus:border-[#9dc257]-400"
+              className="pl-12 pr-4 py-3 !bg-white border-gray-300 rounded-xl shadow-sm hover:shadow-md focus:shadow-md transition-all duration-200 focus:border-green-400"
             />
           </div>
         </div>
