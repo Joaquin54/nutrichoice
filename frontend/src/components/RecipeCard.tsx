@@ -91,14 +91,15 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
               {tag}
             </Badge>
           ))}
-          {recipe.dietaryTags.length > 3 && (
+          {/* DO NOT DELETE THIS  */}
+          {/* {recipe.dietaryTags.length > 3 && (
             <Badge
               variant="secondary"
               className="bg-muted text-muted-foreground"
             >
               +{recipe.dietaryTags.length - 3}
-            </Badge>
-          )}
+            </Badge> */}
+          {/* )} */}
         </div>
 
         <Button
