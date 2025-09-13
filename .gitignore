@@ -17,6 +17,12 @@ __pycache__/
 *.pyo
 *.pyd
 *.sqlite3
+backend/api/migrations
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
 backend/.venv/
 __pycache__/
 *.pyc
