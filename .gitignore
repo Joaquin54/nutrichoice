@@ -5,6 +5,18 @@ frontend/.vite/
 
 # Python (backend)
 backend/.env
+backend/server/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+backend/api/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
 backend/.venv/
 __pycache__/
 *.pyc
