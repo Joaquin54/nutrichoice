@@ -4,6 +4,7 @@ frontend/dist/
 frontend/.vite/
 
 # Python (backend)
+backend/.env
 backend/.venv/
 __pycache__/
 *.pyc
