@@ -4,33 +4,14 @@ frontend/dist/
 frontend/.vite/
 
 # Python (backend)
-backend/.env
-backend/server/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-backend/api/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-backend/api/migrations
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
 backend/.venv/
-__pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.sqlite3
 
-# Environment files (DON’T leak secrets!)
+# Environment files (DON'T leak secrets!)
 *.env
 .env.*
 
@@ -46,4 +27,3 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-
