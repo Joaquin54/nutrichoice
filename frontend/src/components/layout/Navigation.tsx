@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Heart, User, BarChart3, LogIn } from 'lucide-react';
 
@@ -8,7 +9,7 @@ const navigationItems = [
   { path: '/account', label: 'Account', icon: User },
 ];
 
-export function Navigation() {
+export const Navigation = memo(function Navigation() {
   return (
     <nav className="bg-white/60 backdrop-blur-sm border-b border-green-100 shadow-sm">
       <div className="container mx-auto px-4">
@@ -46,4 +47,4 @@ export function Navigation() {
       </div>
     </nav>
   );
-}
+});

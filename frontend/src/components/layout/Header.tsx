@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf } from 'lucide-react';
 
-export function Header() {
+export const Header = memo(function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-green-100 shadow-sm">
       <div className="container mx-auto px-4 py-4">
@@ -30,4 +31,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+});

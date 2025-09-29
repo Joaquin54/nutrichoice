@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { Search, ChefHat, Leaf } from "lucide-react";
-import { Input } from "../components/ui/input";
+import { useState, useCallback, useMemo } from "react";
+import { ChefHat } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
 import { DietaryPreferences } from "../components/recipe/DietaryPreferences";
+import { CuisineFilter } from "../components/recipe/CuisineFilter";
+import { HeroSection } from "../components/common/HeroSection";
 import { mockRecipes } from "../data/mockRecipes";
-import type { Recipe, DietaryFilter } from "../types/recipe";
+import type { Recipe, DietaryFilter, CuisineFilter as CuisineFilterType } from "../types/recipe";
 
 export function HomePage() {
   const [filters, setFilters] = useState<DietaryFilter>({
@@ -20,91 +21,125 @@ export function HomePage() {
     keto: false,
   });
 
+  const [cuisineFilters, setCuisineFilters] = useState<CuisineFilterType>({
+    italian: false,
+    french: false,
+    mexican: false,
+    american: false,
+    japanese: false,
+    chinese: false,
+    indian: false,
+    thai: false,
+    mediterranean: false,
+    korean: false,
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleViewRecipe = (recipe: Recipe) => {
+  // Memoize the handleViewRecipe function to prevent unnecessary re-renders
+  const handleViewRecipe = useCallback((recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedRecipe(null);
-  };
+  }, []);
 
-  const filteredRecipes = mockRecipes.filter((recipe) => {
-    // Search filter
-    const matchesSearch =
-      recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      recipe.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      recipe.dietaryTags.some((tag) =>
-        tag.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const handleFiltersChange = useCallback((newFilters: DietaryFilter) => {
+    setFilters(newFilters);
+  }, []);
 
-    if (!matchesSearch) return false;
+  const handleCuisineFiltersChange = useCallback((newCuisineFilters: CuisineFilterType) => {
+    setCuisineFilters(newCuisineFilters);
+  }, []);
 
-    // Dietary filters
-    const activeFilters = Object.entries(filters).filter(([_, value]) => value);
-    if (activeFilters.length === 0) return true;
+  // Memoize the filtered recipes to prevent recalculation on every render
+  const filteredRecipes = useMemo(() => {
+    return mockRecipes.filter((recipe) => {
+      // Search filter
+      const matchesSearch =
+        recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        recipe.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        recipe.dietaryTags.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
-    return activeFilters.every(([filterKey, _]) => {
-      const filterMap: Record<string, string[]> = {
-        vegetarian: ["Vegetarian", "Vegan"],
-        vegan: ["Vegan"],
-        glutenFree: ["Gluten-Free"],
-        dairyFree: ["Dairy-Free"],
-        eggFree: ["Egg-Free"],
-        pescatarian: ["Pescatarian"],
-        lowCarb: ["Low Carb"],
-        keto: ["Keto"],
-      };
+      if (!matchesSearch) return false;
 
-      const requiredTags = filterMap[filterKey] || [];
-      return requiredTags.some((tag) => recipe.dietaryTags.includes(tag));
+      // Dietary filters
+      const activeDietaryFilters = Object.entries(filters).filter(([_, value]) => value);
+      if (activeDietaryFilters.length > 0) {
+        const dietaryMatch = activeDietaryFilters.every(([filterKey, _]) => {
+          const filterMap: Record<string, string[]> = {
+            vegetarian: ["Vegetarian", "Vegan"],
+            vegan: ["Vegan"],
+            glutenFree: ["Gluten-Free"],
+            dairyFree: ["Dairy-Free"],
+            eggFree: ["Egg-Free"],
+            pescatarian: ["Pescatarian"],
+            lowCarb: ["Low Carb"],
+            keto: ["Keto"],
+          };
+
+          const requiredTags = filterMap[filterKey] || [];
+          return requiredTags.some((tag) => recipe.dietaryTags.includes(tag));
+        });
+        if (!dietaryMatch) return false;
+      }
+
+      // Cuisine filters
+      const activeCuisineFilters = Object.entries(cuisineFilters).filter(([_, value]) => value);
+      if (activeCuisineFilters.length > 0) {
+        const cuisineMatch = activeCuisineFilters.some(([cuisineKey, _]) => {
+          const cuisineMap: Record<string, string> = {
+            italian: "Italian",
+            french: "French",
+            mexican: "Mexican",
+            american: "American",
+            japanese: "Japanese",
+            chinese: "Chinese",
+            indian: "Indian",
+            thai: "Thai",
+            mediterranean: "Mediterranean",
+            korean: "Korean",
+          };
+          const cuisineName = cuisineMap[cuisineKey];
+          return recipe.cuisine?.toLowerCase() === cuisineName.toLowerCase();
+        });
+        if (!cuisineMatch) return false;
+      }
+
+      return true;
     });
-  });
+  }, [searchQuery, filters, cuisineFilters]);
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = useMemo(() => {
+    return Object.values(filters).filter(Boolean).length + Object.values(cuisineFilters).filter(Boolean).length;
+  }, [filters, cuisineFilters]);
 
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <section className="text-center py-12 relative">
-        <div className="flex items-center justify-center mb-4">
-          <Leaf className="h-6 w-6 text-[#69823b] mr-2" />
-          <span className="text-[#69823b] font-medium">
-            Fresh • Seasonal • Delicious
-          </span>
-        </div>
+      <HeroSection 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
-        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          Discover recipes that bring joy to your kitchen
-        </h2>
-
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          From farm-fresh ingredients to time-honored techniques, find recipes
-          that match your taste, dietary needs, and cooking style. Every meal
-          is a chance to nourish and delight.
-        </p>
-      </section>
-
-      {/* Search Section */}
-      <div className="relative max-w-lg mx-auto">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-900" />
-          <Input
-            placeholder="Search recipes, ingredients, or cuisine..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 pr-4 py-3 !bg-white border-gray-300 rounded-xl shadow-sm hover:shadow-md focus:shadow-md transition-all duration-200 focus:border-green-400"
-          />
-        </div>
+      {/* Filters Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CuisineFilter 
+          filters={cuisineFilters} 
+          onFiltersChange={handleCuisineFiltersChange} 
+        />
+        <DietaryPreferences 
+          filters={filters} 
+          onFiltersChange={handleFiltersChange} 
+        />
       </div>
-
-      {/* Dietary Preferences */}
-      <DietaryPreferences filters={filters} onFiltersChange={setFilters} />
 
       {/* Results Header */}
       <div className="flex items-center justify-between">

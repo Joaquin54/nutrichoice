@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -11,7 +12,7 @@ interface RecipeCardProps {
   onViewRecipe: (recipe: Recipe) => void;
 }
 
-export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
+export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
@@ -79,15 +80,6 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
               {tag}
             </Badge>
           ))}
-          {/* DO NOT DELETE THIS  */}
-          {/* {recipe.dietaryTags.length > 3 && (
-            <Badge
-              variant="secondary"
-              className="bg-muted text-muted-foreground"
-            >
-              +{recipe.dietaryTags.length - 3}
-            </Badge> */}
-          {/* )} */}
         </div>
 
         <Button
@@ -102,4 +94,4 @@ export function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
       </CardContent>
     </Card>
   );
-}
+});

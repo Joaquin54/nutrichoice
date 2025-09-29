@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -33,7 +34,7 @@ const dietaryOptions = [
   { key: "keto" as keyof DietaryFilter, label: "Keto", icon: FlameIcon },
 ];
 
-export function DietaryPreferences({
+export const DietaryPreferences = memo(function DietaryPreferences({
   filters,
   onFiltersChange,
 }: DietaryPreferencesProps) {
@@ -52,12 +53,12 @@ export function DietaryPreferences({
           Dietary Preferences
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <CardContent className=" pl-8">
+        <div className="grid grid-cols-3 gap-1">
           {dietaryOptions.map(({ key, label, icon: Icon }) => (
             <div
               key={key}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/5 transition-colors"
+              className="flex items-center space-x-1 p-1 rounded hover:bg-primary/5 transition-colors"
             >
               <Checkbox
                 id={key}
@@ -80,4 +81,4 @@ export function DietaryPreferences({
       </CardContent>
     </Card>
   );
-}
+});

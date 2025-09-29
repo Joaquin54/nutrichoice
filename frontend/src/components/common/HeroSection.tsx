@@ -1,43 +1,41 @@
-import { HerbIcon, SpoonIcon, SkilletIcon } from "./ui/CookingIcons";
+import { memo } from 'react';
+import { Leaf, Search } from 'lucide-react';
+import { Input } from '../ui/input';
 
-export function HeroSection() {
+interface HeroSectionProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+}
+
+export const HeroSection = memo(function HeroSection({ 
+  searchQuery, 
+  onSearchChange 
+}: HeroSectionProps) {
   return (
-    <section className="relative py-12 mb-8 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-4 left-8">
-          <HerbIcon className="h-8 w-8 text-primary/20 rotate-12" />
-        </div>
-        <div className="absolute top-8 right-12">
-          <SpoonIcon className="h-6 w-6 text-primary/20 -rotate-12" />
-        </div>
-        <div className="absolute bottom-6 left-16">
-          <SkilletIcon className="h-7 w-7 text-primary/20 rotate-45" />
-        </div>
-        <div className="absolute bottom-8 right-8">
-          <HerbIcon className="h-5 w-5 text-primary/20 -rotate-45" />
-        </div>
+    <section className="text-center py-0 relative">
+      <div className="flex items-center justify-center mb-3">
+        <Leaf className="h-5 w-5 text-[#69823b] mr-2" />
+        <span className="text-[#69823b] font-medium text-sm">
+          Fresh • Seasonal • Delicious
+        </span>
       </div>
 
-      <div className="relative text-center max-w-4xl mx-auto px-4">
-        <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-6">
-          <HerbIcon className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            Fresh • Seasonal • Delicious
-          </span>
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+        Discover Delicious Recipes
+      </h2>
+
+      {/* Search Bar */}
+      <div className="relative max-w-lg mx-auto">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-900" />
+          <Input
+            placeholder="Search recipes, ingredients, or cuisine..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-12 pr-4 py-3 !bg-white border-gray-300 rounded-xl shadow-sm hover:shadow-md focus:shadow-md transition-all duration-200 focus:border-green-400"
+          />
         </div>
-
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 leading-tight">
-          Discover recipes that bring joy to your{" "}
-          <span className="text-primary">kitchen</span>
-        </h2>
-
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          From farm-fresh ingredients to time-honored techniques, find recipes
-          that match your taste, dietary needs, and cooking style. Every meal is
-          a chance to nourish and delight.
-        </p>
       </div>
     </section>
   );
-}
+});

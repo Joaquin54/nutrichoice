@@ -1,9 +1,21 @@
-import { Heart } from 'lucide-react';
-import { Card, CardContent } from '../components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { FavoritesGrid, EmptyFavorites } from '../components/favorites';
+import type { Recipe } from '../types/recipe';
 
 export function FavoritesPage() {
-  // This will be populated with actual favorites data later
-  const favorites: any[] = [];
+  const navigate = useNavigate();
+  
+  // Mock data - in real app, this would come from API/context
+  const favorites: Recipe[] = [];
+
+  const handleViewRecipe = (recipe: Recipe) => {
+    // TODO: Open recipe modal or navigate to recipe detail page
+    console.log('Viewing recipe:', recipe.title);
+  };
+
+  const handleBrowseRecipes = () => {
+    navigate('/');
+  };
 
   return (
     <div className="space-y-6">
@@ -15,24 +27,12 @@ export function FavoritesPage() {
       </div>
 
       {favorites.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* Favorite recipes will be rendered here */}
-        </div>
+        <FavoritesGrid 
+          favorites={favorites}
+          onViewRecipe={handleViewRecipe}
+        />
       ) : (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No favorites yet
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Start exploring recipes and save your favorites to see them here.
-            </p>
-            <button className="text-green-600 hover:text-green-700 font-medium">
-              Browse Recipes
-            </button>
-          </CardContent>
-        </Card>
+        <EmptyFavorites onBrowseRecipes={handleBrowseRecipes} />
       )}
     </div>
   );

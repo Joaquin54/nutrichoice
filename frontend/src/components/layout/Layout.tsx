@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import { Header } from './Header.tsx';
-import { Navigation } from './Navigation.tsx';
+import { Header } from './Header';
+import { Navigation } from './Navigation';
 
 export function Layout() {
   return (
