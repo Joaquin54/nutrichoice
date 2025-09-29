@@ -1,8 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Badge } from "./ui/badge.tsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Badge } from "../ui/badge";
 import { Clock, Users, ChefHat } from "lucide-react";
-import { type Recipe } from "./RecipeCard.tsx";
-import { ImageWithFallback } from "./ui/ImageWithFallback";
+import { ImageWithFallback } from "../ui/ImageWithFallback";
+import type { Recipe } from "../../types/recipe";
 
 interface RecipeModalProps {
   recipe: Recipe | null;

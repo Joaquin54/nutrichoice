@@ -1,22 +1,10 @@
-import { Card, CardContent, CardHeader } from "./ui/card.tsx";
-import { Badge } from "./ui/badge.tsx";
-import { Button } from "./ui/button.tsx";
+import { Card, CardContent, CardHeader } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import { Clock, Users, ChefHat } from "lucide-react";
-import { ImageWithFallback } from "./ui/ImageWithFallback";
-import { FlameIcon } from "./ui/CookingIcons";
-
-export interface Recipe {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  cookTime: number;
-  servings: number;
-  difficulty: "Easy" | "Medium" | "Hard";
-  dietaryTags: string[];
-  ingredients: string[];
-  instructions: string[];
-}
+import { ImageWithFallback } from "../ui/ImageWithFallback";
+import { FlameIcon } from "../ui/CookingIcons";
+import type { Recipe } from "../../types/recipe";
 
 interface RecipeCardProps {
   recipe: Recipe;

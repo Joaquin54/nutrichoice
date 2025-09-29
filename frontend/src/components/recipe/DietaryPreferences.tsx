@@ -1,21 +1,9 @@
-// import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card.tsx";
-import { Checkbox } from "./ui/checkbox.tsx";
-import { Label } from "./ui/label.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 import { Leaf, Heart, Wheat, Milk, Egg, Fish } from "lucide-react";
-// import { CheckedState } from '@radix-ui/react-checkbox';
-import { HerbIcon, FlameIcon } from "./ui/CookingIcons.tsx";
-
-export interface DietaryFilter {
-  vegetarian: boolean;
-  vegan: boolean;
-  glutenFree: boolean;
-  dairyFree: boolean;
-  eggFree: boolean;
-  pescatarian: boolean;
-  lowCarb: boolean;
-  keto: boolean;
-}
+import { HerbIcon, FlameIcon } from "../ui/CookingIcons";
+import type { DietaryFilter } from "../../types/recipe";
 
 interface DietaryPreferencesProps {
   filters: DietaryFilter;
