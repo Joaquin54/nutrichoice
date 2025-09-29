@@ -47,13 +47,13 @@ export const DietaryPreferences = memo(function DietaryPreferences({
 
   return (
     <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Leaf className="h-5 w-5 text-primary" />
+      <CardHeader className="pb-1">
+        <CardTitle className="flex items-center gap-1 mb-[-18px]">
+          <Leaf className="h-4 w-4 text-primary" />
           Dietary Preferences
         </CardTitle>
       </CardHeader>
-      <CardContent className=" pl-8">
+      <CardContent className="pl-8">
         <div className="grid grid-cols-3 gap-1">
           {dietaryOptions.map(({ key, label, icon: Icon }) => (
             <div
