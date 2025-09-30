@@ -1,21 +1,10 @@
-// import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card.tsx";
-import { Checkbox } from "./ui/checkbox.tsx";
-import { Label } from "./ui/label.tsx";
+import { memo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 import { Leaf, Heart, Wheat, Milk, Egg, Fish } from "lucide-react";
-// import { CheckedState } from '@radix-ui/react-checkbox';
-import { HerbIcon, FlameIcon } from "./ui/CookingIcons.tsx";
-
-export interface DietaryFilter {
-  vegetarian: boolean;
-  vegan: boolean;
-  glutenFree: boolean;
-  dairyFree: boolean;
-  eggFree: boolean;
-  pescatarian: boolean;
-  lowCarb: boolean;
-  keto: boolean;
-}
+import { HerbIcon, FlameIcon } from "../ui/CookingIcons";
+import type { DietaryFilter } from "../../types/recipe";
 
 interface DietaryPreferencesProps {
   filters: DietaryFilter;
@@ -45,7 +34,7 @@ const dietaryOptions = [
   { key: "keto" as keyof DietaryFilter, label: "Keto", icon: FlameIcon },
 ];
 
-export function DietaryPreferences({
+export const DietaryPreferences = memo(function DietaryPreferences({
   filters,
   onFiltersChange,
 }: DietaryPreferencesProps) {
@@ -58,18 +47,18 @@ export function DietaryPreferences({
 
   return (
     <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Leaf className="h-5 w-5 text-primary" />
+      <CardHeader className="pb-1">
+        <CardTitle className="flex items-center gap-1 mb-[-18px]">
+          <Leaf className="h-4 w-4 text-primary" />
           Dietary Preferences
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <CardContent className="pl-8">
+        <div className="grid grid-cols-3 gap-1">
           {dietaryOptions.map(({ key, label, icon: Icon }) => (
             <div
               key={key}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/5 transition-colors"
+              className="flex items-center space-x-1 p-1 rounded hover:bg-primary/5 transition-colors"
             >
               <Checkbox
                 id={key}
@@ -92,4 +81,4 @@ export function DietaryPreferences({
       </CardContent>
     </Card>
   );
-}
+});

@@ -27,6 +27,20 @@ export interface DietaryFilter {
   keto: boolean;
 }
 
+// Cuisine filter interface
+export interface CuisineFilter {
+  italian: boolean;
+  french: boolean;
+  mexican: boolean;
+  american: boolean;
+  japanese: boolean;
+  chinese: boolean;
+  indian: boolean;
+  thai: boolean;
+  mediterranean: boolean;
+  korean: boolean;
+}
+
 // Component prop types
 export interface RecipeCardProps {
   recipe: Recipe;
