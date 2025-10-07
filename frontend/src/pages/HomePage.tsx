@@ -58,6 +58,7 @@ export function HomePage() {
   }, []);
 
   // Memoize the filtered recipes to prevent recalculation on every render
+  // This is expensive with 100+ recipes and complex filtering logic
   const filteredRecipes = useMemo(() => {
     return mockRecipes.filter((recipe) => {
       // Search filter
@@ -117,9 +118,9 @@ export function HomePage() {
     });
   }, [searchQuery, filters, cuisineFilters]);
 
-  const activeFilterCount = useMemo(() => {
-    return Object.values(filters).filter(Boolean).length + Object.values(cuisineFilters).filter(Boolean).length;
-  }, [filters, cuisineFilters]);
+  // Simple calculation - memo overhead > benefit
+  const activeFilterCount = Object.values(filters).filter(Boolean).length + 
+                           Object.values(cuisineFilters).filter(Boolean).length;
 
   return (
     <div className="space-y-8">

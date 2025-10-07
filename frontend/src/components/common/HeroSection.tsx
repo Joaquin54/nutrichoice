@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { Leaf, Search } from 'lucide-react';
 import { Input } from '../ui/input';
 
@@ -7,7 +6,7 @@ interface HeroSectionProps {
   onSearchChange: (value: string) => void;
 }
 
-export const HeroSection = memo(function HeroSection({ 
+export function HeroSection({ 
   searchQuery, 
   onSearchChange 
 }: HeroSectionProps) {
@@ -38,4 +37,4 @@ export const HeroSection = memo(function HeroSection({
       </div>
     </section>
   );
-});
+}
