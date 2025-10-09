@@ -1,4 +1,4 @@
-Django
+Django>=4.2,<4.3
 djangorestframework
 mongoengine
 django-cors-headers
