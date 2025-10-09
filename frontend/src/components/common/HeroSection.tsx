@@ -1,17 +1,31 @@
 import { Leaf, Search } from 'lucide-react';
 import { Input } from '../ui/input';
+import { DietaryPreferencesDropdown } from '../recipe/DietaryPreferencesDropdown';
+import type { DietaryFilter } from '../../types/recipe';
 
 interface HeroSectionProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  dietaryFilters: DietaryFilter;
+  onDietaryFiltersChange: (filters: DietaryFilter) => void;
 }
 
 export function HeroSection({ 
   searchQuery, 
-  onSearchChange 
+  onSearchChange,
+  dietaryFilters,
+  onDietaryFiltersChange
 }: HeroSectionProps) {
   return (
     <section className="text-center py-0 relative">
+      {/* Dietary Filters Dropdown - Top Right */}
+      <div className="absolute top-0 right-0">
+        <DietaryPreferencesDropdown 
+          filters={dietaryFilters}
+          onFiltersChange={onDietaryFiltersChange}
+        />
+      </div>
+
       <div className="flex items-center justify-center mb-3">
         <Leaf className="h-5 w-5 text-[#69823b] mr-2" />
         <span className="text-[#69823b] font-medium text-sm">

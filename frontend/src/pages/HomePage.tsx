@@ -3,11 +3,9 @@ import { ChefHat } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
-import { DietaryPreferences } from "../components/recipe/DietaryPreferences";
-import { CuisineFilter } from "../components/recipe/CuisineFilter";
 import { HeroSection } from "../components/common/HeroSection";
 import { mockRecipes } from "../data/mockRecipes";
-import type { Recipe, DietaryFilter, CuisineFilter as CuisineFilterType } from "../types/recipe";
+import type { Recipe, DietaryFilter } from "../types/recipe";
 
 export function HomePage() {
   const [filters, setFilters] = useState<DietaryFilter>({
@@ -19,19 +17,6 @@ export function HomePage() {
     pescatarian: false,
     lowCarb: false,
     keto: false,
-  });
-
-  const [cuisineFilters, setCuisineFilters] = useState<CuisineFilterType>({
-    italian: false,
-    french: false,
-    mexican: false,
-    american: false,
-    japanese: false,
-    chinese: false,
-    indian: false,
-    thai: false,
-    mediterranean: false,
-    korean: false,
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,12 +38,7 @@ export function HomePage() {
     setFilters(newFilters);
   }, []);
 
-  const handleCuisineFiltersChange = useCallback((newCuisineFilters: CuisineFilterType) => {
-    setCuisineFilters(newCuisineFilters);
-  }, []);
-
   // Memoize the filtered recipes to prevent recalculation on every render
-  // This is expensive with 100+ recipes and complex filtering logic
   const filteredRecipes = useMemo(() => {
     return mockRecipes.filter((recipe) => {
       // Search filter
@@ -67,7 +47,8 @@ export function HomePage() {
         recipe.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.dietaryTags.some((tag) =>
           tag.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        ) ||
+        recipe.cuisine?.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
 
@@ -92,55 +73,22 @@ export function HomePage() {
         if (!dietaryMatch) return false;
       }
 
-      // Cuisine filters
-      const activeCuisineFilters = Object.entries(cuisineFilters).filter(([_, value]) => value);
-      if (activeCuisineFilters.length > 0) {
-        const cuisineMatch = activeCuisineFilters.some(([cuisineKey, _]) => {
-          const cuisineMap: Record<string, string> = {
-            italian: "Italian",
-            french: "French",
-            mexican: "Mexican",
-            american: "American",
-            japanese: "Japanese",
-            chinese: "Chinese",
-            indian: "Indian",
-            thai: "Thai",
-            mediterranean: "Mediterranean",
-            korean: "Korean",
-          };
-          const cuisineName = cuisineMap[cuisineKey];
-          return recipe.cuisine?.toLowerCase() === cuisineName.toLowerCase();
-        });
-        if (!cuisineMatch) return false;
-      }
-
       return true;
     });
-  }, [searchQuery, filters, cuisineFilters]);
+  }, [searchQuery, filters]);
 
   // Simple calculation - memo overhead > benefit
-  const activeFilterCount = Object.values(filters).filter(Boolean).length + 
-                           Object.values(cuisineFilters).filter(Boolean).length;
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
+      {/* Hero Section with Dietary Dropdown */}
       <HeroSection 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        dietaryFilters={filters}
+        onDietaryFiltersChange={handleFiltersChange}
       />
-
-      {/* Filters Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CuisineFilter 
-          filters={cuisineFilters} 
-          onFiltersChange={handleCuisineFiltersChange} 
-        />
-        <DietaryPreferences 
-          filters={filters} 
-          onFiltersChange={handleFiltersChange} 
-        />
-      </div>
 
       {/* Results Header */}
       <div className="flex items-center justify-between">

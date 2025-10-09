@@ -3,18 +3,24 @@ import { Heart } from 'lucide-react';
 
 interface EmptyFavoritesProps {
   onBrowseRecipes: () => void;
+  message?: string;
+  description?: string;
 }
 
-export function EmptyFavorites({ onBrowseRecipes }: EmptyFavoritesProps) {
+export function EmptyFavorites({ 
+  onBrowseRecipes, 
+  message = "No favorites yet",
+  description = "Start exploring recipes and save your favorites to see them here."
+}: EmptyFavoritesProps) {
   return (
     <Card className="text-center py-12">
       <CardContent>
         <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          No favorites yet
+          {message}
         </h3>
         <p className="text-gray-600 mb-4">
-          Start exploring recipes and save your favorites to see them here.
+          {description}
         </p>
         <button 
           onClick={onBrowseRecipes}
