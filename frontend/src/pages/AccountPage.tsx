@@ -5,6 +5,7 @@ import {
   NotificationSettings, 
   SecuritySettings 
 } from '../components/account';
+import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { DietaryFilter } from '../types/recipe';
 
 export function AccountPage() {
@@ -14,22 +15,14 @@ export function AccountPage() {
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [securityLoading, setSecurityLoading] = useState(false);
   
+  // Get dietary preferences from shared context
+  const { dietaryPreferences, updateDietaryPreferences } = useUserPreferences();
+  
   // Mock data - in real app, this would come from API/context
   const [profileData] = useState({
     name: 'John Doe',
     email: 'john@example.com',
     bio: 'Food enthusiast and home cook'
-  });
-
-  const [dietaryPreferences, setDietaryPreferences] = useState<DietaryFilter>({
-    vegetarian: false,
-    vegan: false,
-    glutenFree: true,
-    dairyFree: false,
-    eggFree: false,
-    pescatarian: false,
-    lowCarb: false,
-    keto: false,
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
@@ -50,9 +43,9 @@ export function AccountPage() {
     setDietaryLoading(true);
     // TODO: Implement dietary preferences update logic
     console.log('Dietary preferences update:', preferences);
-    setDietaryPreferences(preferences);
+    updateDietaryPreferences(preferences);
     setTimeout(() => setDietaryLoading(false), 1000);
-  }, []);
+  }, [updateDietaryPreferences]);
 
   const handleNotificationSettingsChange = useCallback(async (settings: typeof notificationSettings) => {
     setNotificationLoading(true);

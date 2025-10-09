@@ -1,38 +1,21 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { ChefHat } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
-import { DietaryPreferences } from "../components/recipe/DietaryPreferences";
-import { CuisineFilter } from "../components/recipe/CuisineFilter";
 import { HeroSection } from "../components/common/HeroSection";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import { mockRecipes } from "../data/mockRecipes";
-import type { Recipe, DietaryFilter, CuisineFilter as CuisineFilterType } from "../types/recipe";
+import type { Recipe, DietaryFilter } from "../types/recipe";
 
 export function HomePage() {
-  const [filters, setFilters] = useState<DietaryFilter>({
-    vegetarian: false,
-    vegan: false,
-    glutenFree: false,
-    dairyFree: false,
-    eggFree: false,
-    pescatarian: false,
-    lowCarb: false,
-    keto: false,
-  });
+  const { dietaryPreferences } = useUserPreferences();
+  const [filters, setFilters] = useState<DietaryFilter>(dietaryPreferences);
 
-  const [cuisineFilters, setCuisineFilters] = useState<CuisineFilterType>({
-    italian: false,
-    french: false,
-    mexican: false,
-    american: false,
-    japanese: false,
-    chinese: false,
-    indian: false,
-    thai: false,
-    mediterranean: false,
-    korean: false,
-  });
+  // Sync filters with user preferences when they change
+  useEffect(() => {
+    setFilters(dietaryPreferences);
+  }, [dietaryPreferences]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -53,10 +36,6 @@ export function HomePage() {
     setFilters(newFilters);
   }, []);
 
-  const handleCuisineFiltersChange = useCallback((newCuisineFilters: CuisineFilterType) => {
-    setCuisineFilters(newCuisineFilters);
-  }, []);
-
   // Memoize the filtered recipes to prevent recalculation on every render
   const filteredRecipes = useMemo(() => {
     return mockRecipes.filter((recipe) => {
@@ -66,7 +45,8 @@ export function HomePage() {
         recipe.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.dietaryTags.some((tag) =>
           tag.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        ) ||
+        recipe.cuisine?.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
 
@@ -91,55 +71,22 @@ export function HomePage() {
         if (!dietaryMatch) return false;
       }
 
-      // Cuisine filters
-      const activeCuisineFilters = Object.entries(cuisineFilters).filter(([_, value]) => value);
-      if (activeCuisineFilters.length > 0) {
-        const cuisineMatch = activeCuisineFilters.some(([cuisineKey, _]) => {
-          const cuisineMap: Record<string, string> = {
-            italian: "Italian",
-            french: "French",
-            mexican: "Mexican",
-            american: "American",
-            japanese: "Japanese",
-            chinese: "Chinese",
-            indian: "Indian",
-            thai: "Thai",
-            mediterranean: "Mediterranean",
-            korean: "Korean",
-          };
-          const cuisineName = cuisineMap[cuisineKey];
-          return recipe.cuisine?.toLowerCase() === cuisineName.toLowerCase();
-        });
-        if (!cuisineMatch) return false;
-      }
-
       return true;
     });
-  }, [searchQuery, filters, cuisineFilters]);
+  }, [searchQuery, filters]);
 
-  const activeFilterCount = useMemo(() => {
-    return Object.values(filters).filter(Boolean).length + Object.values(cuisineFilters).filter(Boolean).length;
-  }, [filters, cuisineFilters]);
+  // Simple calculation - memo overhead > benefit
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
+      {/* Hero Section with Dietary Dropdown */}
       <HeroSection 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        dietaryFilters={filters}
+        onDietaryFiltersChange={handleFiltersChange}
       />
-
-      {/* Filters Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CuisineFilter 
-          filters={cuisineFilters} 
-          onFiltersChange={handleCuisineFiltersChange} 
-        />
-        <DietaryPreferences 
-          filters={filters} 
-          onFiltersChange={handleFiltersChange} 
-        />
-      </div>
 
       {/* Results Header */}
       <div className="flex items-center justify-between">

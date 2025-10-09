@@ -5,6 +5,7 @@ import { AuthPage } from '../pages/AuthPage';
 import { FavoritesPage } from '../pages/FavoritesPage';
 import { AccountPage } from '../pages/AccountPage';
 import { NutritionPage } from '../pages/NutritionPage';
+import { MealPlanningPage } from '../pages/MealPlanningPage';
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: 'nutrition',
         element: <NutritionPage />,
+      },
+      {
+        path: 'meal-planning',
+        element: <MealPlanningPage />,
       },
     ],
   },

@@ -1,7 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Badge } from "../ui/badge";
-import { Clock, Users, ChefHat } from "lucide-react";
+import { Button } from "../ui/button";
+import { Clock, Users, ChefHat, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
+import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
 
 interface RecipeModalProps {
@@ -11,6 +13,8 @@ interface RecipeModalProps {
 }
 
 export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
+  const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
+  
   if (!recipe) return null;
 
   const getDifficultyColor = (difficulty: string) => {
@@ -26,11 +30,53 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
     }
   };
 
+  const handleFavoriteClick = () => {
+    toggleFavorite(recipe.id);
+  };
+
+  const handleTriedClick = () => {
+    toggleTried(recipe.id);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[80vw] p-10">
         <DialogHeader>
-          <DialogTitle className="text-2xl">{recipe.title}</DialogTitle>
+          <DialogTitle className="text-2xl flex items-center justify-between">
+            <span>{recipe.title}</span>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleFavoriteClick}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    isFavorite(recipe.id)
+                      ? "fill-red-500 text-red-500"
+                      : ""
+                  } transition-colors`}
+                />
+                {isFavorite(recipe.id) ? "Favorited" : "Favorite"}
+              </Button>
+              <Button
+                onClick={handleTriedClick}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <CheckCircle
+                  className={`h-4 w-4 ${
+                    isTried(recipe.id)
+                      ? "fill-green-500 text-green-500"
+                      : ""
+                  } transition-colors`}
+                />
+                {isTried(recipe.id) ? "Tried" : "Mark as Tried"}
+              </Button>
+            </div>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">

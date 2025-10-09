@@ -2,9 +2,10 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Clock, Users, ChefHat } from "lucide-react";
+import { Clock, Users, ChefHat, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { FlameIcon } from "../ui/CookingIcons";
+import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
 
 interface RecipeCardProps {
@@ -13,6 +14,8 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
+  const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
+  
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
@@ -26,8 +29,21 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
     }
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(recipe.id);
+  };
+
+  const handleTriedClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleTried(recipe.id);
+  };
+
   return (
-    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card/90 backdrop-blur-sm border-border/50 hover:border-primary/30">
+    <Card 
+      className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card/90 backdrop-blur-sm border-border/50 hover:border-primary/30 cursor-pointer"
+      onClick={() => onViewRecipe(recipe)}
+    >
       <div className="relative overflow-hidden">
         <ImageWithFallback
           src={recipe.image}
@@ -42,6 +58,34 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
             <FlameIcon className="h-3 w-3 mr-1" />
             {recipe.difficulty}
           </Badge>
+        </div>
+        <div className="absolute top-3 left-3 flex gap-2">
+          <button
+            onClick={handleFavoriteClick}
+            className="p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
+            aria-label={isFavorite(recipe.id) ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart
+              className={`h-4 w-4 ${
+                isFavorite(recipe.id)
+                  ? "fill-red-500 text-red-500"
+                  : "text-gray-600"
+              } transition-colors`}
+            />
+          </button>
+          <button
+            onClick={handleTriedClick}
+            className="p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
+            aria-label={isTried(recipe.id) ? "Mark as not tried" : "Mark as tried"}
+          >
+            <CheckCircle
+              className={`h-4 w-4 ${
+                isTried(recipe.id)
+                  ? "fill-green-500 text-green-500"
+                  : "text-gray-600"
+              } transition-colors`}
+            />
+          </button>
         </div>
       </div>
 
@@ -83,7 +127,10 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
         </div>
 
         <Button
-          onClick={() => onViewRecipe(recipe)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewRecipe(recipe);
+          }}
           className="w-full text-white bg-[#9dc257]/70 hover:bg-[#9dc257]/80 shadow-sm hover:shadow-md transition-all duration-200 group-hover:bg-[#9dc257]/80 group-hover:scale-[1.02]"
         >
           <span className="flex items-center gap-2">
