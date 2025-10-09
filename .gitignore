@@ -10,6 +10,7 @@ backend/.venv/
 *.pyo
 *.pyd
 *.sqlite3
+backend/venv
 
 # Environment files (DON'T leak secrets!)
 *.env

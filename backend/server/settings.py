@@ -84,54 +84,58 @@ WSGI_APPLICATION = "server.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('POSTGRES_HOST'),
+        'PORT': os.environ.get('POSTGRES_PORT'),
     }
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+    # Password validation
+    # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    AUTH_PASSWORD_VALIDATORS = [
+{
+    "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+},
+{
+    "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+},
+{
+    "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+},
+{
+    "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+},
 ]
 
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/capstone_db")
-connect(host=MONGO_URL)
+    MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/capstone_db")
+    connect(host=MONGO_URL)
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
+    # Internationalization
+    # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+    LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+    TIME_ZONE = "UTC"
 
-USE_I18N = True
+    USE_I18N = True
 
-USE_TZ = True
+    USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+    # Static files (CSS, JavaScript, Images)
+    # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+    STATIC_URL = "static/"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+    # Default primary key field type
+    # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
-CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_ALL_ORIGINS = True
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+    DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
