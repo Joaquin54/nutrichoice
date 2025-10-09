@@ -34,5 +34,23 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: nutrichoice_postgres
+    environment:
+      POSTGRES_DB: nutrichioce_psql
+      POSTRGRES_USER: nutrichoice_admin
+      POSTGRES_PASSWORD: admin1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutrition_user -d nutrition_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mongo-data:
+  postgres_data:
