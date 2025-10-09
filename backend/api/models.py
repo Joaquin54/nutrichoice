@@ -14,11 +14,11 @@ class User(models.Model):
         editable=False,
         unique=True,
     )
-    username = models.CharField(max=24)
-    last_name = models.CharField(max=35)
-    first_name = models.CharField(max=35)
+    username = models.CharField(max_length=24)
+    last_name = models.CharField(max_length=35)
+    first_name = models.CharField(max_length=35)
     date_created = models.DateTimeField(auto_now_add=True)
-    email = models.EmailField(max=70)
+    email = models.EmailField(max_length=70)
 
     def __str__(self):
         return str(self.public_id)
