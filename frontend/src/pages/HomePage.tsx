@@ -1,23 +1,21 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { ChefHat } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
 import { HeroSection } from "../components/common/HeroSection";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import { mockRecipes } from "../data/mockRecipes";
 import type { Recipe, DietaryFilter } from "../types/recipe";
 
 export function HomePage() {
-  const [filters, setFilters] = useState<DietaryFilter>({
-    vegetarian: false,
-    vegan: false,
-    glutenFree: false,
-    dairyFree: false,
-    eggFree: false,
-    pescatarian: false,
-    lowCarb: false,
-    keto: false,
-  });
+  const { dietaryPreferences } = useUserPreferences();
+  const [filters, setFilters] = useState<DietaryFilter>(dietaryPreferences);
+
+  // Sync filters with user preferences when they change
+  useEffect(() => {
+    setFilters(dietaryPreferences);
+  }, [dietaryPreferences]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);

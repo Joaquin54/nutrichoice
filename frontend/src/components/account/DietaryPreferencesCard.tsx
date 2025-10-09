@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Settings } from 'lucide-react';
@@ -16,6 +16,11 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
   isLoading = false 
 }: DietaryPreferencesCardProps) {
   const [localPreferences, setLocalPreferences] = useState(preferences);
+
+  // Update local preferences when props change
+  useEffect(() => {
+    setLocalPreferences(preferences);
+  }, [preferences]);
 
   const handlePreferenceChange = (key: keyof DietaryFilter, checked: boolean) => {
     setLocalPreferences(prev => ({
