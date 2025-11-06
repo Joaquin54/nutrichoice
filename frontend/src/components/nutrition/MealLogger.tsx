@@ -21,7 +21,7 @@ export function MealLogger({ onLogMeal }: MealLoggerProps) {
           <p className="text-gray-600 mb-4">
             Track your nutrition by logging the recipes you cook and eat.
           </p>
-          <Button onClick={onLogMeal}>Log Your First Meal</Button>
+          <Button className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" onClick={onLogMeal}>Log Your First Meal</Button>
         </div>
       </CardContent>
     </Card>

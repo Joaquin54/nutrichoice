@@ -72,7 +72,7 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
             ))}
           </div>
         </div>
-        <Button onClick={handleSavePreferences} disabled={isLoading}>
+        <Button onClick={handleSavePreferences} className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
           {isLoading ? 'Updating...' : 'Update Preferences'}
         </Button>
       </CardContent>

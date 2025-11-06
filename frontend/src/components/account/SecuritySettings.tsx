@@ -58,7 +58,7 @@ export const SecuritySettings = memo(function SecuritySettings({ onSubmit, isLoa
               type="password" 
             />
           </div>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
             {isLoading ? 'Changing Password...' : 'Change Password'}
           </Button>
         </form>

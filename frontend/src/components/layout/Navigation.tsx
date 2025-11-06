@@ -11,7 +11,7 @@ const navigationItems = [
 
 export const Navigation = memo(function Navigation() {
   return (
-    <nav className="bg-white/60 backdrop-blur-sm border-b border-green-100 shadow-sm">
+    <nav className="bg-white/60 dark:bg-gray-900 backdrop-blur-sm border-b border-[#6ec257]/20 dark:border-gray-800 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <div className="flex space-x-1">
@@ -24,8 +24,8 @@ export const Navigation = memo(function Navigation() {
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 text-[#3b752b] dark:text-gray-200'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`
                   }
                 >
@@ -42,8 +42,8 @@ export const Navigation = memo(function Navigation() {
               className={({ isActive }) =>
                 `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-green-100 text-green-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 text-[#3b752b] dark:text-gray-200'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`
               }
             >
@@ -53,7 +53,7 @@ export const Navigation = memo(function Navigation() {
             
             <NavLink
               to="/auth"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <LogIn className="h-4 w-4" />
               Sign In

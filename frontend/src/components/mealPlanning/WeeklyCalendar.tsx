@@ -8,10 +8,10 @@ import { RecipeSelector } from './RecipeSelector';
 const MEAL_TYPES: Array<MealPlan['mealType']> = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 const MEAL_TYPE_COLORS = {
-  breakfast: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-  lunch: 'bg-blue-100 border-blue-300 text-blue-800',
-  dinner: 'bg-purple-100 border-purple-300 text-purple-800',
-  snack: 'bg-green-100 border-green-300 text-green-800',
+  breakfast: 'bg-yellow-100 dark:bg-yellow-900/50 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200',
+  lunch: 'bg-blue-100 dark:bg-blue-900/50 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200',
+  dinner: 'bg-purple-100 dark:bg-purple-900/50 border-purple-300 dark:border-purple-700 text-purple-800 dark:text-purple-200',
+  snack: 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 border-[#6ec257]/40 dark:border-[#6ec257]/50 text-[#6ec257] dark:text-[#6ec257]/90',
 };
 
 export function WeeklyCalendar() {
@@ -90,7 +90,7 @@ export function WeeklyCalendar() {
               <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[200px] text-center">
+              <span className="text-sm font-medium min-w-[200px] text-center text-gray-900 dark:text-white">
                 {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
               </span>
               <Button variant="outline" size="icon" onClick={goToNextWeek}>
@@ -109,12 +109,14 @@ export function WeeklyCalendar() {
                 <div
                   key={dateString}
                   className={`border rounded-lg p-3 min-h-[400px] ${
-                    isToday(date) ? 'bg-green-50 border-green-300' : 'bg-white'
+                    isToday(date) 
+                      ? 'bg-[#6ec257]/10 dark:bg-[#6ec257]/20 border-[#6ec257]/40 dark:border-[#6ec257]/50' 
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
                 >
                   <div className="text-center mb-3">
-                    <div className="font-semibold text-gray-900">{formatDayName(date)}</div>
-                    <div className="text-sm text-gray-600">{formatDate(date)}</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{formatDayName(date)}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{formatDate(date)}</div>
                   </div>
 
                   <div className="space-y-2">
@@ -123,7 +125,7 @@ export function WeeklyCalendar() {
 
                       return (
                         <div key={mealType} className="space-y-1">
-                          <div className="text-xs font-medium text-gray-500 capitalize">
+                          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
                             {mealType}
                           </div>
                           {meal ? (
@@ -142,7 +144,7 @@ export function WeeklyCalendar() {
                           ) : (
                             <button
                               onClick={() => handleAddMeal(dateString, mealType)}
-                              className="w-full text-xs p-2 rounded border border-dashed border-gray-300 hover:border-green-400 hover:bg-green-50 transition-colors flex items-center justify-center gap-1"
+                              className="w-full text-xs p-2 rounded border border-dashed border-gray-300 dark:border-gray-600 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-colors flex items-center justify-center gap-1 text-gray-600 dark:text-gray-400"
                             >
                               <Plus className="h-3 w-3" />
                               Add

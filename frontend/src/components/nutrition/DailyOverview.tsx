@@ -30,7 +30,7 @@ export function DailyOverview({ data }: DailyOverviewProps) {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-green-500 h-2 rounded-full" 
+              className="bg-[#6ec257] h-2 rounded-full" 
               style={{ width: `${getPercentage(data.calories.current, data.calories.target)}%` }}
             ></div>
           </div>
