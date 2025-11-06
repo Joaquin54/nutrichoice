@@ -11,7 +11,6 @@ backend/.venv/
 *.pyd
 *.sqlite3
 backend/venv
-backend/requirements.txt
 
 # Environment files (DON'T leak secrets!)
 *.env
@@ -29,3 +28,5 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+plan.md

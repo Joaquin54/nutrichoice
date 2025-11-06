@@ -1,4 +1,5 @@
 Django>=4.2,<4.3
+psycopg2-binary
 djangorestframework
 mongoengine
 django-cors-headers
