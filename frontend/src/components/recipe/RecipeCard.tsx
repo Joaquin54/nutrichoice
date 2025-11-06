@@ -4,7 +4,6 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Clock, Users, ChefHat, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
-import { FlameIcon } from "../ui/CookingIcons";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
 
@@ -15,19 +14,6 @@ interface RecipeCardProps {
 
 export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
-  
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Easy":
-        return "bg-[#6ec257]/20 text-[#6ec257] border-[#6ec257]/40";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Hard":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -51,14 +37,6 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-3 right-3">
-          <Badge
-            className={`${getDifficultyColor(recipe.difficulty)} shadow-sm`}
-          >
-            <FlameIcon className="h-3 w-3 mr-1" />
-            {recipe.difficulty}
-          </Badge>
-        </div>
         <div className="absolute top-3 left-3 flex gap-2">
           <button
             onClick={handleFavoriteClick}
@@ -107,10 +85,6 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
             <Users className="h-4 w-4" />
             <span>{recipe.servings}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
-            <ChefHat className="h-4 w-4" />
-            <span>{recipe.difficulty}</span>
           </div>
         </div>
 
