@@ -59,7 +59,7 @@ export const ProfileForm = memo(function ProfileForm({ onSubmit, isLoading = fal
               defaultValue={initialData?.bio || ''}
             />
           </div>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
             {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </form>

@@ -35,7 +35,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
-                className="pl-10"
+                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
@@ -50,13 +50,13 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
-                className="pl-10"
+                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
             <LogIn className="mr-2 h-4 w-4" />
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>

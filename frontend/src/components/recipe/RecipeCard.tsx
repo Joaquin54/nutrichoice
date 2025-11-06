@@ -4,7 +4,6 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Clock, Users, ChefHat, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
-import { FlameIcon } from "../ui/CookingIcons";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
 
@@ -15,19 +14,6 @@ interface RecipeCardProps {
 
 export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
-  
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Easy":
-        return "bg-green-100 text-green-700 border-green-200";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Hard":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,7 +27,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
 
   return (
     <Card 
-      className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card/90 backdrop-blur-sm border-border/50 hover:border-primary/30 cursor-pointer"
+      className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card/90 backdrop-blur-sm border-border/50 hover:border-[#6ec257]/30 cursor-pointer"
       onClick={() => onViewRecipe(recipe)}
     >
       <div className="relative overflow-hidden">
@@ -51,14 +37,6 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-3 right-3">
-          <Badge
-            className={`${getDifficultyColor(recipe.difficulty)} shadow-sm`}
-          >
-            <FlameIcon className="h-3 w-3 mr-1" />
-            {recipe.difficulty}
-          </Badge>
-        </div>
         <div className="absolute top-3 left-3 flex gap-2">
           <button
             onClick={handleFavoriteClick}
@@ -81,7 +59,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
             <CheckCircle
               className={`h-4 w-4 ${
                 isTried(recipe.id)
-                  ? "fill-green-500 text-green-500"
+                  ? "fill-[#6ec257] text-[#6ec257]"
                   : "text-gray-600"
               } transition-colors`}
             />
@@ -90,7 +68,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
       </div>
 
       <CardHeader className="pb-3">
-        <h3 className="line-clamp-2 mb-2 group-hover:text-primary transition-colors duration-200">
+        <h3 className="line-clamp-2 mb-2 group-hover:text-[#6ec257] transition-colors duration-200">
           {recipe.title}
         </h3>
         <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
@@ -100,17 +78,13 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
 
       <CardContent className="pt-0">
         <div className="flex items-center gap-4 mb-4 text-sm">
-          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors">
+          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
             <Clock className="h-4 w-4" />
             <span>{recipe.cookTime}m</span>
           </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors">
+          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
             <Users className="h-4 w-4" />
             <span>{recipe.servings}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors">
-            <ChefHat className="h-4 w-4" />
-            <span>{recipe.difficulty}</span>
           </div>
         </div>
 
@@ -119,7 +93,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
             <Badge
               key={index}
               variant="secondary"
-              className="bg-primary/10 text-primary border-primary/20"
+              className="bg-[#6ec257]/10 text-[#6ec257] border-[#6ec257]/20"
             >
               {tag}
             </Badge>
@@ -131,7 +105,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
             e.stopPropagation();
             onViewRecipe(recipe);
           }}
-          className="w-full text-white bg-[#9dc257]/70 hover:bg-[#9dc257]/80 shadow-sm hover:shadow-md transition-all duration-200 group-hover:bg-[#9dc257]/80 group-hover:scale-[1.02]"
+          className="w-full text-white bg-[#6ec257]/70 hover:bg-[#6ec257]/80 shadow-sm hover:shadow-md transition-all duration-200 group-hover:bg-[#6ec257]/80 group-hover:scale-[1.02]"
         >
           <span className="flex items-center gap-2">
             View Recipe

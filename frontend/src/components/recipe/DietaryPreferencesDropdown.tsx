@@ -56,12 +56,12 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
           variant="outline" 
           className="gap-2 bg-white hover:bg-gray-50 border-gray-300 shadow-sm relative"
         >
-          <Leaf className="h-4 w-4 text-[#69823b]" />
+          <Leaf className="h-4 w-4 text-[#6ec257]" />
           <span>Dietary Filters</span>
           {activeFilterCount > 0 && (
             <Badge 
               variant="secondary" 
-              className="ml-1 bg-[#69823b] text-white hover:bg-[#69823b] px-1.5 py-0 h-5 min-w-5 flex items-center justify-center rounded-full"
+              className="ml-1 bg-[#6ec257] text-white hover:bg-[#6ec257] px-1.5 py-0 h-5 min-w-5 flex items-center justify-center rounded-full"
             >
               {activeFilterCount}
             </Badge>
@@ -73,7 +73,7 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-sm flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-[#69823b]" />
+              <Leaf className="h-4 w-4 text-[#6ec257]" />
               Dietary Preferences
             </h4>
             {activeFilterCount > 0 && (
@@ -108,13 +108,13 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
                   onCheckedChange={(checked: boolean | "indeterminate") =>
                     handleFilterChange(key, checked === true)
                   }
-                  className="border-primary/30 data-[state=checked]:bg-[#69823b] data-[state=checked]:border-[#69823b]"
+                  className="border-primary/30 data-[state=checked]:bg-[#6ec257] data-[state=checked]:border-[#6ec257]"
                 />
                 <Label
                   htmlFor={`dropdown-${key}`}
                   className="flex items-center gap-2 cursor-pointer flex-1"
                 >
-                  <Icon className="h-4 w-4 text-[#69823b]/70" />
+                  <Icon className="h-4 w-4 text-[#6ec257]/70" />
                   <span className="text-sm">{label}</span>
                 </Label>
               </div>

@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Clock, Users, ChefHat, Heart, CheckCircle } from "lucide-react";
+import { Clock, Users, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
@@ -16,19 +16,6 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
   
   if (!recipe) return null;
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Easy":
-        return "bg-green-100 text-green-700 border-green-200";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Hard":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
 
   const handleFavoriteClick = () => {
     toggleFavorite(recipe.id);
@@ -69,7 +56,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                 <CheckCircle
                   className={`h-4 w-4 ${
                     isTried(recipe.id)
-                      ? "fill-green-500 text-green-500"
+                      ? "fill-[#6ec257] text-[#6ec257]"
                       : ""
                   } transition-colors`}
                 />
@@ -86,27 +73,18 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
               alt={recipe.title}
               className="w-full h-64 md:h-80 object-cover rounded-lg"
             />
-            <div className="absolute top-3 right-3">
-              <Badge className={getDifficultyColor(recipe.difficulty)}>
-                {recipe.difficulty}
-              </Badge>
-            </div>
           </div>
 
           <p className="text-muted-foreground">{recipe.description}</p>
 
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
+              <Clock className="h-5 w-5 text-[#6ec257]" />
               <span>{recipe.cookTime} minutes</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
+              <Users className="h-5 w-5 text-[#6ec257]" />
               <span>{recipe.servings} servings</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ChefHat className="h-5 w-5 text-primary" />
-              <span>{recipe.difficulty}</span>
             </div>
           </div>
 
@@ -115,7 +93,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
               <Badge
                 key={index}
                 variant="secondary"
-                className="bg-primary/10 text-primary border-primary/20"
+                className="bg-[#6ec257]/10 text-[#6ec257] border-[#6ec257]/20"
               >
                 {tag}
               </Badge>
@@ -128,7 +106,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
               <ul className="space-y-2">
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <span className="text-primary mt-1">•</span>
+                    <span className="text-[#6ec257] mt-1">•</span>
                     <span>{ingredient}</span>
                   </li>
                 ))}
@@ -140,7 +118,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
               <ol className="space-y-3">
                 {recipe.instructions.map((instruction, index) => (
                   <li key={index} className="flex gap-3">
-                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="bg-[#6ec257] text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                       {index + 1}
                     </span>
                     <span>{instruction}</span>

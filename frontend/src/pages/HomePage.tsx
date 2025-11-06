@@ -91,17 +91,17 @@ export function HomePage() {
       {/* Results Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             Recommended Recipes
             {activeFilterCount > 0 && (
-              <span className="text-gray-500 font-normal">
+              <span className="text-gray-500 dark:text-gray-400 font-normal">
                 {" "}
                 • {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}{" "}
                 applied
               </span>
             )}
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             {filteredRecipes.length} recipe
             {filteredRecipes.length !== 1 ? "s" : ""} found
           </p>
@@ -122,11 +122,11 @@ export function HomePage() {
       ) : (
         <Card className="text-center py-12">
           <CardContent>
-            <ChefHat className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <ChefHat className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               No recipes found
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Try adjusting your search terms or dietary preferences to find
               more recipes.
             </p>

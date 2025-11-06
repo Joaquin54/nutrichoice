@@ -40,11 +40,11 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
           <DialogTitle className="text-xl">
             Select Recipe for {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
           </DialogTitle>
-          <p className="text-sm text-gray-600">{formatDate(date)}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(date)}</p>
         </DialogHeader>
 
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <Input
             placeholder="Search recipes..."
             value={searchQuery}
@@ -59,7 +59,7 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
               <button
                 key={recipe.id}
                 onClick={() => handleSelectRecipe(recipe)}
-                className="text-left border rounded-lg p-3 hover:border-green-400 hover:bg-green-50 transition-all group"
+                className="text-left border rounded-lg p-3 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-all group bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
               >
                 <div className="flex gap-3">
                   <ImageWithFallback
@@ -68,13 +68,13 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm line-clamp-2 group-hover:text-green-700">
+                    <h3 className="font-medium text-sm line-clamp-2 group-hover:text-[#6ec257] dark:group-hover:text-[#6ec257]/90 text-gray-900 dark:text-white">
                       {recipe.title}
                     </h3>
-                    <p className="text-xs text-gray-600 line-clamp-2 mt-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
                       {recipe.description}
                     </p>
-                    <div className="flex gap-2 mt-2 text-xs text-gray-500">
+                    <div className="flex gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
                       <span>⏱ {recipe.cookTime}m</span>
                       <span>👥 {recipe.servings}</span>
                     </div>
@@ -85,7 +85,7 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
           </div>
 
           {filteredRecipes.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p>No recipes found</p>
             </div>
           )}

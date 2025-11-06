@@ -19,7 +19,7 @@ interface GoalsCardProps {
 export function GoalsCard({ goals, onUpdateGoals, isLoading = false }: GoalsCardProps) {
   const getStatusColor = (status: Goal['status']) => {
     switch (status) {
-      case 'on-track': return 'text-green-600';
+      case 'on-track': return 'text-[#6ec257]';
       case 'in-progress': return 'text-blue-600';
       case 'needs-attention': return 'text-red-600';
       default: return 'text-gray-600';
@@ -28,7 +28,7 @@ export function GoalsCard({ goals, onUpdateGoals, isLoading = false }: GoalsCard
 
   const getBgColor = (color: Goal['color']) => {
     switch (color) {
-      case 'green': return 'bg-green-50';
+      case 'green': return 'bg-[#6ec257]/20';
       case 'blue': return 'bg-blue-50';
       case 'purple': return 'bg-purple-50';
       default: return 'bg-gray-50';
@@ -37,7 +37,7 @@ export function GoalsCard({ goals, onUpdateGoals, isLoading = false }: GoalsCard
 
   const getTextColor = (color: Goal['color']) => {
     switch (color) {
-      case 'green': return 'text-green-800';
+      case 'green': return 'text-[#6ec257]';
       case 'blue': return 'text-blue-800';
       case 'purple': return 'text-purple-800';
       default: return 'text-gray-800';
@@ -71,7 +71,7 @@ export function GoalsCard({ goals, onUpdateGoals, isLoading = false }: GoalsCard
             </div>
           ))}
         </div>
-        <Button className="w-full" onClick={onUpdateGoals} disabled={isLoading}>
+        <Button className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" onClick={onUpdateGoals} disabled={isLoading}>
           {isLoading ? 'Updating...' : 'Update Goals'}
         </Button>
       </CardContent>

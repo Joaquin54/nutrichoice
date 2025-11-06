@@ -71,7 +71,7 @@ export const NotificationSettings = memo(function NotificationSettings({
             <span className="text-sm">Weekly meal plans</span>
           </label>
         </div>
-        <Button onClick={handleSaveSettings} disabled={isLoading}>
+        <Button onClick={handleSaveSettings} className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
           {isLoading ? 'Saving...' : 'Save Preferences'}
         </Button>
       </CardContent>

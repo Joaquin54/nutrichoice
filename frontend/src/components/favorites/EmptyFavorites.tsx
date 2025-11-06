@@ -24,7 +24,7 @@ export function EmptyFavorites({
         </p>
         <button 
           onClick={onBrowseRecipes}
-          className="text-green-600 hover:text-green-700 font-medium"
+          className="text-[#6ec257] hover:text-[#6ec257]/80 font-medium"
         >
           Browse Recipes
         </button>

@@ -8,7 +8,7 @@ export function AuthToggle({ isLogin, onToggle }: AuthToggleProps) {
     <div className="text-center">
       <button
         onClick={onToggle}
-        className="text-sm text-green-600 hover:text-green-700 font-medium"
+        className="text-sm text-[#6ec257] hover:text-[#6ec257]/80 font-medium"
       >
         {isLogin 
           ? "Don't have an account? Sign up" 

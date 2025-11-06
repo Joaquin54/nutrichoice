@@ -40,7 +40,7 @@ export function WeeklyProgress({ data, onViewReport }: WeeklyProgressProps) {
             <span className="font-semibold">{data.exerciseDays}</span>
           </div>
         </div>
-        <Button className="w-full" onClick={onViewReport}>
+        <Button className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" onClick={onViewReport}>
           View Detailed Report
         </Button>
       </CardContent>
