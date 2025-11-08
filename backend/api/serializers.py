@@ -1,5 +1,9 @@
 from rest_framework import fields, serializers
-from .models import TriedRecipe, User
+#from rest_framework.renderers import JSONRenderer
+from .models import TriedRecipe, User, User_Profile
+
+# For MongoDB models (Recipe, Ingredient, SavedRecipe)
+from rest_framework_mongoengine import serializers as mongo_serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -49,3 +53,44 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
         if TriedRecipe.objects.filter(public_id=public_id, tried_by=tried_by).exists():
             raise serializers.ValidationError(
                 "Recipe already tried by user this user")
+    
+#Example
+
+#All serializers below added by Pedro (hopefully they work)
+
+class UserProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        #Postgree model user profile
+        model = User_Profile
+        #Data fields of the postgree table/model
+        fields = [
+            "id", 
+            "user", 
+            "daily_calorie_goal", 
+            "daily_protein_goal",
+            "date_created",
+            "date_updated",
+            "bio",
+            "diet_type",
+            "profil_picture" #Typo here is copied from model
+                  ]
+        
+        read_only_fields = ["id", "date_created"]
+
+        def validate_id(self, value):
+            if User_Profile.objects.filter(id=value).exists():
+                raise serializers.ValidationError(
+                    "Another user in the system has identical ID"
+                )
+            
+        #Ensure one user does not have multiple profiles
+        def validate_user(self, value):
+            if User_Profile.objects.filter(user=value).exists():
+                raise serializers.ValidationError(
+                    "User already has a profile created"
+                )
+
+
+
+
+    
