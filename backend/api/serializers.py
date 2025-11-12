@@ -2,6 +2,7 @@ from rest_framework import fields, serializers
 from .models import TriedRecipe, User
 
 
+
 class UserSerializer(serializers.ModelSerializer):
     """
     Serialize user data from the User Model (model.py)
