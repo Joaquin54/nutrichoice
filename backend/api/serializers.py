@@ -1,6 +1,9 @@
 from rest_framework import fields, serializers
-from .models import TriedRecipe, User
+from .models import TriedRecipe, User, User_Profile
+from .models_mongo import Ingredient, RecipeIngredientEmbedded
 
+# For MongoDB models (Recipe, Ingredient, SavedRecipe)
+from rest_framework_mongoengine import serializers as mongo_serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,7 +38,6 @@ class UserSerializer(serializers.ModelSerializer):
         if value.lower() in forbidden_words:
             raise serializers.ValidationError("Username not allowed")
 
-
 class TriedRecipeSerializer(serializers.ModelSerializer):
     model = TriedRecipe
     fields = [
@@ -46,7 +48,93 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
 
     read_only_fields = ['public_id', 'date_added']
 
+    #There seems to be an error here, not sure what to do
     def validate_triedrecipe(self, value):
         if TriedRecipe.objects.filter(public_id=public_id, tried_by=tried_by).exists():
             raise serializers.ValidationError(
                 "Recipe already tried by user this user")
+        
+
+#All serializers below added by Pedro (hopefully they work)
+
+class UserProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        #Postgree model user profile
+        model = User_Profile
+        #Data fields of the postgree table/model
+        fields = [
+            "id", 
+            "user", 
+            "daily_calorie_goal", 
+            "daily_protein_goal",
+            "date_created",
+            "date_updated",
+            "bio",
+            "diet_type",
+            "profil_picture" #Typo here is copied from model
+                  ]
+        
+        read_only_fields = ["id", "date_created"]
+
+        def validate_id(self, value):
+            if User_Profile.objects.filter(id=value).exists():
+                raise serializers.ValidationError(
+                    "Another user in the system has identical ID"
+                )
+            
+        #Ensure one user does not have multiple profiles
+        def validate_user(self, value):
+            if User_Profile.objects.filter(user=value).exists():
+                raise serializers.ValidationError(
+                    "User already has a profile created"
+                )
+
+
+
+class IngredientSerializer(mongo_serializers.DocumentSerializer):
+    class meta:
+        model = Ingredient
+        fields = ["public_id", 
+                "name",
+                "category",
+                "calories",
+                "protein"
+                "carbs",
+                "fat",
+                "fiber",
+                "sugar",
+                "sodium",
+                "conversions",
+                "created_date",
+                "updated_date"
+                ]
+    
+        read_only_fields = ["public_id", "created_date", "updated_date"]
+
+#Not sure what this serializer accomplishes
+class IngredientListSerializer(mongo_serializers.DocumentSerializer):
+
+    class meta:
+        model = Ingredient
+        fields = ["public_id",
+                  "name",
+                  "category",
+                  "calories",
+                  "protein",
+                  "carbs",
+                  "fat"
+                  ]
+        read_only_fields = ["public_id",]
+
+class RecipeIngredientEmbeddedSerializer(mongo_serializers.DocumentSerializer):
+    class meta:
+        model = RecipeIngredientEmbedded
+        fields = ["ingredient_id",
+                  "ingredient_name",
+                  "quantity_grams",
+                  "display_quantity",
+                  "display_unit",
+                  "preparation_notes",
+                  "order"
+                  ]
+
