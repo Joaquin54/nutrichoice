@@ -1,6 +1,6 @@
 from rest_framework import fields, serializers
 from .models import TriedRecipe, User, User_Profile
-from .models_mongo import Ingredient, RecipeIngredientEmbedded
+from .models_mongo import Ingredient, RecipeIngredientEmbedded, RecipeInstructionEmbedded
 
 # For MongoDB models (Recipe, Ingredient, SavedRecipe)
 from rest_framework_mongoengine import serializers as mongo_serializers
@@ -136,7 +136,7 @@ class IngredientListSerializer(mongo_serializers.DocumentSerializer):
                   ]
         read_only_fields = ["public_id",]
 
-class RecipeIngredientEmbeddedSerializer(mongo_serializers.DocumentSerializer):
+class RecipeIngredientEmbeddedSerializer(mongo_serializers.EmbeddedDocumentSerializer):
     class meta:
         model = RecipeIngredientEmbedded
         fields = ["ingredient_id",
@@ -147,4 +147,40 @@ class RecipeIngredientEmbeddedSerializer(mongo_serializers.DocumentSerializer):
                   "preparation_notes",
                   "order"
                   ]
+        
+class RecipeInstructionEmbeddedSerializer(mongo_serializers.EmbeddedDocumentSerializer):
+    class meta:
+        model = RecipeInstructionEmbedded
+        fields = ["step_number",
+                  "instruction",
+                  "duration_minutes"]
+        
+
+class RecipeSerializer(mongo_serializers.DocumentSerializer):
+
+    #nested serialization
+    ingredients = RecipeIngredientEmbeddedSerializer(many=True)
+    instructions = RecipeInstructionEmbeddedSerializer(many=True)
+
+    class meta:
+        fields = ["public_id",
+                  "user_id",
+                  "title",
+                  "description",
+                  "image_url",
+                  "prep_time",
+                  "cook_time",
+                  "ingredients", #nested
+                  "instructions", #nested
+                  "nutrition_per_serving",
+                  "nutrition_total",
+                  "cuisine_type",
+                  "dietary_tags",
+                  "is_public",
+                  "date_time_created",
+                  "date_time_updated"]
+        
+        read_only_fields = ["public_id", "nutrition_per_serving", "nutrition_total", 
+                            "date_time_created", "date_time_updated"]
+
 
