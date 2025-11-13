@@ -48,11 +48,21 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
 
     read_only_fields = ['public_id', 'date_added']
 
-    #There seems to be an error here, not sure what to do
-    def validate_triedrecipe(self, value):
-        if TriedRecipe.objects.filter(public_id=public_id, tried_by=tried_by).exists():
-            raise serializers.ValidationError(
-                "Recipe already tried by user this user")
+
+    #Object level validation, data is dict which holds all fields for a given model
+    #See https://www.django-rest-framework.org/api-guide/serializers/#object-level-validation
+    def valide(self, data):
+        public_id = data['public_id']
+        tried_by = data['tried_by']
+
+        if(TriedRecipe.objects.filter(public_id=public_id, tried_by=tried_by)):
+            raise serializers.ValidationError("Recipe already tried by user this user")
+
+
+#    def validate_triedrecipe(self, value):
+#        if TriedRecipe.objects.filter(public_id=public_id, tried_by=tried_by).exists():
+#            raise serializers.ValidationError(
+#                "Recipe already tried by user this user")
         
 
 #All serializers below added by Pedro (hopefully they work)
