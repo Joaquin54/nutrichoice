@@ -7,6 +7,20 @@ import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
 
+// Cultural cuisine tags to filter out from dietary tags
+const CULTURAL_CUISINE_TAGS = [
+  'Italian', 'italian',
+  'French', 'french',
+  'Mexican', 'mexican',
+  'American', 'american',
+  'Japanese', 'japanese',
+  'Chinese', 'chinese',
+  'Indian', 'indian',
+  'Thai', 'thai',
+  'Mediterranean', 'mediterranean',
+  'Korean', 'korean',
+];
+
 interface RecipeCardProps {
   recipe: Recipe;
   onViewRecipe: (recipe: Recipe) => void;
@@ -14,6 +28,11 @@ interface RecipeCardProps {
 
 export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
+
+  // Filter out cultural cuisine tags from dietary tags
+  const dietaryTagsOnly = recipe.dietaryTags.filter(
+    tag => !CULTURAL_CUISINE_TAGS.includes(tag)
+  );
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -37,7 +56,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 right-3 flex gap-2">
           <button
             onClick={handleFavoriteClick}
             className="p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
@@ -53,15 +72,14 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           </button>
           <button
             onClick={handleTriedClick}
-            className="p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
+            className="relative p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
             aria-label={isTried(recipe.id) ? "Mark as not tried" : "Mark as tried"}
           >
+            {isTried(recipe.id) && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-[#6ec257]/70" />
+            )}
             <CheckCircle
-              className={`h-4 w-4 ${
-                isTried(recipe.id)
-                  ? "fill-[#6ec257] text-[#6ec257]"
-                  : "text-gray-600"
-              } transition-colors`}
+              className="relative h-4 w-4 text-gray-600 transition-colors"
             />
           </button>
         </div>
@@ -89,7 +107,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
         </div>
 
         <div className="flex flex-wrap gap-1 mb-4">
-          {recipe.dietaryTags.slice(0, 3).map((tag, index) => (
+          {dietaryTagsOnly.slice(0, 3).map((tag, index) => (
             <Badge
               key={index}
               variant="secondary"
