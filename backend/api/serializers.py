@@ -1,6 +1,6 @@
 from rest_framework import fields, serializers
 from .models import TriedRecipe, User, User_Profile
-from .models_mongo import Ingredient, RecipeIngredientEmbedded, RecipeInstructionEmbedded
+from .models_mongo import Ingredient, RecipeIngredientEmbedded, RecipeInstructionEmbedded, Recipe, SavedRecipe
 
 # For MongoDB models (Recipe, Ingredient, SavedRecipe)
 from rest_framework_mongoengine import serializers as mongo_serializers
@@ -163,6 +163,7 @@ class RecipeSerializer(mongo_serializers.DocumentSerializer):
     instructions = RecipeInstructionEmbeddedSerializer(many=True)
 
     class meta:
+        model = Recipe
         fields = ["public_id",
                   "user_id",
                   "title",
@@ -183,4 +184,31 @@ class RecipeSerializer(mongo_serializers.DocumentSerializer):
         read_only_fields = ["public_id", "nutrition_per_serving", "nutrition_total", 
                             "date_time_created", "date_time_updated"]
 
+class RecipeListSerializer:
 
+    class meta:
+        model = Recipe
+        fields = ["public_id",
+                  "title",
+                  "description",
+                  "image_url",
+                  "prep_time",
+                  "cook_time",
+                  "cuisine_type",
+                  "nutrition_per_serving",
+                  "is_public"]
+        
+        read_only_fields = ["public_id", "nutrition_per_serving"]
+
+
+class SavedRecipeSerializer:
+
+    class meta:
+        model = SavedRecipe
+        fields = ["public_id",
+                  "user_id",
+                  "recipe_id",
+                  "notes",
+                  "saved_date"]
+        
+        read_only_fields = ["public_id", "saved_date"]
