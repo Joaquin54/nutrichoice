@@ -79,7 +79,7 @@ export function HomePage() {
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   return (
-    <div className="space-y-8">
+    <div>
       {/* Hero Section with Dietary Dropdown */}
       <HeroSection 
         searchQuery={searchQuery}
@@ -89,7 +89,7 @@ export function HomePage() {
       />
 
       {/* Results Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mt-2">
         <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             Recommended Recipes
@@ -110,7 +110,7 @@ export function HomePage() {
 
       {/* Recipe Grid */}
       {filteredRecipes.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-4">
           {filteredRecipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}

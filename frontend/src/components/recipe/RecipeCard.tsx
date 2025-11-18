@@ -85,17 +85,17 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
         </div>
       </div>
 
-      <CardHeader className="pb-3">
-        <h3 className="line-clamp-2 mb-2 group-hover:text-[#6ec257] transition-colors duration-200">
+      <CardHeader className="pb-0 pt-0">
+        <h3 className="line-clamp-2 mb-2 group-hover:text-[#6ec257] transition-colors duration-200 -mt-1">
           {recipe.title}
         </h3>
-        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed mt-[-4px]">
           {recipe.description}
         </p>
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="flex items-center gap-4 mb-4 text-sm">
+        <div className="flex items-center gap-4 mb-3 text-sm -mt-3">
           <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
             <Clock className="h-4 w-4" />
             <span>{recipe.cookTime}m</span>
@@ -106,7 +106,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1 mb-4">
+        <div className="flex flex-wrap gap-1 mb-4 min-h-[28px]">
           {dietaryTagsOnly.slice(0, 3).map((tag, index) => (
             <Badge
               key={index}
