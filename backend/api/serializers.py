@@ -1,6 +1,6 @@
 from rest_framework import fields, serializers
-from .models import TriedRecipe, User, User_Profile
-from .models_mongo import Ingredient, RecipeIngredientEmbedded, RecipeInstructionEmbedded, Recipe, SavedRecipe
+from models import TriedRecipe, User, User_Profile
+from models_mongo import Ingredient, RecipeIngredientEmbedded, RecipeInstructionEmbedded, Recipe, SavedRecipe
 
 # For MongoDB models (Recipe, Ingredient, SavedRecipe)
 from rest_framework_mongoengine import serializers as mongo_serializers
