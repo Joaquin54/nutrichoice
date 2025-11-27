@@ -57,3 +57,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar styling - light green */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a5de95 #ffffff;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #6ec257;
+  border-radius: 10px;
+  border: 2px solid #ffffff;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #5db84a;
+}
+
+/* Dark mode scrollbar styling */
+.dark {
+  scrollbar-color: #79bb66 hsl(222.2 84% 4.9%);
+}
+
+.dark *::-webkit-scrollbar-track {
+  background: hsl(222.2 84% 4.9%);
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  border: 2px solid hsl(222.2 84% 4.9%);
+}

@@ -1,10 +1,30 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 import { Clock, Users, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
+
+// Cultural cuisine tags to filter out from dietary tags
+const CULTURAL_CUISINE_TAGS = [
+  'Italian', 'italian',
+  'French', 'french',
+  'Mexican', 'mexican',
+  'American', 'american',
+  'Japanese', 'japanese',
+  'Chinese', 'chinese',
+  'Indian', 'indian',
+  'Thai', 'thai',
+  'Mediterranean', 'mediterranean',
+  'Korean', 'korean',
+];
 
 interface RecipeModalProps {
   recipe: Recipe | null;
@@ -16,6 +36,11 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
   
   if (!recipe) return null;
+
+  // Filter out cultural cuisine tags from dietary tags
+  const dietaryTagsOnly = recipe.dietaryTags.filter(
+    tag => !CULTURAL_CUISINE_TAGS.includes(tag)
+  );
 
   const handleFavoriteClick = () => {
     toggleFavorite(recipe.id);
@@ -56,7 +81,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                 <CheckCircle
                   className={`h-4 w-4 ${
                     isTried(recipe.id)
-                      ? "fill-[#6ec257] text-[#6ec257]"
+                      ? "text-[#6ec257]"
                       : ""
                   } transition-colors`}
                 />
@@ -89,7 +114,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {recipe.dietaryTags.map((tag, index) => (
+            {dietaryTagsOnly.map((tag, index) => (
               <Badge
                 key={index}
                 variant="secondary"
@@ -100,33 +125,37 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="mb-3">Ingredients</h3>
-              <ul className="space-y-2">
-                {recipe.ingredients.map((ingredient, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-[#6ec257] mt-1">•</span>
-                    <span>{ingredient}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="ingredients">
+              <AccordionTrigger>Ingredients</AccordionTrigger>
+              <AccordionContent>
+                <ul className="space-y-2">
+                  {recipe.ingredients.map((ingredient, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-[#6ec257] mt-1">•</span>
+                      <span>{ingredient}</span>
+                    </li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
 
-            <div>
-              <h3 className="mb-3">Instructions</h3>
-              <ol className="space-y-3">
-                {recipe.instructions.map((instruction, index) => (
-                  <li key={index} className="flex gap-3">
-                    <span className="bg-[#6ec257] text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      {index + 1}
-                    </span>
-                    <span>{instruction}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
+            <AccordionItem value="instructions">
+              <AccordionTrigger>Instructions</AccordionTrigger>
+              <AccordionContent>
+                <ol className="space-y-3">
+                  {recipe.instructions.map((instruction, index) => (
+                    <li key={index} className="flex gap-3">
+                      <span className="bg-[#6ec257] text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </span>
+                      <span>{instruction}</span>
+                    </li>
+                  ))}
+                </ol>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </DialogContent>
     </Dialog>
