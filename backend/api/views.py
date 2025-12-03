@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.db.models import QuerySet
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -14,6 +14,11 @@ from .serializers import UserSerializer, TriedRecipeSerializer
 class HealthView(APIView):
     def get(self, request: Request) -> Response:
         return Response({"status": "ok"})
+
+# May chagne later to APIView for custom logic
+class UserRegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRegistrationSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):

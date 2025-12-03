@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import TriedRecipe, User, User_Profile
+from models import TriedRecipe, User, UserProfile  # Updated: UserProfile not User_Profile
 from models_mongo import (
     Ingredient,
     RecipeIngredientEmbedded,
@@ -14,6 +14,19 @@ from rest_framework_mongoengine.serializers import (
     EmbeddedDocumentSerializer,
 )
 
+class UserRegistrationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            "public_id",
+            "username",
+            "last_name",
+            "first_name",
+            "email",
+            "password"
+        ]
+
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -27,10 +40,11 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "last_name",
             "first_name",
-            "diet_type",
+            "email",  # Added email field (was missing, but User has it)
             "date_created",
         ]
         read_only_fields = ["public_id", "date_created"]
+        # REMOVED: "diet_type" - this belongs to UserProfile, not User
 
     def validate_username(self, value):
         # length checks
@@ -43,8 +57,10 @@ class UserSerializer(serializers.ModelSerializer):
                 "Username must be 24 characters or shorter"
             )
 
-        # uniqueness
-        if User.objects.filter(username=value).exists():
+        # uniqueness check
+        # ADAPTED: Need to exclude current instance during updates
+        instance_id = self.instance.id if self.instance else None
+        if User.objects.filter(username=value).exclude(id=instance_id).exists():
             raise serializers.ValidationError("Username already exists")
 
         # forbidden names
@@ -60,6 +76,7 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
         model = TriedRecipe
         fields = [
             "public_id",
+            "recipe_id",  # ADDED: This was missing but is required in the model
             "date_added",
             "tried_by",
         ]
@@ -68,10 +85,17 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
     # Object-level validation
     # See https://www.django-rest-framework.org/api-guide/serializers/#object-level-validation
     def validate(self, data):
-        public_id = data["public_id"]
-        tried_by = data["tried_by"]
+        # FIXED: The original validation was checking public_id which doesn't make sense
+        # The unique_together constraint is on (tried_by, recipe_id)
+        recipe_id = data.get("recipe_id")
+        tried_by = data.get("tried_by")
 
-        if TriedRecipe.objects.filter(public_id=public_id, tried_by=tried_by).exists():
+        # Exclude current instance if updating
+        queryset = TriedRecipe.objects.filter(recipe_id=recipe_id, tried_by=tried_by)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError(
                 "Recipe already tried by this user"
             )
@@ -79,10 +103,13 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
         return data
 
 
-class UserProfileSerializers(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
+    # RENAMED: UserProfileSerializers -> UserProfileSerializer (removed plural, follows convention)
+
     class Meta:
-        # Postgres model user profile
-        model = User_Profile
+        # Updated model reference
+        model = UserProfile  # Changed from User_Profile
+
         # Data fields of the postgres table/model
         fields = [
             "id",
@@ -93,22 +120,39 @@ class UserProfileSerializers(serializers.ModelSerializer):
             "date_updated",
             "bio",
             "diet_type",
-            "profil_picture",  # Typo here is copied from model
+            "profile_picture",  # FIXED: profil_picture -> profile_picture (typo fixed in model)
         ]
-        read_only_fields = ["id", "date_created"]
+        read_only_fields = ["id", "date_created", "date_updated"]  # Added date_updated as read_only
 
-    def validate_id(self, value):
-        if User_Profile.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                "Another user in the system has identical ID"
-            )
-        return value
+    # REMOVED: validate_id method
+    # The id field is auto-generated and read-only, so this validation is unnecessary
+    # Django guarantees id uniqueness automatically
 
     # Ensure one user does not have multiple profiles
     def validate_user(self, value):
-        if User_Profile.objects.filter(user=value).exists():
+        # ADAPTED: Need to exclude current instance during updates
+        queryset = UserProfile.objects.filter(user=value)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError(
                 "User already has a profile created"
+            )
+        return value
+
+    # OPTIONAL: Add validation for calorie and protein goals
+    def validate_daily_calorie_goal(self, value):
+        if value < 1000 or value > 10000:
+            raise serializers.ValidationError(
+                "Daily calorie goal must be between 1000 and 10000"
+            )
+        return value
+
+    def validate_daily_protein_goal(self, value):
+        if value < 20 or value > 500:
+            raise serializers.ValidationError(
+                "Daily protein goal must be between 20 and 500 grams"
             )
         return value
 
@@ -134,8 +178,8 @@ class IngredientSerializer(DocumentSerializer):
         read_only_fields = ["public_id", "created_date", "updated_date"]
 
 
-# Not sure what this serializer accomplishes
 class IngredientListSerializer(DocumentSerializer):
+    # This serializer provides a lighter version for list views (less fields = better performance)
     class Meta:
         model = Ingredient
         fields = [
