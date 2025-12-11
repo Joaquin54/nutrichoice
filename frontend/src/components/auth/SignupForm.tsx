@@ -21,11 +21,11 @@ export function SignupForm({ onSubmit, isLoading = false }: SignupFormProps) {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-        <p className="text-gray-600">Join NutriChoice to discover amazing recipes</p>
+      <CardHeader className="text-center px-4 sm:px-6 pt-6 pb-4">
+        <CardTitle className="text-xl sm:text-2xl font-bold">Create Account</CardTitle>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Join NutriChoice to discover amazing recipes</p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6 pb-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -36,7 +36,7 @@ export function SignupForm({ onSubmit, isLoading = false }: SignupFormProps) {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
-                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
+                className="pl-10 py-2.5 sm:py-3 text-base focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
@@ -51,7 +51,7 @@ export function SignupForm({ onSubmit, isLoading = false }: SignupFormProps) {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
-                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
+                className="pl-10 py-2.5 sm:py-3 text-base focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
@@ -66,13 +66,13 @@ export function SignupForm({ onSubmit, isLoading = false }: SignupFormProps) {
                 name="confirmPassword"
                 type="password"
                 placeholder="Confirm your password"
-                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
+                className="pl-10 py-2.5 sm:py-3 text-base focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white py-2.5 sm:py-3 text-base" disabled={isLoading}>
             <UserPlus className="mr-2 h-4 w-4" />
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>

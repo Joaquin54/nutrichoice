@@ -80,27 +80,27 @@ export function WeeklyCalendar() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">Weekly Meal Plan</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={goToCurrentWeek}>
+        <CardHeader className="px-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <CardTitle className="text-xl sm:text-2xl">Weekly Meal Plan</CardTitle>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={goToCurrentWeek} className="text-xs sm:text-sm">
                 Today
               </Button>
-              <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
-                <ChevronLeft className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={goToPreviousWeek} className="h-8 w-8 sm:h-10 sm:w-10">
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[200px] text-center text-gray-900 dark:text-white">
+              <span className="text-xs sm:text-sm font-medium flex-1 sm:min-w-[200px] text-center text-gray-900 dark:text-white">
                 {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
               </span>
-              <Button variant="outline" size="icon" onClick={goToNextWeek}>
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={goToNextWeek} className="h-8 w-8 sm:h-10 sm:w-10">
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-2">
+        <CardContent className="px-3 sm:px-6">
+          <div className="flex sm:grid sm:grid-cols-7 gap-2 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 -mx-3 sm:mx-0 px-3 sm:px-0">
             {weekDays.map((date) => {
               const dateString = date.toISOString().split('T')[0];
               const dayPlans = weekPlans.get(dateString) || [];
@@ -108,34 +108,34 @@ export function WeeklyCalendar() {
               return (
                 <div
                   key={dateString}
-                  className={`border rounded-lg p-3 min-h-[400px] ${
+                  className={`border rounded-lg p-2 sm:p-3 min-h-[280px] sm:min-h-[400px] w-[140px] sm:w-auto flex-shrink-0 sm:flex-shrink ${
                     isToday(date) 
                       ? 'bg-[#6ec257]/10 dark:bg-[#6ec257]/20 border-[#6ec257]/40 dark:border-[#6ec257]/50' 
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
                 >
-                  <div className="text-center mb-3">
-                    <div className="font-semibold text-gray-900 dark:text-white">{formatDayName(date)}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{formatDate(date)}</div>
+                  <div className="text-center mb-2 sm:mb-3">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{formatDayName(date)}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{formatDate(date)}</div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {MEAL_TYPES.map((mealType) => {
                       const meal = dayPlans.find((plan) => plan.mealType === mealType);
 
                       return (
                         <div key={mealType} className="space-y-1">
-                          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
+                          <div className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
                             {mealType}
                           </div>
                           {meal ? (
                             <div
-                              className={`text-xs p-2 rounded border ${MEAL_TYPE_COLORS[mealType]} relative group`}
+                              className={`text-[10px] sm:text-xs p-1.5 sm:p-2 rounded border ${MEAL_TYPE_COLORS[mealType]} relative group`}
                             >
-                              <div className="pr-6 line-clamp-2">{meal.recipe.title}</div>
+                              <div className="pr-5 sm:pr-6 line-clamp-2 leading-tight">{meal.recipe.title}</div>
                               <button
                                 onClick={() => removeMealPlan(dateString, mealType)}
-                                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                 aria-label="Remove meal"
                               >
                                 <X className="h-3 w-3" />
@@ -144,9 +144,9 @@ export function WeeklyCalendar() {
                           ) : (
                             <button
                               onClick={() => handleAddMeal(dateString, mealType)}
-                              className="w-full text-xs p-2 rounded border border-dashed border-gray-300 dark:border-gray-600 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-colors flex items-center justify-center gap-1 text-gray-600 dark:text-gray-400"
+                              className="w-full text-[10px] sm:text-xs p-1.5 sm:p-2 rounded border border-dashed border-gray-300 dark:border-gray-600 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-colors flex items-center justify-center gap-1 text-gray-600 dark:text-gray-400"
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                               Add
                             </button>
                           )}

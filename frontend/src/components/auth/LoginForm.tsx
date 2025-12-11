@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { LogIn, Mail, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => void;
@@ -20,11 +21,11 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-        <p className="text-gray-600">Sign in to your NutriChoice account</p>
+      <CardHeader className="text-center px-4 sm:px-6 pt-6 pb-4">
+        <CardTitle className="text-xl sm:text-2xl font-bold">Welcome Back</CardTitle>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">Sign in to your NutriChoice account</p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6 pb-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -35,7 +36,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
-                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
+                className="pl-10 py-2.5 sm:py-3 text-base focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
@@ -50,16 +51,25 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
-                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
+                className="pl-10 py-2.5 sm:py-3 text-base focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
                 required
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white py-2.5 sm:py-3 text-base" disabled={isLoading}>
             <LogIn className="mr-2 h-4 w-4" />
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
+
+          <div className="text-center pt-2">
+            <Link
+              to="/reset-password"
+              className="text-sm text-[#6ec257] hover:text-[#6ec257]/80 transition-colors"
+            >
+              Forgot your password?
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>

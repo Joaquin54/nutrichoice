@@ -52,16 +52,16 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[80vw] p-10">
+      <DialogContent className="max-w-5xl sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-[80vw] p-4 sm:p-6 md:p-10">
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center justify-between">
-            <span>{recipe.title}</span>
-            <div className="flex gap-2">
+          <DialogTitle className="text-xl sm:text-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <span className="flex-1">{recipe.title}</span>
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={handleFavoriteClick}
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-initial"
               >
                 <Heart
                   className={`h-4 w-4 ${
@@ -70,13 +70,13 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                       : ""
                   } transition-colors`}
                 />
-                {isFavorite(recipe.id) ? "Favorited" : "Favorite"}
+                <span className="hidden sm:inline">{isFavorite(recipe.id) ? "Favorited" : "Favorite"}</span>
               </Button>
               <Button
                 onClick={handleTriedClick}
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-initial"
               >
                 <CheckCircle
                   className={`h-4 w-4 ${
@@ -85,7 +85,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                       : ""
                   } transition-colors`}
                 />
-                {isTried(recipe.id) ? "Tried" : "Mark as Tried"}
+                <span className="hidden sm:inline">{isTried(recipe.id) ? "Tried" : "Mark as Tried"}</span>
               </Button>
             </div>
           </DialogTitle>
@@ -102,14 +102,14 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
 
           <p className="text-muted-foreground">{recipe.description}</p>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-[#6ec257]" />
-              <span>{recipe.cookTime} minutes</span>
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-[#6ec257]" />
+              <span className="text-sm sm:text-base">{recipe.cookTime} minutes</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-[#6ec257]" />
-              <span>{recipe.servings} servings</span>
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-[#6ec257]" />
+              <span className="text-sm sm:text-base">{recipe.servings} servings</span>
             </div>
           </div>
 

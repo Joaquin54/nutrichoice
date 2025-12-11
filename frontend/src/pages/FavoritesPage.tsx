@@ -40,27 +40,29 @@ export function FavoritesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Recipe Collection</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Your Recipe Collection</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           Recipes you've saved and tried
         </p>
       </div>
 
       <Tabs defaultValue="favorites" className="w-full">
         <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-          <TabsTrigger value="favorites" className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Favorites ({favorites.length})
+          <TabsTrigger value="favorites" className="flex items-center gap-2 text-xs sm:text-sm">
+            <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Favorites</span>
+            <span className="sm:hidden">Fav</span>
+            <span className="ml-1">({favorites.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="tried" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
+          <TabsTrigger value="tried" className="flex items-center gap-2 text-xs sm:text-sm">
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
             Tried ({tried.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="favorites" className="mt-6">
+        <TabsContent value="favorites" className="mt-4 sm:mt-6">
           {favorites.length > 0 ? (
             <FavoritesGrid 
               favorites={favorites}
@@ -75,7 +77,7 @@ export function FavoritesPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="tried" className="mt-6">
+        <TabsContent value="tried" className="mt-4 sm:mt-6">
           {tried.length > 0 ? (
             <FavoritesGrid 
               favorites={tried}

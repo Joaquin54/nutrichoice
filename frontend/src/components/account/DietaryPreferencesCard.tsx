@@ -8,12 +8,14 @@ interface DietaryPreferencesCardProps {
   preferences: DietaryFilter;
   onPreferencesChange: (preferences: DietaryFilter) => void;
   isLoading?: boolean;
+  isReadOnly?: boolean;
 }
 
 export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({ 
   preferences, 
   onPreferencesChange, 
-  isLoading = false 
+  isLoading = false,
+  isReadOnly = false
 }: DietaryPreferencesCardProps) {
   const [localPreferences, setLocalPreferences] = useState(preferences);
 
@@ -23,10 +25,13 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
   }, [preferences]);
 
   const handlePreferenceChange = (key: keyof DietaryFilter, checked: boolean) => {
-    setLocalPreferences(prev => ({
-      ...prev,
+    if (isReadOnly) return;
+    const updated = {
+      ...localPreferences,
       [key]: checked,
-    }));
+    };
+    setLocalPreferences(updated);
+    onPreferencesChange(updated);
   };
 
   const handleSavePreferences = () => {
@@ -60,21 +65,19 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
           <label className="text-sm font-medium">Dietary Restrictions</label>
           <div className="grid grid-cols-2 gap-2">
             {dietaryOptions.map(({ key, label }) => (
-              <label key={key} className="flex items-center space-x-2">
+              <label key={key} className={`flex items-center space-x-2 ${isReadOnly ? 'cursor-default opacity-75' : 'cursor-pointer'}`}>
                 <input 
                   type="checkbox" 
                   className="rounded" 
                   checked={localPreferences[key]}
                   onChange={(e) => handlePreferenceChange(key, e.target.checked)}
+                  disabled={isReadOnly}
                 />
                 <span className="text-sm">{label}</span>
               </label>
             ))}
           </div>
         </div>
-        <Button onClick={handleSavePreferences} className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
-          {isLoading ? 'Updating...' : 'Update Preferences'}
-        </Button>
       </CardContent>
     </Card>
   );
