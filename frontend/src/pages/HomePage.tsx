@@ -89,19 +89,19 @@ export function HomePage() {
       />
 
       {/* Results Header */}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between mt-2 sm:mt-4">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
             Recommended Recipes
             {activeFilterCount > 0 && (
-              <span className="text-gray-500 dark:text-gray-400 font-normal">
+              <span className="hidden sm:inline text-gray-500 dark:text-gray-400 font-normal">
                 {" "}
                 • {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}{" "}
                 applied
               </span>
             )}
           </h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {filteredRecipes.length} recipe
             {filteredRecipes.length !== 1 ? "s" : ""} found
           </p>
@@ -110,7 +110,7 @@ export function HomePage() {
 
       {/* Recipe Grid */}
       {filteredRecipes.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mt-4">
           {filteredRecipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}

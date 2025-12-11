@@ -66,15 +66,15 @@ export function NutritionPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Nutrition Tracking</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Nutrition Tracking</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           Monitor your nutritional intake and health goals
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <DailyOverview data={dailyData} />
         
         <GoalsCard 

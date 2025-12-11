@@ -80,27 +80,27 @@ export function WeeklyCalendar() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">Weekly Meal Plan</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={goToCurrentWeek}>
+        <CardHeader className="px-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <CardTitle className="text-xl sm:text-2xl">Weekly Meal Plan</CardTitle>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={goToCurrentWeek} className="text-xs sm:text-sm">
                 Today
               </Button>
-              <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
-                <ChevronLeft className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={goToPreviousWeek} className="h-8 w-8 sm:h-10 sm:w-10">
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[200px] text-center text-gray-900 dark:text-white">
+              <span className="text-xs sm:text-sm font-medium flex-1 sm:min-w-[200px] text-center text-gray-900 dark:text-white">
                 {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
               </span>
-              <Button variant="outline" size="icon" onClick={goToNextWeek}>
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={goToNextWeek} className="h-8 w-8 sm:h-10 sm:w-10">
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-2">
+        <CardContent className="px-3 sm:px-6">
+          <div className="grid grid-cols-7 gap-2 overflow-x-auto sm:overflow-x-visible">
             {weekDays.map((date) => {
               const dateString = date.toISOString().split('T')[0];
               const dayPlans = weekPlans.get(dateString) || [];
@@ -108,18 +108,18 @@ export function WeeklyCalendar() {
               return (
                 <div
                   key={dateString}
-                  className={`border rounded-lg p-3 min-h-[400px] ${
+                  className={`border rounded-lg p-2 sm:p-3 min-h-[300px] sm:min-h-[400px] min-w-[120px] sm:min-w-0 ${
                     isToday(date) 
                       ? 'bg-[#6ec257]/10 dark:bg-[#6ec257]/20 border-[#6ec257]/40 dark:border-[#6ec257]/50' 
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
                 >
-                  <div className="text-center mb-3">
-                    <div className="font-semibold text-gray-900 dark:text-white">{formatDayName(date)}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{formatDate(date)}</div>
+                  <div className="text-center mb-2 sm:mb-3">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{formatDayName(date)}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{formatDate(date)}</div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {MEAL_TYPES.map((mealType) => {
                       const meal = dayPlans.find((plan) => plan.mealType === mealType);
 
