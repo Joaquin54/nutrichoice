@@ -18,7 +18,8 @@ class User(AbstractUser):
 
     We override some field properties and add custom fields below.
     """
-
+    # Type hint for lsp
+    objects = models.Manager()
     # Override inherited fields to match your original constraints
     username = models.CharField(max_length=24, unique=True)
     first_name = models.CharField(max_length=35)
@@ -60,8 +61,8 @@ class UserProfile(models.Model):
         # Changed from 'user_profile' to just 'profile' (cleaner)
         related_name='profile'
     )
-    daily_calorie_goal = models.SmallIntegerField()
-    daily_protein_goal = models.SmallIntegerField()
+    daily_calorie_goal = models.SmallIntegerField(null=True)
+    daily_protein_goal = models.SmallIntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     # Changed to auto_now for automatic updates
     date_updated = models.DateTimeField(auto_now=True)
