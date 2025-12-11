@@ -12,9 +12,10 @@ interface SecuritySettingsProps {
     confirmNewPassword: string;
   }) => void;
   isLoading?: boolean;
+  isReadOnly?: boolean;
 }
 
-export const SecuritySettings = memo(function SecuritySettings({ onSubmit, isLoading = false }: SecuritySettingsProps) {
+export const SecuritySettings = memo(function SecuritySettings({ onSubmit, isLoading = false, isReadOnly = false }: SecuritySettingsProps) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -40,6 +41,9 @@ export const SecuritySettings = memo(function SecuritySettings({ onSubmit, isLoa
               id="currentPassword" 
               name="currentPassword"
               type="password" 
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              className={isReadOnly ? 'bg-gray-50 dark:bg-gray-800 cursor-default' : ''}
             />
           </div>
           <div className="space-y-2">
@@ -48,6 +52,9 @@ export const SecuritySettings = memo(function SecuritySettings({ onSubmit, isLoa
               id="newPassword" 
               name="newPassword"
               type="password" 
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              className={isReadOnly ? 'bg-gray-50 dark:bg-gray-800 cursor-default' : ''}
             />
           </div>
           <div className="space-y-2">
@@ -56,11 +63,16 @@ export const SecuritySettings = memo(function SecuritySettings({ onSubmit, isLoa
               id="confirmNewPassword" 
               name="confirmNewPassword"
               type="password" 
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              className={isReadOnly ? 'bg-gray-50 dark:bg-gray-800 cursor-default' : ''}
             />
           </div>
-          <Button type="submit" className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
-            {isLoading ? 'Changing Password...' : 'Change Password'}
-          </Button>
+          {isReadOnly && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Click "Edit" above to change your password
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

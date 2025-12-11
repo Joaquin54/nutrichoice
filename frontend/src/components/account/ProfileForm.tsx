@@ -9,11 +9,29 @@ interface ProfileFormProps {
   onSubmit: (data: { name: string; email: string; bio: string }) => void;
   isLoading?: boolean;
   initialData?: { name: string; email: string; bio: string };
+  isReadOnly?: boolean;
+  onDataChange?: (data: { name: string; email: string; bio: string }) => void;
 }
 
-export const ProfileForm = memo(function ProfileForm({ onSubmit, isLoading = false, initialData }: ProfileFormProps) {
+export const ProfileForm = memo(function ProfileForm({ 
+  onSubmit, 
+  isLoading = false, 
+  initialData,
+  isReadOnly = false,
+  onDataChange
+}: ProfileFormProps) {
+  const handleChange = (field: string, value: string) => {
+    if (onDataChange && initialData) {
+      onDataChange({
+        ...initialData,
+        [field]: value,
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isReadOnly) return;
     const formData = new FormData(e.currentTarget);
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
@@ -37,7 +55,11 @@ export const ProfileForm = memo(function ProfileForm({ onSubmit, isLoading = fal
               id="name" 
               name="name"
               placeholder="Enter your full name" 
-              defaultValue={initialData?.name || ''}
+              value={initialData?.name || ''}
+              onChange={(e) => handleChange('name', e.target.value)}
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              className={isReadOnly ? 'bg-gray-50 dark:bg-gray-800 cursor-default' : ''}
             />
           </div>
           <div className="space-y-2">
@@ -47,7 +69,11 @@ export const ProfileForm = memo(function ProfileForm({ onSubmit, isLoading = fal
               name="email"
               type="email" 
               placeholder="Enter your email" 
-              defaultValue={initialData?.email || ''}
+              value={initialData?.email || ''}
+              onChange={(e) => handleChange('email', e.target.value)}
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              className={isReadOnly ? 'bg-gray-50 dark:bg-gray-800 cursor-default' : ''}
             />
           </div>
           <div className="space-y-2">
@@ -56,12 +82,13 @@ export const ProfileForm = memo(function ProfileForm({ onSubmit, isLoading = fal
               id="bio" 
               name="bio"
               placeholder="Tell us about yourself" 
-              defaultValue={initialData?.bio || ''}
+              value={initialData?.bio || ''}
+              onChange={(e) => handleChange('bio', e.target.value)}
+              disabled={isReadOnly}
+              readOnly={isReadOnly}
+              className={isReadOnly ? 'bg-gray-50 dark:bg-gray-800 cursor-default' : ''}
             />
           </div>
-          <Button type="submit" className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save Changes'}
-          </Button>
         </form>
       </CardContent>
     </Card>

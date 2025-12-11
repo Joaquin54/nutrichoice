@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Bell } from 'lucide-react';
@@ -13,20 +13,29 @@ interface NotificationSettingsProps {
   settings: NotificationSettingsData;
   onSettingsChange: (settings: NotificationSettingsData) => void;
   isLoading?: boolean;
+  isReadOnly?: boolean;
 }
 
 export const NotificationSettings = memo(function NotificationSettings({ 
   settings, 
   onSettingsChange, 
-  isLoading = false 
+  isLoading = false,
+  isReadOnly = false
 }: NotificationSettingsProps) {
   const [localSettings, setLocalSettings] = useState(settings);
 
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
   const handleSettingChange = (key: keyof typeof settings, value: boolean) => {
-    setLocalSettings(prev => ({
-      ...prev,
+    if (isReadOnly) return;
+    const updated = {
+      ...localSettings,
       [key]: value,
-    }));
+    };
+    setLocalSettings(updated);
+    onSettingsChange(updated);
   };
 
   const handleSaveSettings = () => {
@@ -43,37 +52,37 @@ export const NotificationSettings = memo(function NotificationSettings({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="flex items-center space-x-2">
+          <label className={`flex items-center space-x-2 ${isReadOnly ? 'cursor-default opacity-75' : 'cursor-pointer'}`}>
             <input 
               type="checkbox" 
               className="rounded" 
               checked={localSettings.emailNotifications}
               onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
+              disabled={isReadOnly}
             />
             <span className="text-sm">Email notifications</span>
           </label>
-          <label className="flex items-center space-x-2">
+          <label className={`flex items-center space-x-2 ${isReadOnly ? 'cursor-default opacity-75' : 'cursor-pointer'}`}>
             <input 
               type="checkbox" 
               className="rounded" 
               checked={localSettings.recipeRecommendations}
               onChange={(e) => handleSettingChange('recipeRecommendations', e.target.checked)}
+              disabled={isReadOnly}
             />
             <span className="text-sm">Recipe recommendations</span>
           </label>
-          <label className="flex items-center space-x-2">
+          <label className={`flex items-center space-x-2 ${isReadOnly ? 'cursor-default opacity-75' : 'cursor-pointer'}`}>
             <input 
               type="checkbox" 
               className="rounded" 
               checked={localSettings.weeklyMealPlans}
               onChange={(e) => handleSettingChange('weeklyMealPlans', e.target.checked)}
+              disabled={isReadOnly}
             />
             <span className="text-sm">Weekly meal plans</span>
           </label>
         </div>
-        <Button onClick={handleSaveSettings} className="bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save Preferences'}
-        </Button>
       </CardContent>
     </Card>
   );

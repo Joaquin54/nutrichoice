@@ -100,7 +100,7 @@ export function WeeklyCalendar() {
           </div>
         </CardHeader>
         <CardContent className="px-3 sm:px-6">
-          <div className="grid grid-cols-7 gap-2 overflow-x-auto sm:overflow-x-visible">
+          <div className="flex sm:grid sm:grid-cols-7 gap-2 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 -mx-3 sm:mx-0 px-3 sm:px-0">
             {weekDays.map((date) => {
               const dateString = date.toISOString().split('T')[0];
               const dayPlans = weekPlans.get(dateString) || [];
@@ -108,7 +108,7 @@ export function WeeklyCalendar() {
               return (
                 <div
                   key={dateString}
-                  className={`border rounded-lg p-2 sm:p-3 min-h-[300px] sm:min-h-[400px] min-w-[120px] sm:min-w-0 ${
+                  className={`border rounded-lg p-2 sm:p-3 min-h-[280px] sm:min-h-[400px] w-[140px] sm:w-auto flex-shrink-0 sm:flex-shrink ${
                     isToday(date) 
                       ? 'bg-[#6ec257]/10 dark:bg-[#6ec257]/20 border-[#6ec257]/40 dark:border-[#6ec257]/50' 
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
@@ -125,17 +125,17 @@ export function WeeklyCalendar() {
 
                       return (
                         <div key={mealType} className="space-y-1">
-                          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
+                          <div className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
                             {mealType}
                           </div>
                           {meal ? (
                             <div
-                              className={`text-xs p-2 rounded border ${MEAL_TYPE_COLORS[mealType]} relative group`}
+                              className={`text-[10px] sm:text-xs p-1.5 sm:p-2 rounded border ${MEAL_TYPE_COLORS[mealType]} relative group`}
                             >
-                              <div className="pr-6 line-clamp-2">{meal.recipe.title}</div>
+                              <div className="pr-5 sm:pr-6 line-clamp-2 leading-tight">{meal.recipe.title}</div>
                               <button
                                 onClick={() => removeMealPlan(dateString, mealType)}
-                                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                 aria-label="Remove meal"
                               >
                                 <X className="h-3 w-3" />
@@ -144,9 +144,9 @@ export function WeeklyCalendar() {
                           ) : (
                             <button
                               onClick={() => handleAddMeal(dateString, mealType)}
-                              className="w-full text-xs p-2 rounded border border-dashed border-gray-300 dark:border-gray-600 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-colors flex items-center justify-center gap-1 text-gray-600 dark:text-gray-400"
+                              className="w-full text-[10px] sm:text-xs p-1.5 sm:p-2 rounded border border-dashed border-gray-300 dark:border-gray-600 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-colors flex items-center justify-center gap-1 text-gray-600 dark:text-gray-400"
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                               Add
                             </button>
                           )}
