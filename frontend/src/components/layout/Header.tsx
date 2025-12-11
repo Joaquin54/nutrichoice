@@ -9,7 +9,7 @@ export const Header = memo(function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-green-100 dark:border-gray-800 shadow-sm">
-      <div className="container mx-auto px-4 py-3 sm:py-4">
+      <div className="container mx-auto px-4 py-3 sm:py-4 md:py-3">
         <div className="flex items-center justify-between">
           <Link to="/home" className="flex items-center gap-2 sm:gap-3">
             <div className="bg-gradient-to-br from-[#6ec257]/70 to-[#6ec257]/40 dark:from-[#6ec257]/50 dark:to-[#6ec257]/30 p-2 sm:p-3 rounded-xl shadow-sm">
