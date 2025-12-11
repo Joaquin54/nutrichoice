@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Home, Heart, User, BarChart3, LogIn, Calendar } from 'lucide-react';
 
 const navigationItems = [
-  { path: '/', label: 'Home', icon: Home },
+  { path: '/home', label: 'Home', icon: Home },
   { path: '/favorites', label: 'Favorites', icon: Heart },
   { path: '/meal-planning', label: 'Meal Planning', icon: Calendar },
   { path: '/nutrition', label: 'Nutrition', icon: BarChart3 },

@@ -1,29 +1,30 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { LogIn, Mail, Lock } from 'lucide-react';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface LoginFormProps {
-  onSubmit: (email: string, password: string) => void;
+interface PasswordResetRequestFormProps {
+  onSubmit: (email: string) => void;
   isLoading?: boolean;
 }
 
-export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
+export function PasswordResetRequestForm({ onSubmit, isLoading = false }: PasswordResetRequestFormProps) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    onSubmit(email, password);
+    onSubmit(email);
   };
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-        <p className="text-gray-600">Sign in to your NutriChoice account</p>
+        <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+        <CardDescription>
+          Enter your email address and we'll send you a link to reset your password.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -41,33 +42,18 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
               />
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                className="pl-10 focus-visible:border-[#6ec257] focus-visible:ring-[#6ec257]/50"
-                required
-              />
-            </div>
-          </div>
 
           <Button type="submit" className="w-full bg-[#6ec257] hover:bg-[#6ec257]/90 text-white" disabled={isLoading}>
-            <LogIn className="mr-2 h-4 w-4" />
-            {isLoading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? 'Sending...' : 'Send Reset Link'}
           </Button>
 
           <div className="text-center">
             <Link
-              to="/reset-password"
-              className="text-sm text-[#6ec257] hover:text-[#6ec257]/80 transition-colors"
+              to="/"
+              className="inline-flex items-center text-sm text-[#6ec257] hover:text-[#6ec257]/80 transition-colors"
             >
-              Forgot your password?
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back to Sign In
             </Link>
           </div>
         </form>
@@ -75,3 +61,4 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
     </Card>
   );
 }
+

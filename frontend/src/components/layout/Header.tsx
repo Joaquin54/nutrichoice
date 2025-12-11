@@ -11,7 +11,7 @@ export const Header = memo(function Header() {
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-green-100 dark:border-gray-800 shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/home" className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-[#6ec257]/70 to-[#6ec257]/40 dark:from-[#6ec257]/50 dark:to-[#6ec257]/30 p-3 rounded-xl shadow-sm">
               <Leaf className="h-8 w-8 text-green-600 dark:text-green-400 transition-colors" />
             </div>
