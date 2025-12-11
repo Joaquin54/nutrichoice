@@ -11,6 +11,7 @@ backend/.venv/
 *.pyd
 *.sqlite3
 backend/venv
+backend/pyrightconfig.json
 
 # Environment files (DON'T leak secrets!)
 *.env
