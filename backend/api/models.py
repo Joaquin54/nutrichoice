@@ -1,6 +1,6 @@
 from uuid import uuid4
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 
 
 class User(AbstractUser):
@@ -18,8 +18,8 @@ class User(AbstractUser):
 
     We override some field properties and add custom fields below.
     """
-    # Type hint for lsp
-    objects = models.Manager()
+    # Use UserManager to get create_user method
+    objects = UserManager()
     # Override inherited fields to match your original constraints
     username = models.CharField(max_length=24, unique=True)
     first_name = models.CharField(max_length=35)

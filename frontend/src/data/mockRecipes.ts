@@ -97,7 +97,7 @@ export const mockRecipes: Recipe[] = [
   },
   
   {
-    id: '5',
+    id: '4',
     title: 'Baked Salmon with Lemon Herbs',
     description: 'Flaky salmon fillet baked with fresh herbs and lemon for a healthy dinner.',
     image: bakedsalmonImg,
@@ -125,7 +125,7 @@ export const mockRecipes: Recipe[] = [
     ]
   },
   {
-    id: '6',
+    id: '5',
     title: 'Mushroom Risotto',
     description: 'Creamy Arborio rice cooked with wild mushrooms and Parmesan cheese.',
     image: mushroomrisottoImg,
@@ -159,7 +159,7 @@ export const mockRecipes: Recipe[] = [
 
   
   {
-    id: '9',
+    id: '6',
     title: 'Greek Salad Bowl',
     description: 'Fresh Mediterranean salad with feta cheese, olives, and a lemon-oregano dressing.',
     image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1080',
@@ -188,7 +188,7 @@ export const mockRecipes: Recipe[] = [
     ]
   },
   {
-    id: '10',
+    id: '7',
     title: 'Japanese Miso Ramen',
     description: 'Comforting Japanese noodle soup with miso broth, soft-boiled eggs, and vegetables.',
     image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1080',
@@ -219,7 +219,7 @@ export const mockRecipes: Recipe[] = [
     ]
   },
   {
-    id: '11',
+    id: '8',
     title: 'Chocolate Chip Banana Bread',
     description: 'Moist and tender banana bread loaded with chocolate chips - perfect for breakfast or snack.',
     image: chocolatebananaImg,
@@ -250,7 +250,7 @@ export const mockRecipes: Recipe[] = [
   },
 
   {
-    id: '13',
+    id: '9',
     title: 'Indian Butter Chicken',
     description: 'Creamy and flavorful Indian curry with tender chicken in a rich tomato-based sauce.',
     image: indianbutterchickenImg,
@@ -283,7 +283,7 @@ export const mockRecipes: Recipe[] = [
     ]
   },
   {
-    id: '14',
+    id: '10',
     title: 'Avocado Toast with Poached Egg',
     description: 'Simple yet delicious breakfast featuring creamy avocado and perfectly poached egg on sourdough.',
     image: avocadotoastImg,
