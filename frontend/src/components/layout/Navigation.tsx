@@ -1,7 +1,8 @@
 import { memo, useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, Heart, User, BarChart3, LogIn, Calendar, Menu, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Home, Heart, User, BarChart3, LogOut, Calendar, Menu, X } from 'lucide-react';
 import { Button } from '../ui/button';
+import { logout } from '../../api';
 
 const navigationItems = [
   { path: '/home', label: 'Home', icon: Home },
@@ -12,6 +13,19 @@ const navigationItems = [
 
 export const Navigation = memo(function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignOut = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still navigate to auth page even if logout fails
+      navigate('/');
+    }
+  };
 
   return (
     <nav className="bg-white/60 dark:bg-gray-900 backdrop-blur-sm border-b border-[#6ec257]/20 dark:border-gray-800 shadow-sm">
@@ -56,11 +70,12 @@ export const Navigation = memo(function Navigation() {
             </NavLink>
             
             <NavLink
-              to="/auth"
+              to="/"
+              onClick={handleSignOut}
               className="flex items-center gap-2 px-4 py-2 md:py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <LogIn className="h-4 w-4" />
-              Sign In
+              <LogOut className="h-4 w-4" />
+              Sign Out
             </NavLink>
           </div>
         </div>
@@ -121,12 +136,15 @@ export const Navigation = memo(function Navigation() {
               );
             })}
             <NavLink
-              to="/auth"
-              onClick={() => setIsMobileMenuOpen(false)}
+              to="/"
+              onClick={(e) => {
+                setIsMobileMenuOpen(false);
+                handleSignOut(e);
+              }}
               className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors mt-2"
             >
-              <LogIn className="h-4 w-4" />
-              Sign In
+              <LogOut className="h-4 w-4" />
+              Sign Out
             </NavLink>
           </div>
         )}

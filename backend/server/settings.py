@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",  # Required for Token authentication
     "rest_framework_mongoengine",
     "corsheaders",
     "api",
@@ -121,6 +122,8 @@ STATIC_URL = "static/"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React's default development server
     "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite's default development server
+    "http://127.0.0.1:5173",
 ]
 
 # Allow credentials (cookies, authorization headers)
@@ -149,3 +152,6 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Custom User Model
+AUTH_USER_MODEL = "api.User"
