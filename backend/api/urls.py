@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    UserViewSet, TriedRecipeViewSet, HealthView,
+    UserViewSet, TriedRecipeViewSet, UserProfileViewSet, HealthView,
     UserRegistrationView, UserLoginView, UserLogoutView,
     UserPasswordChangeRequestView, UserPasswordChangeView,
     UserPasswordChangeConfirmView, UserTokenRefreshView, CurrentUserView
@@ -11,6 +11,7 @@ from .views import (
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'tried-recipes', TriedRecipeViewSet)
+router.register(r'user-profiles', UserProfileViewSet, basename='userprofile')
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
