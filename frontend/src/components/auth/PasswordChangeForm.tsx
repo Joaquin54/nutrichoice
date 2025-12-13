@@ -139,5 +139,3 @@ export function PasswordChangeForm({ onSubmit, isLoading = false }: PasswordChan
     </Card>
   );
 }
-
-

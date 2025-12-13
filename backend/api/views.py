@@ -12,12 +12,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
 from typing import Optional
-from .models import User, TriedRecipe
+from .models import User, TriedRecipe, UserProfile
 from .serializers import (
     UserSerializer, TriedRecipeSerializer, UserRegistrationSerializer,
     UserLoginSerializer, PasswordChangeRequestSerializer,
     PasswordChangeSerializer, PasswordChangeConfirmSerializer,
-    CurrentUserSerializer
+    CurrentUserSerializer, UserProfileSerializer
 )
 
 
@@ -252,3 +252,46 @@ class TriedRecipeViewSet(viewsets.ModelViewSet):
                       .annotate(try_count=Count('recipe_id'))
                       .order_by('-try_count')[:10])
         return Response(most_tried)
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling user profile operations.
+    Provides CRUD operations for UserProfile model.
+    """
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self) -> QuerySet[UserProfile]:
+        """
+        Restrict queryset to the current user's profile only
+        """
+        return UserProfile.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer: UserProfileSerializer) -> None:
+        """
+        Associate the profile with the current user when creating
+        """
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get', 'patch'])
+    def me(self, request: Request) -> Response:
+        """
+        Get or update the current user's profile
+        """
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            # Create profile if it doesn't exist
+            profile = UserProfile.objects.create(user=request.user)
+
+        if request.method == 'PATCH':
+            serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = UserProfileSerializer(profile)
+            return Response(serializer.data)

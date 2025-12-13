@@ -44,6 +44,17 @@ const authenticatedFetch = async (
 };
 
 // User types
+export type UserProfile = {
+  id?: number;
+  bio: string;
+  profile_picture: string;
+  diet_type: Record<string, boolean>;
+  daily_calorie_goal?: number;
+  daily_protein_goal?: number;
+  date_created?: string;
+  date_updated?: string;
+};
+
 export type User = {
   public_id: string;
   username: string;
@@ -51,7 +62,7 @@ export type User = {
   last_name: string;
   email: string;
   date_created: string;
-  profile?: any;
+  profile?: UserProfile | null;
 };
 
 export type LoginResponse = {
@@ -174,11 +185,64 @@ export async function logout(): Promise<void> {
 }
 
 export async function getCurrentUser(): Promise<User> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('No authentication token found. Please log in again.');
+  }
+
   const response = await authenticatedFetch(`${API_BASE}/api/auth/me/`);
 
   if (!response.ok) {
+    let error;
+    try {
+      error = await response.json();
+    } catch (e) {
+      throw new Error(`Failed to get user data: ${response.status} ${response.statusText}`);
+    }
+    throw new Error(error.detail || error.message || formatApiError(error));
+  }
+
+  return response.json();
+}
+
+export type UpdateUserData = {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  email?: string;
+};
+
+export async function updateUser(publicId: string, data: UpdateUserData): Promise<User> {
+  const response = await authenticatedFetch(`${API_BASE}/api/users/${publicId}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || JSON.stringify(error));
+    throw new Error(formatApiError(error));
+  }
+
+  return response.json();
+}
+
+export type UpdateProfileData = {
+  bio?: string;
+  profile_picture?: string;
+  diet_type?: Record<string, boolean>;
+  daily_calorie_goal?: number;
+  daily_protein_goal?: number;
+};
+
+export async function updateUserProfile(data: UpdateProfileData): Promise<UserProfile> {
+  const response = await authenticatedFetch(`${API_BASE}/api/user-profiles/me/`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(formatApiError(error));
   }
 
   return response.json();
