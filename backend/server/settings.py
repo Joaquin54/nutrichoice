@@ -102,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/capstone_db")
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/capstone_db")
 connect(host=MONGO_URL)
 
 # Internationalization
