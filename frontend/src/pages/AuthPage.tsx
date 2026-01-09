@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LoginForm, SignupForm, AuthToggle } from '../components/auth';
+import { LoginForm, SignupForm, AuthToggle, RegistrationModal } from '../components/auth';
 import { Button } from '../components/ui/button';
-import { SkipForward } from 'lucide-react';
+import { SkipForward, UserCircle, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import { login, register } from '../api';
 
 export function AuthPage() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   const handleLogin = async (username: string, password: string) => {
     setIsLoading(true);
@@ -17,7 +20,15 @@ export function AuthPage() {
     try {
       const response = await login(username, password);
       // Login successful, token is stored automatically
-      navigate('/home');
+      // Check if user has completed registration
+      const registrationComplete = localStorage.getItem('registration_complete') === 'true';
+      if (!registrationComplete) {
+        // Show registration modal
+        setShowRegistrationModal(true);
+      } else {
+        // Navigate directly to home if registration is complete
+        navigate('/home');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
       setError(errorMessage);
@@ -42,7 +53,15 @@ export function AuthPage() {
       
       // After successful registration, automatically log in
       const response = await login(username, password);
-      navigate('/home');
+      // Check if user has completed registration
+      const registrationComplete = localStorage.getItem('registration_complete') === 'true';
+      if (!registrationComplete) {
+        // Show registration modal
+        setShowRegistrationModal(true);
+      } else {
+        // Navigate directly to home if registration is complete
+        navigate('/home');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
       setError(errorMessage);
@@ -53,11 +72,44 @@ export function AuthPage() {
   };
 
   const handleBypass = () => {
+    // Mark registration as complete when bypassing
+    localStorage.setItem('registration_complete', 'true');
+    navigate('/home');
+  };
+
+  const handleSkipToRegistration = () => {
+    // Simulate login without backend - set a mock token
+    localStorage.setItem('auth_token', 'mock_token_for_testing');
+    // Clear registration complete flag so we can see the modal
+    localStorage.removeItem('registration_complete');
+    // Show registration modal
+    setShowRegistrationModal(true);
+  };
+
+  const handleRegistrationComplete = () => {
+    setShowRegistrationModal(false);
     navigate('/home');
   };
 
   return (
-    <div className="min-h-screen bg-[#6ec257]/15 dark:bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#6ec257]/15 dark:bg-gray-900 flex items-center justify-center px-4 relative">
+      {/* Theme Toggle Button */}
+      <div className="absolute top-4 right-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="h-9 w-9"
+          aria-label="Toggle theme"
+        >
+          {theme === 'light' ? (
+            <Moon className="h-5 w-5" />
+          ) : (
+            <Sun className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
+
       <div className="w-full max-w-md space-y-4">
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -75,8 +127,17 @@ export function AuthPage() {
           setError(null);
         }} />
 
-        {/* Development bypass button */}
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        {/* Development bypass buttons */}
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSkipToRegistration}
+            className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          >
+            <UserCircle className="mr-2 h-4 w-4" />
+            Skip to Registration Modal (Test)
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -88,6 +149,12 @@ export function AuthPage() {
           </Button>
         </div>
       </div>
+
+      {/* Registration Modal */}
+      <RegistrationModal
+        isOpen={showRegistrationModal}
+        onComplete={handleRegistrationComplete}
+      />
     </div>
   );
 }

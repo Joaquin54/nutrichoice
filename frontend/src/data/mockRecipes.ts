@@ -309,5 +309,257 @@ export const mockRecipes: Recipe[] = [
       'Spread mashed avocado on toast.',
       'Top with poached egg and garnish with chives and red pepper flakes.'
     ]
+  },
+  {
+    id: '11',
+    title: 'Thai Green Curry',
+    description: 'Aromatic and spicy Thai curry with vegetables and coconut milk.',
+    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=1080',
+    cookTime: 30,
+    servings: 4,
+    difficulty: 'Medium',
+    dietaryTags: ['Vegetarian', 'Gluten-Free'],
+    ingredients: [
+      '2 tbsp green curry paste',
+      '1 can coconut milk',
+      '2 cups mixed vegetables',
+      '1 tbsp fish sauce',
+      '1 tsp sugar',
+      'Thai basil leaves',
+      'Jasmine rice for serving'
+    ],
+    instructions: [
+      'Heat curry paste in a large pan until fragrant.',
+      'Add coconut milk and bring to a simmer.',
+      'Add vegetables and cook until tender.',
+      'Season with fish sauce and sugar.',
+      'Garnish with Thai basil and serve over rice.'
+    ]
+  },
+  {
+    id: '12',
+    title: 'Beef Stir Fry',
+    description: 'Quick and flavorful beef stir fry with fresh vegetables.',
+    image: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=1080',
+    cookTime: 20,
+    servings: 4,
+    difficulty: 'Easy',
+    dietaryTags: ['Gluten-Free'],
+    ingredients: [
+      '1 lb beef sirloin, sliced',
+      '2 bell peppers, sliced',
+      '1 onion, sliced',
+      '2 cloves garlic, minced',
+      '2 tbsp soy sauce',
+      '1 tbsp sesame oil',
+      'Steamed rice for serving'
+    ],
+    instructions: [
+      'Heat oil in a large wok or pan.',
+      'Cook beef until browned, then remove.',
+      'Stir fry vegetables until crisp-tender.',
+      'Return beef to pan and add soy sauce.',
+      'Serve hot over steamed rice.'
+    ]
+  },
+  {
+    id: '13',
+    title: 'Caesar Salad',
+    description: 'Classic Caesar salad with crisp romaine and homemade dressing.',
+    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=1080',
+    cookTime: 15,
+    servings: 4,
+    difficulty: 'Easy',
+    dietaryTags: ['Vegetarian'],
+    ingredients: [
+      '2 heads romaine lettuce',
+      '1/2 cup Parmesan cheese',
+      'Croutons',
+      'Caesar dressing',
+      'Anchovy paste (optional)'
+    ],
+    instructions: [
+      'Wash and chop romaine lettuce.',
+      'Toss with Caesar dressing.',
+      'Top with Parmesan cheese and croutons.',
+      'Serve immediately.'
+    ]
+  },
+  {
+    id: '14',
+    title: 'Chicken Tikka Masala',
+    description: 'Creamy Indian curry with tender marinated chicken.',
+    image: 'https://images.unsplash.com/photo-1633945274309-2c16f968155f?w=1080',
+    cookTime: 50,
+    servings: 4,
+    difficulty: 'Medium',
+    dietaryTags: ['Gluten-Free'],
+    ingredients: [
+      '2 lbs chicken breast, cubed',
+      '1 cup heavy cream',
+      '1 can tomato sauce',
+      'Yogurt for marinating',
+      'Garam masala',
+      'Basmati rice for serving'
+    ],
+    instructions: [
+      'Marinate chicken in yogurt and spices for 30 minutes.',
+      'Grill or pan-fry chicken until cooked.',
+      'Simmer tomato sauce with spices.',
+      'Add cream and cooked chicken.',
+      'Serve over basmati rice.'
+    ]
+  },
+  {
+    id: '15',
+    title: 'Vegetable Lasagna',
+    description: 'Layered pasta dish with vegetables and cheese.',
+    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=1080',
+    cookTime: 60,
+    servings: 8,
+    difficulty: 'Medium',
+    dietaryTags: ['Vegetarian'],
+    ingredients: [
+      'Lasagna noodles',
+      'Ricotta cheese',
+      'Mozzarella cheese',
+      'Parmesan cheese',
+      'Mixed vegetables',
+      'Marinara sauce'
+    ],
+    instructions: [
+      'Cook lasagna noodles according to package.',
+      'Layer noodles, vegetables, and cheese.',
+      'Repeat layers and top with sauce and cheese.',
+      'Bake at 375°F for 45 minutes.',
+      'Let rest 10 minutes before serving.'
+    ]
+  },
+  {
+    id: '16',
+    title: 'Shrimp Scampi',
+    description: 'Garlicky shrimp with pasta in a white wine sauce.',
+    image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=1080',
+    cookTime: 25,
+    servings: 4,
+    difficulty: 'Easy',
+    dietaryTags: ['Pescatarian'],
+    ingredients: [
+      '1 lb large shrimp',
+      'Linguine pasta',
+      '4 cloves garlic',
+      'White wine',
+      'Lemon juice',
+      'Butter and olive oil'
+    ],
+    instructions: [
+      'Cook pasta according to package directions.',
+      'Sauté garlic in butter and oil.',
+      'Add shrimp and cook until pink.',
+      'Deglaze with white wine and lemon juice.',
+      'Toss with pasta and serve.'
+    ]
+  },
+  {
+    id: '17',
+    title: 'Chicken Tacos',
+    description: 'Seasoned chicken in warm tortillas with fresh toppings.',
+    image: 'https://images.unsplash.com/photo-1565299585323-38174c5e67e3?w=1080',
+    cookTime: 30,
+    servings: 4,
+    difficulty: 'Easy',
+    dietaryTags: ['Gluten-Free'],
+    ingredients: [
+      '2 lbs chicken thighs',
+      'Taco seasoning',
+      'Corn tortillas',
+      'Lettuce',
+      'Tomatoes',
+      'Cheese',
+      'Sour cream'
+    ],
+    instructions: [
+      'Season and cook chicken until done.',
+      'Shred chicken.',
+      'Warm tortillas.',
+      'Fill tortillas with chicken and toppings.',
+      'Serve immediately.'
+    ]
+  },
+  {
+    id: '18',
+    title: 'Ramen Bowl',
+    description: 'Comforting Japanese noodle soup with broth and toppings.',
+    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1080',
+    cookTime: 35,
+    servings: 2,
+    difficulty: 'Medium',
+    dietaryTags: ['Pescatarian'],
+    ingredients: [
+      'Ramen noodles',
+      'Pork or vegetable broth',
+      'Soft-boiled eggs',
+      'Green onions',
+      'Nori sheets',
+      'Soy sauce'
+    ],
+    instructions: [
+      'Cook ramen noodles and set aside.',
+      'Heat broth and season with soy sauce.',
+      'Prepare soft-boiled eggs.',
+      'Assemble bowls with noodles and broth.',
+      'Top with eggs, green onions, and nori.'
+    ]
+  },
+  {
+    id: '19',
+    title: 'Caprese Salad',
+    description: 'Fresh Italian salad with tomatoes, mozzarella, and basil.',
+    image: 'https://images.unsplash.com/photo-1607532941433-304659e8198a?w=1080',
+    cookTime: 10,
+    servings: 4,
+    difficulty: 'Easy',
+    dietaryTags: ['Vegetarian', 'Gluten-Free'],
+    ingredients: [
+      'Fresh mozzarella',
+      'Ripe tomatoes',
+      'Fresh basil',
+      'Balsamic vinegar',
+      'Olive oil',
+      'Salt and pepper'
+    ],
+    instructions: [
+      'Slice mozzarella and tomatoes.',
+      'Alternate slices on a plate.',
+      'Tuck basil leaves between slices.',
+      'Drizzle with olive oil and balsamic.',
+      'Season with salt and pepper.'
+    ]
+  },
+  {
+    id: '20',
+    title: 'Beef Bourguignon',
+    description: 'French stew with beef braised in red wine.',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=1080',
+    cookTime: 180,
+    servings: 6,
+    difficulty: 'Hard',
+    dietaryTags: ['Gluten-Free'],
+    ingredients: [
+      '3 lbs beef chuck',
+      'Red wine',
+      'Carrots',
+      'Onions',
+      'Mushrooms',
+      'Bacon',
+      'Fresh herbs'
+    ],
+    instructions: [
+      'Brown beef in a Dutch oven.',
+      'Add wine and stock to cover.',
+      'Add vegetables and herbs.',
+      'Simmer for 2-3 hours until tender.',
+      'Serve with crusty bread or potatoes.'
+    ]
   }
 ];

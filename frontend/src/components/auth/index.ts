@@ -4,3 +4,4 @@ export { AuthToggle } from './AuthToggle';
 export { PasswordResetRequestForm } from './PasswordResetRequestForm';
 export { PasswordResetConfirmForm } from './PasswordResetConfirmForm';
 export { PasswordChangeForm } from './PasswordChangeForm';
+export { RegistrationModal } from './RegistrationModal';
