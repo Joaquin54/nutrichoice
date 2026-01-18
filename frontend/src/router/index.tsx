@@ -6,6 +6,7 @@ import { FavoritesPage } from '../pages/FavoritesPage';
 import { AccountPage } from '../pages/AccountPage';
 import { NutritionPage } from '../pages/NutritionPage';
 import { MealPlanningPage } from '../pages/MealPlanningPage';
+import { RecipeFeedPage } from '../pages/RecipeFeedPage';
 import { PasswordResetRequestPage } from '../pages/PasswordResetRequestPage';
 import { PasswordResetConfirmPage } from '../pages/PasswordResetConfirmPage';
 import { PasswordChangePage } from '../pages/PasswordChangePage';
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
       {
         path: 'meal-planning',
         element: <MealPlanningPage />,
+      },
+      {
+        path: 'recipe-feed',
+        element: <RecipeFeedPage />,
       },
     ],
   },
