@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres.fields",
     "rest_framework",
     "rest_framework.authtoken",  # Required for Token authentication
     "rest_framework_mongoengine",

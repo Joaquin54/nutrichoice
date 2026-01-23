@@ -1,6 +1,10 @@
 from uuid import uuid4
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.db.models.base import CASCADE
+from django.db.models.fields import TextField
+from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractUser):
@@ -79,6 +83,89 @@ class UserProfile(models.Model):
         db_table = 'user_profiles'
         verbose_name = 'User Profile'
         verbose_name_plural = 'User Profiles'
+
+
+class Recipe(models.Model):
+    """
+    Record of recipes
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    # public_id = modles. Maybe?
+    name = models.CharField(max_length=30, unique=True)
+    date_created = models.DateTimeField(auto_now=True)
+    intstructions = models.TextField(max_length=300)
+    description = models.TextField(max_length=500)
+    cuisine_type = models.TextField(max_length=12)
+    dietary_tags = ArrayField(models.CharField(max_length=12))
+
+    class Meta:
+        db_table = "recipe"
+        verbose_name = "Recipe"
+        verbose_name_plural = "Recipes"
+
+
+class Ingredient(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=24, unique=True)
+    calories_per_100g = models.FloatField()
+    protein_per_100g = models.FloatField()
+    carbs_per_100g = models.FloatField()
+    fat_per_100g = models.FloatField()
+    fiber_per_100g = models.FloatField()
+    sugar_per_100g = models.FloatField()
+    sodium_per_100g = models.FloatField()
+    default_unit = models.CharField(max_length=20, default="g")
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError(
+                "This model is read only. Cannot be modified")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError(
+            "This model is read only. Cannot be modified")
+
+    class Meta:
+        db_table = "ingredient"
+        verbose_name = "Ingredient"
+        verbose_name_plural = "Ingredients"
+
+
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="ingrdients"
+    )
+
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+    )
+
+    quantity = models.FloatField()
+    unit = models.CharField(max_length=20)
+
+
+class RecipeInstruction(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="instructions"
+    )
+
+    step_number = models.PositiveSmallIntegerField()
+    text = models.TextField()
+
+    estimated_cooktime = models.PositiveSmallIntegerField(
+        null=True, blank=True)
+
+
+"""
+To be refactored if not scratched all together
+"""
 
 
 class TriedRecipe(models.Model):
