@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres.fields",
     "rest_framework",
     "rest_framework.authtoken",  # Required for Token authentication
     "rest_framework_mongoengine",
@@ -77,11 +78,14 @@ WSGI_APPLICATION = "server.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        'NAME': os.getenv('POSTGRES_DB', 'nutrichoice_psql'),
-        'USER': os.getenv('POSTGRES_USER', 'nutrichoice_admin'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin1234'),
-        'HOST': os.getenv('POSTGRES_HOST', 'postgres'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        "NAME": os.environ.get("SUPABASE_DB_NAME"),
+        "USER": os.environ.get("SUPABASE_DB_USER"),
+        "PASSWORD": os.environ.get("SUPABASE_DB_PASSWORD"),
+        "HOST": os.environ.get("SUPABASE_DB_HOST"),
+        "PORT": os.environ.get("SUPABASE_DB_PORT"),
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
 }
 

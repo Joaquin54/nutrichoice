@@ -6,3 +6,4 @@ django-rest-framework-mongoengine
 blinker
 django-cors-headers
 python-dotenv
+pymongo
