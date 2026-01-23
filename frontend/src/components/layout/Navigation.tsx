@@ -1,11 +1,12 @@
 import { memo, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Heart, User, BarChart3, LogOut, Calendar, Menu, X } from 'lucide-react';
+import { Home, Heart, User, BarChart3, LogOut, Calendar, Menu, X, Layers } from 'lucide-react';
 import { Button } from '../ui/button';
 import { logout } from '../../api';
 
 const navigationItems = [
   { path: '/home', label: 'Home', icon: Home },
+  { path: '/recipe-feed', label: 'Recipe Feed', icon: Layers },
   { path: '/favorites', label: 'Favorites', icon: Heart },
   { path: '/meal-planning', label: 'Meal Planning', icon: Calendar },
   { path: '/nutrition', label: 'Nutrition', icon: BarChart3 },
