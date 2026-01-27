@@ -40,6 +40,11 @@ INSTALLED_APPS = [
     "rest_framework_mongoengine",
     "corsheaders",
     "api",
+    "profiles",
+    "users",
+    "ingredients",
+    "recipes",
+    "social"
 ]
 
 MIDDLEWARE = [

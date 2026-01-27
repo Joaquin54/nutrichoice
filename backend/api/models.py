@@ -1,6 +1,6 @@
+from django.db import models
 from uuid import uuid4
 from django.core.exceptions import ValidationError
-from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db.models.base import CASCADE
 from django.db.models.fields import TextField
@@ -77,7 +77,7 @@ class UserProfile(models.Model):
     profile_picture = models.URLField(blank=True, default='')
 
     def __str__(self):
-        return f"Profile for {self.user.username}"
+        return f"Profile for {self.user.username}" # type: ignore
 
     class Meta:
         db_table = 'user_profiles'
@@ -187,7 +187,7 @@ class TriedRecipe(models.Model):
     )
 
     def __str__(self):
-        return f"{self.public_id} recipe tried by {self.tried_by.username}"
+        return f"{self.public_id} recipe tried by {self.tried_by.username}" # type: ignore
 
     class Meta:
         unique_together = ('tried_by', 'recipe_id')
