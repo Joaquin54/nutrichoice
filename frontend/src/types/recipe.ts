@@ -1,3 +1,14 @@
+// Recipe review from a user
+export interface RecipeReview {
+  id: string;
+  recipeId: string;
+  userId: string;
+  username: string;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: string; // ISO date string
+}
+
 // Core recipe interface
 export interface Recipe {
   id: string;

@@ -1,10 +1,13 @@
 import { useState, useRef } from "react";
-import { Heart, User, ChevronRight } from "lucide-react";
+import { Heart, User, ChevronRight, Star } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { ImageWithFallback } from "../components/ui/ImageWithFallback";
 import { useRecipeActions } from "../hooks/useRecipeActions";
 import { mockRecipes } from "../data/mockRecipes";
+import { getReviewsForRecipe, getAverageRating } from "../data/mockReviews";
+import { RecipeReviewsModal } from "../components/recipe/RecipeReviewsModal";
+import type { RecipeReview } from "../types/recipe";
 
 // Mock user data for each recipe
 const mockRecipeOwners: Record<string, { username: string; profilePicture?: string }> = {
@@ -31,11 +34,102 @@ const CULTURAL_CUISINE_TAGS = [
   'Korean', 'korean',
 ];
 
+function StarRating({ rating, max = 5, size = "sm" }: { rating: number; max?: number; size?: "sm" | "xs" }) {
+  const full = Math.round(rating);
+  const empty = max - full;
+  const iconClass = size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5";
+  return (
+    <span className="flex items-center gap-0.5 text-amber-500" aria-label={`${rating} out of ${max} stars`}>
+      {Array.from({ length: full }, (_, i) => (
+        <Star key={`full-${i}`} className={`${iconClass} fill-current`} />
+      ))}
+      {Array.from({ length: empty }, (_, i) => (
+        <Star key={`empty-${i}`} className={`${iconClass} text-gray-300 dark:text-gray-600`} />
+      ))}
+    </span>
+  );
+}
+
+const PREVIEW_REVIEWS_MAX = 2;
+
+function RecipeReviewsSection({
+  recipeId,
+  recipeTitle,
+  onOpenReviews,
+}: {
+  recipeId: string;
+  recipeTitle: string;
+  onOpenReviews: (recipeId: string, recipeTitle: string) => void;
+}) {
+  const reviews = getReviewsForRecipe(recipeId);
+  const previewReviews = reviews.slice(0, PREVIEW_REVIEWS_MAX);
+  const average = getAverageRating(reviews);
+
+  const handleClick = () => {
+    onOpenReviews(recipeId, recipeTitle);
+  };
+
+  if (reviews.length === 0) {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className="w-full text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-2 sm:p-2.5 mb-2 sm:mb-3 hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2"
+      >
+        <h4 className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Reviews & ratings</h4>
+        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">No reviews yet. Be the first to rate this recipe!</p>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="w-full text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-2 sm:p-2.5 mb-2 sm:mb-3 min-h-0 flex flex-col hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2"
+    >
+      <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
+        <h4 className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300">Reviews & ratings</h4>
+        {average != null && (
+          <div className="flex items-center gap-1">
+            <StarRating rating={average} size="xs" />
+            <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-300">{average.toFixed(1)}</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">({reviews.length})</span>
+          </div>
+        )}
+      </div>
+      <div className="overflow-hidden min-h-0 space-y-1.5 pr-0.5">
+        {previewReviews.map((review: RecipeReview) => (
+          <div key={review.id} className="text-[10px] sm:text-xs border-b border-gray-200/80 dark:border-gray-700/80 last:border-0 last:pb-0 pb-1.5">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="font-medium text-gray-800 dark:text-gray-200">{review.username}</span>
+              <StarRating rating={review.rating} size="xs" />
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 leading-snug line-clamp-2">{review.comment}</p>
+          </div>
+        ))}
+      </div>
+      {reviews.length > PREVIEW_REVIEWS_MAX && (
+        <p className="text-[10px] sm:text-xs text-[#6ec257] font-medium mt-1">View all {reviews.length} reviews →</p>
+      )}
+    </button>
+  );
+}
+
 export function RecipeFeedPage() {
   const [cardScrollPositions, setCardScrollPositions] = useState<Map<string, number>>(new Map());
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
+  const [reviewsModalRecipeId, setReviewsModalRecipeId] = useState<string>("");
+  const [reviewsModalRecipeTitle, setReviewsModalRecipeTitle] = useState<string>("");
   const feedContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { toggleFavorite, isFavorite } = useRecipeActions();
+
+  const handleOpenReviews = (recipeId: string, recipeTitle: string) => {
+    setReviewsModalRecipeId(recipeId);
+    setReviewsModalRecipeTitle(recipeTitle);
+    setReviewsModalOpen(true);
+  };
 
   const handleFavoriteClick = (recipeId: string) => {
     toggleFavorite(recipeId);
@@ -172,6 +266,13 @@ export function RecipeFeedPage() {
                         </p>
                       </div>
 
+                      {/* Reviews & Ratings */}
+                      <RecipeReviewsSection
+                        recipeId={recipe.id}
+                        recipeTitle={recipe.title}
+                        onOpenReviews={handleOpenReviews}
+                      />
+
                       {/* Add to Cookbook Button */}
                       <Button
                         onClick={() => handleAddToCookbook(recipe.id)}
@@ -298,6 +399,13 @@ export function RecipeFeedPage() {
           </div>
         </div>
       </div>
+
+      <RecipeReviewsModal
+        open={reviewsModalOpen}
+        onOpenChange={setReviewsModalOpen}
+        recipeId={reviewsModalRecipeId}
+        recipeTitle={reviewsModalRecipeTitle}
+      />
     </div>
   );
 }
