@@ -1,4 +1,4 @@
-#!/Users/jfrangi/College/Fall-25/Capstone-1/nutri/nutrichoice/backend/.nutri-env/bin/python3.10
+#!/Users/jfrangi/Projects/nutrichoice/backend/.nutri-env/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys

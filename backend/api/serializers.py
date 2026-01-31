@@ -1,7 +1,16 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import TriedRecipe, User, UserProfile  # Updated: UserProfile not User_Profile
+from users.models import User
+from profiles.models import UserProfile
+from recipes.models import (
+    Recipe,
+    RecipeIngredient,
+    RecipeInstruction
+)
+from ingredients.models import Ingredient
+from social.models import TriedRecipe
+# from nutrition.models import
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

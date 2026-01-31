@@ -12,6 +12,7 @@ backend/.venv/
 *.sqlite3
 backend/venv
 backend/pyrightconfig.json
+backend/.nutri-env
 
 # Environment files (DON'T leak secrets!)
 *.env

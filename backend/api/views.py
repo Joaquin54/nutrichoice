@@ -12,7 +12,16 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
 from typing import Optional
-from .models import User, TriedRecipe, UserProfile
+from users.models import User
+from profiles.models import UserProfile
+from recipes.models import (
+    Recipe,
+    RecipeIngredient,
+    RecipeInstruction
+)
+from ingredients.models import Ingredient
+from social.models import TriedRecipe
+# from nutrition.models import
 from .serializers import (
     UserSerializer, TriedRecipeSerializer, UserRegistrationSerializer,
     UserLoginSerializer, PasswordChangeRequestSerializer,
@@ -38,8 +47,8 @@ class UserLoginView(APIView):
     def post(self, request: Request) -> Response:
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
+            user = serializer.validated_data['user'] # type: ignore
+            token, created = Token.objects.get_or_create(user=user) # type: ignore
             login(request, user)
             return Response({
                 'token': token.key,
@@ -67,7 +76,7 @@ class UserPasswordChangeRequestView(APIView):
     def post(self, request: Request) -> Response:
         serializer = PasswordChangeRequestSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
+            email = serializer.validated_data['email'] # type: ignore
             user = User.objects.get(email=email)
 
             # Generate password reset token
@@ -100,11 +109,11 @@ class UserPasswordChangeView(APIView):
         serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = request.user
-            user.set_password(serializer.validated_data['new_password'])
+            user.set_password(serializer.validated_data['new_password']) # type: ignore
             user.save()
 
             # Invalidate all existing tokens
-            Token.objects.filter(user=user).delete()
+            Token.objects.filter(user=user).delete() # type: ignore
 
             return Response({'message': 'Password changed successfully'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -116,12 +125,12 @@ class UserPasswordChangeConfirmView(APIView):
     def post(self, request: Request) -> Response:
         serializer = PasswordChangeConfirmSerializer(data=request.data)
         if serializer.is_valid():
-            token = serializer.validated_data['token']
-            new_password = serializer.validated_data['new_password']
+            token = serializer.validated_data['token'] # type: ignore
+            new_password = serializer.validated_data['new_password'] # type: ignore
 
             # Get user from token (simplified - in production use proper token validation)
             try:
-                user_id = request.data.get('user_id')
+                user_id = request.data.get('user_id') # type: ignore
                 user = User.objects.get(public_id=user_id)
 
                 # Verify token
@@ -130,7 +139,7 @@ class UserPasswordChangeConfirmView(APIView):
                     user.save()
 
                     # Invalidate all existing tokens
-                    Token.objects.filter(user=user).delete()
+                    Token.objects.filter(user=user).delete() # type: ignore
 
                     return Response({'message': 'Password reset successful'})
                 else:
@@ -138,7 +147,7 @@ class UserPasswordChangeConfirmView(APIView):
                         {'error': 'Invalid or expired token'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-            except User.DoesNotExist:
+            except User.DoesNotExist: # type: ignore
                 return Response(
                     {'error': 'Invalid user'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -156,7 +165,7 @@ class UserTokenRefreshView(APIView):
         except:
             pass
 
-        token = Token.objects.create(user=request.user)
+        token = Token.objects.create(user=request.user) # type: ignore
         return Response({
             'token': token.key,
             'user': CurrentUserSerializer(request.user).data
@@ -180,16 +189,16 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = 'public_id'  # Use public_id instead of pk for lookups
 
-    def get_queryset(self) -> QuerySet[User]:
+    def get_queryset(self) -> QuerySet[User]: # type: ignore
         """
         Optionally restricts the returned users by filtering against
         query parameters in the URL.
         """
         queryset = User.objects.all()
         username: Optional[str] = self.request.query_params.get(
-            'username', None)
+            'username', None) # type: ignore
         diet_type: Optional[str] = self.request.query_params.get(
-            'diet_type', None)
+            'diet_type', None) # type: ignore
 
         if username is not None:
             queryset = queryset.filter(username__icontains=username)
@@ -214,18 +223,18 @@ class TriedRecipeViewSet(viewsets.ModelViewSet):
     ViewSet for handling tried recipes operations.
     Provides CRUD operations for TriedRecipe model.
     """
-    queryset = TriedRecipe.objects.all()
+    queryset = TriedRecipe.objects.all() # type: ignore
     serializer_class = TriedRecipeSerializer
     lookup_field = 'public_id'
 
-    def get_queryset(self) -> QuerySet[TriedRecipe]:
+    def get_queryset(self) -> QuerySet[TriedRecipe]: # type: ignore
         """
         Optionally restricts the returned tried recipes by filtering against
         query parameters in the URL.
         """
-        queryset = TriedRecipe.objects.all()
-        user_id: Optional[str] = self.request.query_params.get('user_id', None)
-        recipe_id: Optional[str] = self.request.query_params.get(
+        queryset = TriedRecipe.objects.all() # type: ignore
+        user_id: Optional[str] = self.request.query_params.get('user_id', None) # type: ignore
+        recipe_id: Optional[str] = self.request.query_params.get( # type: ignore
             'recipe_id', None)
 
         if user_id is not None:
@@ -247,7 +256,7 @@ class TriedRecipeViewSet(viewsets.ModelViewSet):
         Returns the most tried recipes
         """
         from django.db.models import Count
-        most_tried = (TriedRecipe.objects
+        most_tried = (TriedRecipe.objects # type: ignore
                       .values('recipe_id')
                       .annotate(try_count=Count('recipe_id'))
                       .order_by('-try_count')[:10])
@@ -259,15 +268,15 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     ViewSet for handling user profile operations.
     Provides CRUD operations for UserProfile model.
     """
-    queryset = UserProfile.objects.all()
+    queryset = UserProfile.objects.all() # type: ignore
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self) -> QuerySet[UserProfile]:
+    def get_queryset(self) -> QuerySet[UserProfile]: # type: ignore
         """
         Restrict queryset to the current user's profile only
         """
-        return UserProfile.objects.filter(user=self.request.user)
+        return UserProfile.objects.filter(user=self.request.user) # type: ignore
 
     def perform_create(self, serializer: UserProfileSerializer) -> None:
         """
@@ -281,10 +290,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         Get or update the current user's profile
         """
         try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
+            profile = UserProfile.objects.get(user=request.user) # type: ignore
+        except UserProfile.DoesNotExist: # type: ignore
             # Create profile if it doesn't exist
-            profile = UserProfile.objects.create(user=request.user)
+            profile = UserProfile.objects.create(user=request.user) # type: ignore
 
         if request.method == 'PATCH':
             serializer = UserProfileSerializer(profile, data=request.data, partial=True)

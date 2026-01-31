@@ -40,6 +40,11 @@ INSTALLED_APPS = [
     "rest_framework_mongoengine",
     "corsheaders",
     "api",
+    "profiles",
+    "users",
+    "ingredients",
+    "recipes",
+    "social"
 ]
 
 MIDDLEWARE = [
@@ -158,7 +163,7 @@ CORS_ALLOW_HEADERS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom User Model
-AUTH_USER_MODEL = "api.User"
+AUTH_USER_MODEL = "users.User"
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {
