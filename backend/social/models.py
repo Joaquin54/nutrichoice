@@ -7,11 +7,48 @@ from django.db.models import Q, F
 # Create your models here.
 
 
+class BlockUser(models.Model):
+    blocker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="blocking_edges"
+    )
+    blocked = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="blocked_edges"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "user_block"
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["blocker", "blocked"],
+                name="uq_userblock_blocker_blocked"
+            ),
+            models.CheckConstraint(
+                check=~Q(blocker=F("blocked")),
+                name="ck_userblock_no_self_block",
+            ),
+        ]
+
+        indexes = [
+            models.Index(fields=["blocker"], name="ix_userblock_blocker"),
+            models.Index(fields=["blocked"], name="ix_userblock_blocked"),
+            models.Index(fields=["created_at"], name="ix_userblock_created_at")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.blocker_id} blocked {self.blocked_id}"  # type: ignore
+
+
 class UserFollows(models.Model):
     follower = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        relatedi_name="following_edges"
+        related_name="following_edges"
     )
     followee = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -35,6 +72,16 @@ class UserFollows(models.Model):
                 name="ck_userfollow_no_self_follow",
             )
         ]
+
+        indexes = [
+            models.Index(fields=["follower"], name="ix_userfollow_follower"),
+            models.Index(fields=["followee"], name="ix_userfollow_followee"),
+            models.Index(fields=["created_at"], name="ix_userfollow_created_at")
+        ]
+
+
+    def __str__(self) -> str:
+        return f"{self.follower_id} -> {self.followee_id}" # type: ignore
 
 
 class TriedRecipe(models.Model):
