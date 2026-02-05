@@ -3,7 +3,7 @@ from typing import Optional
 from django.db import transaction
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from social.models import UserFollow, BlockUser
+from social.models import UserFollow, UserBlock
 
 User = get_user_model()
 
@@ -20,7 +20,7 @@ def _blocked_either_direction(user_a: User, user_b: User) -> bool:  # type:ignor
     """
     Will return True if A blocked B or B blocked A
     """
-    return BlockUser.objects.filter(  # type: ignore
+    return UserBlock.objects.filter(  # type: ignore
         Q(blocker=user_a, blocked=user_b) | Q(blocker=user_b, blocked=user_a)
     ).exists()
 
