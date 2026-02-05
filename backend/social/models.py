@@ -7,7 +7,7 @@ from django.db.models import Q, F
 # Create your models here.
 
 
-class BlockUser(models.Model):
+class UserBlock(models.Model):
     blocker = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
