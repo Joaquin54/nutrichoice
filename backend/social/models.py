@@ -7,7 +7,7 @@ from django.db.models import Q, F
 # Create your models here.
 
 
-class UserFowllows(models.Model):
+class UserFollows(models.Model):
     follower = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
