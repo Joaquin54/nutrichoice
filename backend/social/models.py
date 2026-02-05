@@ -44,7 +44,7 @@ class BlockUser(models.Model):
         return f"{self.blocker_id} blocked {self.blocked_id}"  # type: ignore
 
 
-class UserFollows(models.Model):
+class UserFollow(models.Model):
     follower = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
