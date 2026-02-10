@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from ingredients.models import Ingredient
+from django.conf import settings
 
 
 # Create your models here.
@@ -17,11 +18,19 @@ class Recipe(models.Model):
     description = models.TextField(max_length=500)
     cuisine_type = models.TextField(max_length=12)
     dietary_tags = ArrayField(models.CharField(max_length=12))
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="recipe_creator"
+    )
 
     class Meta:
         db_table = "recipe"
         verbose_name = "Recipe"
         verbose_name_plural = "Recipes"
+
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
