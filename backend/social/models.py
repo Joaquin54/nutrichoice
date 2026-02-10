@@ -1,10 +1,57 @@
+# from re import A
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from uuid import uuid4
+
 from users.models import User
 from django.conf import settings
 from django.db.models import Q, F
+from recipes.models import Recipe
 
 # Create your models here.
+
+
+class RecipeReview(models.Model):
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="written_recipe_reviews"
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="recipe_reviews"
+    )
+    text = models.CharField(max_length=250)
+    rating = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["author", "recipe"],
+                name="uq_recipereview_author_recipe"
+            )
+        ]
+        db_table = 'recipe_reviews'
+        verbose_name = 'Recipe Review'
+        verbose_name_plural = 'Recipe Reviews'
+        ordering = ['-created_at']  # Most recent first by default
+
+
+class PostRecipe(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="posted_recipe"
+    )
+    privacy = models.BooleanField(default=True)  # type: ignore
+    date_created = models.DateTimeField(auto_now_add=True)
 
 
 class UserBlock(models.Model):
@@ -76,12 +123,12 @@ class UserFollow(models.Model):
         indexes = [
             models.Index(fields=["follower"], name="ix_userfollow_follower"),
             models.Index(fields=["followee"], name="ix_userfollow_followee"),
-            models.Index(fields=["created_at"], name="ix_userfollow_created_at")
+            models.Index(fields=["created_at"],
+                         name="ix_userfollow_created_at")
         ]
 
-
     def __str__(self) -> str:
-        return f"{self.follower_id} -> {self.followee_id}" # type: ignore
+        return f"{self.follower_id} -> {self.followee_id}"  # type: ignore
 
 
 class TriedRecipe(models.Model):
@@ -94,7 +141,7 @@ class TriedRecipe(models.Model):
         editable=False,
         unique=True,
     )
-    recipe_id = models.PositiveBigIntegerField()
+    recipe = models.PositiveBigIntegerField()
     date_added = models.DateTimeField(auto_now_add=True)
     tried_by = models.ForeignKey(
         User,  # Changed from string reference to direct class reference
@@ -103,11 +150,15 @@ class TriedRecipe(models.Model):
     )
 
     def __str__(self):
-        # type: ignore
         return f"{self.public_id} recipe tried by {self.tried_by.username}"
 
     class Meta:
-        unique_together = ('tried_by', 'recipe_id')
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tried_by", "recipe"],
+                name="uq_triedrecipe_user_recipe"
+            )
+        ]
         db_table = 'tried_recipes'
         verbose_name = 'Tried Recipe'
         verbose_name_plural = 'Tried Recipes'
