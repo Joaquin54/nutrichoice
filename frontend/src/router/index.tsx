@@ -7,6 +7,8 @@ import { AccountPage } from '../pages/AccountPage';
 import { NutritionPage } from '../pages/NutritionPage';
 import { MealPlanningPage } from '../pages/MealPlanningPage';
 import { RecipeFeedPage } from '../pages/RecipeFeedPage';
+import { CookbooksPage } from '../pages/CookbooksPage';
+import { CookbookViewPage } from '../pages/CookbookViewPage';
 import { PasswordResetRequestPage } from '../pages/PasswordResetRequestPage';
 import { PasswordResetConfirmPage } from '../pages/PasswordResetConfirmPage';
 import { PasswordChangePage } from '../pages/PasswordChangePage';
@@ -55,6 +57,14 @@ export const router = createBrowserRouter([
       {
         path: 'recipe-feed',
         element: <RecipeFeedPage />,
+      },
+      {
+        path: 'cookbooks',
+        element: <CookbooksPage />,
+      },
+      {
+        path: 'cookbooks/:id',
+        element: <CookbookViewPage />,
       },
     ],
   },

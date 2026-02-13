@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   ProfileForm, 
   DietaryPreferencesCard
 } from '../components/account';
 import { useUserPreferences } from '../hooks/useUserPreferences';
+import { useCookbooks } from '../hooks/useCookbooks';
 import { Button } from '../components/ui/button';
-import { Edit2, Save, X } from 'lucide-react';
+import { Edit2, Save, X, BookOpen, ChevronRight } from 'lucide-react';
 import type { DietaryFilter } from '../types/recipe';
 import { getCurrentUser, updateUser, updateUserProfile, type User } from '../api';
 
@@ -18,6 +20,7 @@ export function AccountPage() {
   
   // Get dietary preferences from shared context
   const { dietaryPreferences, updateDietaryPreferences } = useUserPreferences();
+  const { cookbooks } = useCookbooks();
   
   // User data from API
   const [user, setUser] = useState<User | null>(null);
@@ -250,6 +253,48 @@ export function AccountPage() {
             isLoading={dietaryLoading}
             isReadOnly={!isEditMode}
           />
+        </div>
+
+        {/* My Cookbooks - appears on profile */}
+        <div className="w-full">
+          <div className="rounded-xl border bg-card p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-[#6ec257]" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">My Cookbooks</h3>
+              </div>
+              <Link to="/cookbooks">
+                <Button variant="ghost" size="sm" className="gap-1 text-[#6ec257] hover:text-[#5db84a]">
+                  View all
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Your recipe collections. Create cookbooks and flip through them like a real book.
+            </p>
+            {cookbooks.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No cookbooks yet.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {cookbooks.slice(0, 5).map((cb) => (
+                  <Link key={cb.id} to={`/cookbooks/${cb.id}`}>
+                    <span className="inline-flex items-center rounded-lg bg-[#6ec257]/10 dark:bg-[#6ec257]/20 px-3 py-1.5 text-sm font-medium text-[#6ec257] hover:bg-[#6ec257]/20 dark:hover:bg-[#6ec257]/30 transition-colors">
+                      {cb.name}
+                      <span className="ml-1.5 text-xs opacity-80">({cb.recipeIds.length})</span>
+                    </span>
+                  </Link>
+                ))}
+                {cookbooks.length > 5 && (
+                  <Link to="/cookbooks">
+                    <span className="inline-flex items-center rounded-lg border border-dashed px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted/50">
+                      +{cookbooks.length - 5} more
+                    </span>
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

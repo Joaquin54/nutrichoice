@@ -101,3 +101,12 @@ export interface RecipeCollection {
   createdBy: string;
   isPublic: boolean;
 }
+
+// User cookbook: a named collection of recipe IDs (like a real cookbook)
+export interface Cookbook {
+  id: string;
+  name: string;
+  description?: string;
+  recipeIds: string[];
+  createdAt: string; // ISO date string
+}

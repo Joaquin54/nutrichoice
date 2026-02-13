@@ -1,15 +1,23 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../ui/popover";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { Clock, Users, Heart, CheckCircle } from "lucide-react";
+import { Clock, Users, Heart, CheckCircle, BookOpen } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
+import { useCookbooks } from "../../hooks/useCookbooks";
 import type { Recipe } from "../../types/recipe";
 
 // Cultural cuisine tags to filter out from dietary tags
@@ -34,8 +42,15 @@ interface RecipeModalProps {
 
 export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
+  const { cookbooks, addRecipeToCookbook } = useCookbooks();
+  const [cookbookPopoverOpen, setCookbookPopoverOpen] = useState(false);
   
   if (!recipe) return null;
+
+  const handleAddToCookbook = (cookbookId: string) => {
+    addRecipeToCookbook(cookbookId, recipe.id);
+    setCookbookPopoverOpen(false);
+  };
 
   // Filter out cultural cuisine tags from dietary tags
   const dietaryTagsOnly = recipe.dietaryTags.filter(
@@ -56,7 +71,48 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <span className="flex-1">{recipe.title}</span>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <Popover open={cookbookPopoverOpen} onOpenChange={setCookbookPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 flex-1 sm:flex-initial"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    <span className="hidden sm:inline">Add to Cookbook</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="start">
+                  <p className="text-xs font-medium text-muted-foreground px-2 py-1">Add to collection</p>
+                  {cookbooks.length === 0 ? (
+                    <p className="text-xs text-muted-foreground px-2 py-2">
+                      No cookbooks yet. <Link to="/cookbooks" className="text-[#6ec257] hover:underline" onClick={() => setCookbookPopoverOpen(false)}>Create one</Link>.
+                    </p>
+                  ) : (
+                    <ul className="max-h-48 overflow-y-auto">
+                      {cookbooks.map((cb) => {
+                        const alreadyAdded = cb.recipeIds.includes(recipe.id);
+                        return (
+                          <li key={cb.id}>
+                            <button
+                              type="button"
+                              onClick={() => !alreadyAdded && handleAddToCookbook(cb.id)}
+                              disabled={alreadyAdded}
+                              className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted disabled:opacity-60 disabled:cursor-default"
+                            >
+                              {cb.name}
+                              {alreadyAdded && (
+                                <span className="ml-1 text-xs text-[#6ec257]">✓</span>
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </PopoverContent>
+              </Popover>
               <Button
                 onClick={handleFavoriteClick}
                 variant="outline"

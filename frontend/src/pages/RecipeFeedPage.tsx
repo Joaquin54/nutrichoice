@@ -1,9 +1,12 @@
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Heart, User, ChevronRight, Star } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { ImageWithFallback } from "../components/ui/ImageWithFallback";
 import { useRecipeActions } from "../hooks/useRecipeActions";
+import { useCookbooks } from "../hooks/useCookbooks";
 import { mockRecipes } from "../data/mockRecipes";
 import { getReviewsForRecipe, getAverageRating } from "../data/mockReviews";
 import { RecipeReviewsModal } from "../components/recipe/RecipeReviewsModal";
@@ -124,6 +127,7 @@ export function RecipeFeedPage() {
   const feedContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { toggleFavorite, isFavorite } = useRecipeActions();
+  const { cookbooks, addRecipeToCookbook } = useCookbooks();
 
   const handleOpenReviews = (recipeId: string, recipeTitle: string) => {
     setReviewsModalRecipeId(recipeId);
@@ -135,9 +139,8 @@ export function RecipeFeedPage() {
     toggleFavorite(recipeId);
   };
 
-  const handleAddToCookbook = (recipeId: string) => {
-    // TODO: Implement cookbook functionality
-    console.log("Add to cookbook:", recipeId);
+  const handleAddToCookbook = (recipeId: string, cookbookId: string) => {
+    addRecipeToCookbook(cookbookId, recipeId);
   };
 
   const handleCardScroll = (recipeId: string, scrollLeft: number) => {
@@ -273,13 +276,59 @@ export function RecipeFeedPage() {
                         onOpenReviews={handleOpenReviews}
                       />
 
-                      {/* Add to Cookbook Button */}
-                      <Button
-                        onClick={() => handleAddToCookbook(recipe.id)}
-                        className="w-full bg-[#6ec257] hover:bg-[#5ba045] text-white font-semibold py-2 sm:py-3 text-xs sm:text-sm rounded-lg transition-colors"
-                      >
-                        Add to Cookbook
-                      </Button>
+                      {/* Add to Cookbook - popover to choose cookbook */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            className="w-full bg-[#6ec257] hover:bg-[#5ba045] text-white font-semibold py-2 sm:py-3 text-xs sm:text-sm rounded-lg transition-colors"
+                          >
+                            Add to Cookbook
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 p-2" align="center" side="top">
+                          <p className="text-xs font-medium text-muted-foreground px-2 py-1">
+                            Choose a cookbook
+                          </p>
+                          {cookbooks.length === 0 ? (
+                            <p className="text-xs text-muted-foreground px-2 py-2">
+                              No cookbooks yet.{" "}
+                              <Link
+                                to="/cookbooks"
+                                className="text-[#6ec257] hover:underline"
+                              >
+                                Create one
+                              </Link>
+                              .
+                            </p>
+                          ) : (
+                            <ul className="max-h-48 overflow-y-auto">
+                              {cookbooks.map((cb) => {
+                                const alreadyAdded = cb.recipeIds.includes(recipe.id);
+                                return (
+                                  <li key={cb.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        !alreadyAdded &&
+                                        handleAddToCookbook(recipe.id, cb.id)
+                                      }
+                                      disabled={alreadyAdded}
+                                      className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted disabled:opacity-60 disabled:cursor-default"
+                                    >
+                                      {cb.name}
+                                      {alreadyAdded && (
+                                        <span className="ml-1 text-xs text-[#6ec257]">
+                                          ✓
+                                        </span>
+                                      )}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 
