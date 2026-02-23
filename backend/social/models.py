@@ -141,7 +141,11 @@ class TriedRecipe(models.Model):
         editable=False,
         unique=True,
     )
-    recipe = models.PositiveBigIntegerField()
+    recipe = models.ForeignKey(
+        "recipes.Recipe",
+        on_delete=models.CASCADE,
+        related_name="tried_entries"
+    )
     date_added = models.DateTimeField(auto_now_add=True)
     tried_by = models.ForeignKey(
         User,  # Changed from string reference to direct class reference
