@@ -144,7 +144,9 @@ class TriedRecipe(models.Model):
     recipe = models.ForeignKey(
         "recipes.Recipe",
         on_delete=models.CASCADE,
-        related_name="tried_entries"
+        related_name="tried_entries",
+        null=True,
+        blank=True
     )
     date_added = models.DateTimeField(auto_now_add=True)
     tried_by = models.ForeignKey(
