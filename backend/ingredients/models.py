@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 
 class Ingredient(models.Model):
-    id = models.BigAutoField(primary_key=True, null=True, blank=True)
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=24, unique=True)
     calories_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
     protein_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
