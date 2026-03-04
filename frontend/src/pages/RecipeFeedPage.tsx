@@ -102,8 +102,13 @@ function RecipeReviewsSection({
         )}
       </div>
       <div className="overflow-hidden min-h-0 space-y-1.5 pr-0.5">
-        {previewReviews.map((review: RecipeReview) => (
-          <div key={review.id} className="text-[10px] sm:text-xs border-b border-gray-200/80 dark:border-gray-700/80 last:border-0 last:pb-0 pb-1.5">
+        {previewReviews.map((review: RecipeReview, index) => (
+          <div
+            key={review.id}
+            className={`text-[10px] sm:text-xs border-b border-gray-200/80 dark:border-gray-700/80 last:border-0 last:pb-0 pb-1.5 ${
+              index === 1 ? "hidden sm:block" : ""
+            }`}
+          >
             <div className="flex items-center gap-1.5 mb-0.5">
               <span className="font-medium text-gray-800 dark:text-gray-200">{review.username}</span>
               <StarRating rating={review.rating} size="xs" />
@@ -129,6 +134,23 @@ export function RecipeFeedPage() {
   const { toggleFavorite, isFavorite } = useRecipeActions();
   const { cookbooks, addRecipeToCookbook } = useCookbooks();
 
+  const getCardPageIndex = (recipeId: string) => {
+    const cardElement = cardRefs.current.get(recipeId);
+    if (!cardElement) return 0;
+    const scrollLeft = cardScrollPositions.get(recipeId) ?? cardElement.scrollLeft;
+    const pageWidth = cardElement.clientWidth || 1;
+    const rawIndex = Math.round(scrollLeft / pageWidth);
+    const totalPages = Math.max(1, Math.round(cardElement.scrollWidth / pageWidth));
+    return Math.min(totalPages - 1, Math.max(0, rawIndex));
+  };
+
+  const getCardTotalPages = (recipeId: string) => {
+    const cardElement = cardRefs.current.get(recipeId);
+    if (!cardElement) return 2;
+    const pageWidth = cardElement.clientWidth || 1;
+    return Math.max(1, Math.round(cardElement.scrollWidth / pageWidth));
+  };
+
   const handleOpenReviews = (recipeId: string, recipeTitle: string) => {
     setReviewsModalRecipeId(recipeId);
     setReviewsModalRecipeTitle(recipeTitle);
@@ -153,23 +175,21 @@ export function RecipeFeedPage() {
 
   const handleScrollToBack = (recipeId: string) => {
     const cardElement = cardRefs.current.get(recipeId);
-    if (cardElement) {
-      cardElement.scrollTo({ left: cardElement.clientWidth, behavior: 'smooth' });
-    }
+    if (!cardElement) return;
+    const pageWidth = cardElement.clientWidth || 1;
+    const totalPages = getCardTotalPages(recipeId);
+    const currentIndex = getCardPageIndex(recipeId);
+    const nextIndex = Math.min(totalPages - 1, currentIndex + 1);
+    cardElement.scrollTo({ left: nextIndex * pageWidth, behavior: 'smooth' });
   };
 
   const handleScrollToFront = (recipeId: string) => {
     const cardElement = cardRefs.current.get(recipeId);
-    if (cardElement) {
-      cardElement.scrollTo({ left: 0, behavior: 'smooth' });
-    }
-  };
-
-  const isCardOnBack = (recipeId: string) => {
-    const cardElement = cardRefs.current.get(recipeId);
-    if (!cardElement) return false;
-    const scrollLeft = cardScrollPositions.get(recipeId) ?? cardElement.scrollLeft;
-    return scrollLeft > cardElement.clientWidth * 0.5;
+    if (!cardElement) return;
+    const pageWidth = cardElement.clientWidth || 1;
+    const currentIndex = getCardPageIndex(recipeId);
+    const prevIndex = Math.max(0, currentIndex - 1);
+    cardElement.scrollTo({ left: prevIndex * pageWidth, behavior: 'smooth' });
   };
 
   return (
@@ -180,19 +200,22 @@ export function RecipeFeedPage() {
         className="flex-1 overflow-y-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-snap-type:y_mandatory] [scroll-padding-top:0px]"
       >
         <div className="w-[90%] max-w-[90%] mx-auto pt-0 pb-4 sm:pb-6">
-          <div className="flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-col gap-4 sm:gap-4">
         {mockRecipes.map((recipe) => {
           // Filter out cultural cuisine tags from dietary tags
           const dietaryTagsOnly = recipe.dietaryTags.filter(
             tag => !CULTURAL_CUISINE_TAGS.includes(tag)
           );
 
-          const isOnBack = isCardOnBack(recipe.id);
+          const pageIndex = getCardPageIndex(recipe.id);
+          const totalPages = getCardTotalPages(recipe.id);
+          const isOnBack = pageIndex > 0;
 
           return (
             <div
               key={recipe.id}
-              className="h-[calc(90vh-90px)] sm:h-[calc(90vh-99px)] flex-shrink-0 relative"
+              className="h-[calc(88vh-90px)] sm:h-[calc(88vh-99px)] flex-shrink-0 relative" //RECIPE HEIGHTTODO: Change to 88vh-90px when reviews are implemented
+              //if description is larger adjust the card height.
               style={{
                 scrollSnapAlign: 'start',
                 scrollSnapStop: 'always',
@@ -243,7 +266,7 @@ export function RecipeFeedPage() {
                       </Button>
 
                       {/* Recipe Title */}
-                      <div className="mt-8 sm:mt-10">
+                      <div className="mt-1 sm:mt-0">
                         <h2 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 pr-10">
                           {recipe.title}
                         </h2>
@@ -263,7 +286,7 @@ export function RecipeFeedPage() {
                       </div>
 
                       {/* Recipe Description Box */}
-                      <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 sm:p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto mb-2 sm:mb-3 min-h-0">
+                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 sm:p-3 border border-gray-200 dark:border-gray-700 mb-2 sm:mb-3">
                         <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                           {recipe.description}
                         </p>
@@ -276,64 +299,106 @@ export function RecipeFeedPage() {
                         onOpenReviews={handleOpenReviews}
                       />
 
-                      {/* Add to Cookbook - popover to choose cookbook */}
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            className="w-full bg-[#6ec257] hover:bg-[#5ba045] text-white font-semibold py-2 sm:py-3 text-xs sm:text-sm rounded-lg transition-colors"
-                          >
-                            Add to Cookbook
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-56 p-2" align="center" side="top">
-                          <p className="text-xs font-medium text-muted-foreground px-2 py-1">
-                            Choose a cookbook
-                          </p>
-                          {cookbooks.length === 0 ? (
-                            <p className="text-xs text-muted-foreground px-2 py-2">
-                              No cookbooks yet.{" "}
-                              <Link
-                                to="/cookbooks"
-                                className="text-[#6ec257] hover:underline"
-                              >
-                                Create one
-                              </Link>
-                              .
+                      {/* Add to Cookbook - anchored to bottom, popover to choose cookbook */}
+                      <div className="mt-auto">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              className="w-full bg-[#6ec257] hover:bg-[#5ba045] text-white font-semibold py-2 sm:py-3 text-xs sm:text-sm rounded-lg transition-colors"
+                            >
+                              Add to Cookbook
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2" align="center" side="top">
+                            <p className="text-xs font-medium text-muted-foreground px-2 py-1">
+                              Choose a cookbook
                             </p>
-                          ) : (
-                            <ul className="max-h-48 overflow-y-auto">
-                              {cookbooks.map((cb) => {
-                                const alreadyAdded = cb.recipeIds.includes(recipe.id);
-                                return (
-                                  <li key={cb.id}>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        !alreadyAdded &&
-                                        handleAddToCookbook(recipe.id, cb.id)
-                                      }
-                                      disabled={alreadyAdded}
-                                      className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted disabled:opacity-60 disabled:cursor-default"
-                                    >
-                                      {cb.name}
-                                      {alreadyAdded && (
-                                        <span className="ml-1 text-xs text-[#6ec257]">
-                                          ✓
-                                        </span>
-                                      )}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </PopoverContent>
-                      </Popover>
+                            {cookbooks.length === 0 ? (
+                              <p className="text-xs text-muted-foreground px-2 py-2">
+                                No cookbooks yet.{" "}
+                                <Link
+                                  to="/cookbooks"
+                                  className="text-[#6ec257] hover:underline"
+                                >
+                                  Create one
+                                </Link>
+                                .
+                              </p>
+                            ) : (
+                              <ul className="max-h-48 overflow-y-auto">
+                                {cookbooks.map((cb) => {
+                                  const alreadyAdded = cb.recipeIds.includes(recipe.id);
+                                  return (
+                                    <li key={cb.id}>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          !alreadyAdded &&
+                                          handleAddToCookbook(recipe.id, cb.id)
+                                        }
+                                        disabled={alreadyAdded}
+                                        className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted disabled:opacity-60 disabled:cursor-default"
+                                      >
+                                        {cb.name}
+                                        {alreadyAdded && (
+                                          <span className="ml-1 text-xs text-[#6ec257]">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Back Side - Instructions and Ingredients */}
-                  <div className="flex flex-col sm:flex-row h-full w-full flex-shrink-0 snap-start p-4 sm:p-6">
+                  {/* Mobile Page 2 - Instructions */}
+                  <div className="flex flex-col h-full w-full flex-shrink-0 snap-start p-4 sm:hidden">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+                      Instructions
+                    </h3>
+                    <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
+                      <ol className="space-y-2">
+                        {recipe.instructions.map((instruction, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-[10px] font-semibold">
+                              {index + 1}
+                            </span>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed pt-0.5">
+                              {instruction}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+
+                  {/* Mobile Page 3 - Ingredients */}
+                  <div className="flex flex-col h-full w-full flex-shrink-0 snap-start p-4 sm:hidden">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+                      Ingredients
+                    </h3>
+                    <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
+                      <ul className="space-y-1.5">
+                        {recipe.ingredients.map((ingredient, index) => (
+                          <li key={index} className="flex items-start gap-1.5">
+                            <span className="text-[#6ec257] text-base leading-none pt-0.5">•</span>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {ingredient}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Desktop / Tablet Back Side - Instructions and Ingredients */}
+                  <div className="hidden sm:flex flex-col sm:flex-row h-full w-full flex-shrink-0 snap-start p-4 sm:p-6">
                     {/* Left Half: Instructions */}
                     <div className="w-full sm:w-1/2 flex flex-col pr-0 sm:pr-3 mb-4 sm:mb-0">
                       <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
@@ -400,20 +465,16 @@ export function RecipeFeedPage() {
 
                 {/* Indicator Dots - Bottom Center */}
                 <div className="absolute bottom-[2px] sm:bottom-[6px] left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                  <div
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      !isOnBack
-                        ? "bg-[#6ec257]"
-                        : "bg-gray-300 dark:bg-gray-600"
-                    }`}
-                  />
-                  <div
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      isOnBack
-                        ? "bg-[#6ec257]"
-                        : "bg-gray-300 dark:bg-gray-600"
-                    }`}
-                  />
+                  {Array.from({ length: totalPages }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        pageIndex === index
+                          ? "bg-[#6ec257]"
+                          : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -423,7 +484,7 @@ export function RecipeFeedPage() {
                   onClick={() => handleScrollToFront(recipe.id)}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm z-20 rotate-180 left-[calc(5%-51px)] sm:left-[calc(5%-53px)]"
+                  className="absolute top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm z-20 rotate-180 left-[calc(5%-40px)] sm:left-[calc(5%-53px)]"
                   aria-label="Back to recipe"
                 >
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-gray-300" />
@@ -436,7 +497,7 @@ export function RecipeFeedPage() {
                   onClick={() => handleScrollToBack(recipe.id)}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm z-20 right-[calc(5%-51px)] sm:right-[calc(5%-53px)]"
+                  className="absolute top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm z-20 right-[calc(5%-40px)] sm:right-[calc(5%-53px)]"
                   aria-label="View recipe details"
                 >
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-gray-300" />
