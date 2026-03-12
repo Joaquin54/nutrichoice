@@ -8,17 +8,20 @@ import { CookbooksProvider } from './hooks/useCookbooks'
 import { MealPlanningProvider } from './hooks/useMealPlanning'
 import { UserPreferencesProvider } from './hooks/useUserPreferences'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { SocialActionsProvider } from './hooks/useSocialActions'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
       <UserPreferencesProvider>
         <RecipeActionsProvider>
-          <CookbooksProvider>
-            <MealPlanningProvider>
-              <RouterProvider router={router} />
-            </MealPlanningProvider>
-          </CookbooksProvider>
+          <SocialActionsProvider>
+            <CookbooksProvider>
+              <MealPlanningProvider>
+                <RouterProvider router={router} />
+              </MealPlanningProvider>
+            </CookbooksProvider>
+          </SocialActionsProvider>
         </RecipeActionsProvider>
       </UserPreferencesProvider>
     </ThemeProvider>

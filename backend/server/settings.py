@@ -111,8 +111,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/capstone_db")
-connect(host=MONGO_URL)
+MONGO_URI = os.getenv("MONGO_URI", "")
+if MONGO_URI and "<db_password>" not in MONGO_URI:
+    try:
+        connect(host=MONGO_URI)
+    except Exception as e:
+        print(f"Warning: MongoDB connection failed: {e}")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

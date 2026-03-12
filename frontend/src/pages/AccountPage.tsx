@@ -4,6 +4,8 @@ import {
   ProfileForm, 
   DietaryPreferencesCard
 } from '../components/account';
+import { SocialStats } from '../components/account/SocialStats';
+import { SocialModal } from '../components/account/SocialModal';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import { useCookbooks } from '../hooks/useCookbooks';
 import { Button } from '../components/ui/button';
@@ -11,12 +13,21 @@ import { Edit2, Save, X, BookOpen, ChevronRight } from 'lucide-react';
 import type { DietaryFilter } from '../types/recipe';
 import { getCurrentUser, updateUser, updateUserProfile, type User } from '../api';
 
+type SocialTab = 'followers' | 'following' | 'blocked';
+
 export function AccountPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [dietaryLoading, setDietaryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [socialModalOpen, setSocialModalOpen] = useState(false);
+  const [socialModalTab, setSocialModalTab] = useState<SocialTab>('followers');
+
+  const handleOpenSocial = (tab: SocialTab) => {
+    setSocialModalTab(tab);
+    setSocialModalOpen(true);
+  };
   
   // Get dietary preferences from shared context
   const { dietaryPreferences, updateDietaryPreferences } = useUserPreferences();
@@ -245,6 +256,11 @@ export function AccountPage() {
             onDataChange={setTempProfileData}
           />
         </div>
+
+        {/* Social stats — followers / following / recipes */}
+        <div className="w-full md:w-1/2">
+          <SocialStats onOpenTab={handleOpenSocial} />
+        </div>
         
         <div className="w-full md:w-1/2">
           <DietaryPreferencesCard 
@@ -297,6 +313,12 @@ export function AccountPage() {
           </div>
         </div>
       </div>
+
+      <SocialModal
+        isOpen={socialModalOpen}
+        onClose={() => setSocialModalOpen(false)}
+        initialTab={socialModalTab}
+      />
     </div>
   );
 }

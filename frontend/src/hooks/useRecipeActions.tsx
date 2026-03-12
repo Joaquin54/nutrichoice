@@ -1,12 +1,18 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import type { Recipe } from '../types/recipe';
+
+const MY_RECIPES_KEY = 'nutrichoice_my_recipes';
 
 interface RecipeActionsContextType {
   favoriteRecipes: Set<string>;
   triedRecipes: Set<string>;
+  myRecipes: Recipe[];
   toggleFavorite: (recipeId: string) => void;
   toggleTried: (recipeId: string) => void;
   isFavorite: (recipeId: string) => boolean;
   isTried: (recipeId: string) => boolean;
+  addMyRecipe: (recipe: Recipe) => void;
+  removeMyRecipe: (recipeId: string) => void;
 }
 
 const RecipeActionsContext = createContext<RecipeActionsContextType | undefined>(undefined);
@@ -14,6 +20,14 @@ const RecipeActionsContext = createContext<RecipeActionsContextType | undefined>
 export function RecipeActionsProvider({ children }: { children: ReactNode }) {
   const [favoriteRecipes, setFavoriteRecipes] = useState<Set<string>>(new Set());
   const [triedRecipes, setTriedRecipes] = useState<Set<string>>(new Set());
+  const [myRecipes, setMyRecipes] = useState<Recipe[]>(() => {
+    try {
+      const stored = localStorage.getItem(MY_RECIPES_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const toggleFavorite = useCallback((recipeId: string) => {
     setFavoriteRecipes((prev) => {
@@ -47,15 +61,34 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
     return triedRecipes.has(recipeId);
   }, [triedRecipes]);
 
+  const addMyRecipe = useCallback((recipe: Recipe) => {
+    setMyRecipes(prev => {
+      const updated = [recipe, ...prev];
+      localStorage.setItem(MY_RECIPES_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const removeMyRecipe = useCallback((recipeId: string) => {
+    setMyRecipes(prev => {
+      const updated = prev.filter(r => r.id !== recipeId);
+      localStorage.setItem(MY_RECIPES_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <RecipeActionsContext.Provider
       value={{
         favoriteRecipes,
         triedRecipes,
+        myRecipes,
         toggleFavorite,
         toggleTried,
         isFavorite,
         isTried,
+        addMyRecipe,
+        removeMyRecipe,
       }}
     >
       {children}
