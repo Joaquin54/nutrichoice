@@ -1,5 +1,11 @@
-// This file is now simplified since routing is handled by the router
-// The main App component logic has been moved to HomePage.tsx
+import { RouterProvider } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { router } from './router';
+
 export default function App() {
-  return null; // This component is no longer used directly
+  return (
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  );
 }

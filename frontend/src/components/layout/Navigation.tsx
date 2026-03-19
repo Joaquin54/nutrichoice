@@ -9,7 +9,7 @@ const navigationItems = [
   { path: '/home', label: 'Home', icon: Home },
   { path: '/recipe-feed', label: 'Recipe Feed', icon: Layers },
   { path: '/cookbooks', label: 'Cookbook', icon: BookOpen },
-  { path: '/favorites', label: 'Favorites', icon: Heart },
+  { path: '/my-recipes', label: 'My Recipes', icon: Heart },
   { path: '/meal-planning', label: 'Meal Planning', icon: Calendar },
   { path: '/nutrition', label: 'Nutrition', icon: BarChart3 },
 ];
