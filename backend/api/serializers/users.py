@@ -98,9 +98,15 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class PasswordChangeConfirmSerializer(serializers.Serializer):
     token = serializers.CharField()
+    user_id = serializers.UUIDField()
     new_password = serializers.CharField(
         write_only=True, validators=[validate_password])
     new_password_confirm = serializers.CharField(write_only=True)
+
+    def validate_user_id(self, value):
+        if not User.objects.filter(public_id=value).exists():
+            raise serializers.ValidationError("Invalid user")
+        return value
 
     def validate(self, attrs):
         if attrs['new_password'] != attrs['new_password_confirm']:

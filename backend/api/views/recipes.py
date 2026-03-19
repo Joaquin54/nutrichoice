@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from typing import Optional
 from recipes.models import (
     Recipe,
@@ -12,8 +13,26 @@ from recipes.models import (
 from ingredients.models import Ingredient
 from social.models import TriedRecipe
 from api.serializers.recipes import (
-    TriedRecipeSerializer
+    TriedRecipeSerializer,
+    CreateRecipeSerializer,
+    RecipeDetailSerializer
 )
+
+
+class RecipeCreateView(generics.CreateAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = CreateRecipeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        return serializer.save(creator=self.request.user)
+
+    def create(self, request: Request, *args, **kwargs) -> Response:
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recipe = self.perform_create(serializer)
+        response_serializer = RecipeDetailSerializer(recipe)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class TriedRecipeViewSet(viewsets.ModelViewSet):

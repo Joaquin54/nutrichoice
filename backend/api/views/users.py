@@ -13,12 +13,14 @@ from rest_framework.authtoken.models import Token
 from users.models import User
 from typing import Optional
 
+from social.models import TriedRecipe
 from api.serializers.users import (
-    User, UserRegistrationSerializer,
+    UserRegistrationSerializer,
     UserLoginSerializer, PasswordChangeConfirmSerializer,
     PasswordChangeSerializer, PasswordChangeRequestSerializer,
     CurrentUserSerializer, UserSerializer
 )
+from api.serializers.recipes import TriedRecipeSerializer
 
 # Create your views here.
 
@@ -117,12 +119,10 @@ class UserPasswordChangeConfirmView(APIView):
         serializer = PasswordChangeConfirmSerializer(data=request.data)
         if serializer.is_valid():
             token = serializer.validated_data['token']  # type: ignore
-            # type: ignore
             new_password = serializer.validated_data['new_password']
+            user_id = serializer.validated_data['user_id']
 
-            # Get user from token (simplified - in production use proper token validation)
             try:
-                user_id = request.data.get('user_id')  # type: ignore
                 user = User.objects.get(public_id=user_id)
 
                 # Verify token
@@ -189,13 +189,9 @@ class UserViewSet(viewsets.ModelViewSet):
         queryset = User.objects.all()
         username: Optional[str] = self.request.query_params.get(
             'username', None)  # type: ignore
-        diet_type: Optional[str] = self.request.query_params.get(
-            'diet_type', None)  # type: ignore
 
         if username is not None:
             queryset = queryset.filter(username__icontains=username)
-        if diet_type is not None:
-            queryset = queryset.filter(diet_type=diet_type)
 
         return queryset
 
