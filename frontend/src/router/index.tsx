@@ -43,6 +43,10 @@ export const router = createBrowserRouter([
         element: <FavoritesPage />,
       },
       {
+        path: 'my-recipes',
+        element: <FavoritesPage />,
+      },
+      {
         path: 'account',
         element: <AccountPage />,
       },
