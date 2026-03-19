@@ -167,12 +167,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 # Email Configuration (Postmark via django-anymail)
+# EMAIL_BACKEND routes all Django send_mail / EmailMessage calls through
+# django-anymail's Postmark backend instead of the default SMTP backend.
 EMAIL_BACKEND = "anymail.backends.postmark.EmailBackend"
 ANYMAIL = {
+    # Server API token from your Postmark account dashboard.
+    # Set POSTMARK_SERVER_TOKEN in .env before deploying.
     "POSTMARK_SERVER_TOKEN": os.getenv("POSTMARK_SERVER_TOKEN"),
 }
-# Update DEFAULT_FROM_EMAIL once you have a verified Sender Signature in Postmark
+# Must match a verified Sender Signature in your Postmark account.
+# Set DEFAULT_FROM_EMAIL in .env once you have a verified sender address.
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
+# Base URL of the frontend — used to build links inside transactional emails
+# (e.g. the password reset confirm link). Set FRONTEND_URL in .env per environment.
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # Django REST Framework configuration
