@@ -1,10 +1,18 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (
-    UserViewSet, TriedRecipeViewSet, UserProfileViewSet, HealthView,
+from api.views.health import HealthView
+from api.views.recipes import (
+    TriedRecipeViewSet,
+    RecipeCreateView
+)
+from api.views.profiles import (
+    UserProfileViewSet
+)
+from api.views.users import (
     UserRegistrationView, UserLoginView, UserLogoutView,
     UserPasswordChangeRequestView, UserPasswordChangeView,
-    UserPasswordChangeConfirmView, UserTokenRefreshView, CurrentUserView
+    UserPasswordChangeConfirmView, UserTokenRefreshView,
+    CurrentUserView, UserViewSet
 )
 
 # Create a router and register our viewsets with it.
@@ -17,6 +25,7 @@ router.register(r'user-profiles', UserProfileViewSet, basename='userprofile')
 urlpatterns = [
     path('', include(router.urls)),
     path('health/', HealthView.as_view(), name='health-check'),
+    path('recipes/create/', RecipeCreateView.as_view(), name='recipe-create'),
 
     # Authentication endpoints
     path('auth/register/', UserRegistrationView.as_view(), name='user-register'),

@@ -2,16 +2,18 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 # Create your models here.
+
+
 class Ingredient(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=24, unique=True)
-    calories_per_100g = models.FloatField()
-    protein_per_100g = models.FloatField()
-    carbs_per_100g = models.FloatField()
-    fat_per_100g = models.FloatField()
-    fiber_per_100g = models.FloatField()
-    sugar_per_100g = models.FloatField()
-    sodium_per_100g = models.FloatField()
+    calories_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    protein_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    carbs_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    fat_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    fiber_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    sugar_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    sodium_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
     default_unit = models.CharField(max_length=20, default="g")
 
     def save(self, *args, **kwargs):
