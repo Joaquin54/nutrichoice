@@ -13,6 +13,7 @@ backend/.venv/
 backend/venv
 backend/pyrightconfig.json
 backend/.nutri-env
+backend/.nutri-env/bin
 
 # Environment files (DON'T leak secrets!)
 *.env
