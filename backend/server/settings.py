@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",  # Required for Token authentication
     "rest_framework_mongoengine",
     "corsheaders",
+    "djago-anymail",
     "api",
     "profiles",
     "users",
