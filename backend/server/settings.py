@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",  # Required for Token authentication
     "rest_framework_mongoengine",
     "corsheaders",
-    "djago-anymail",
+    "anymail",
     "api",
     "profiles",
     "users",
@@ -165,6 +165,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
+
+# Email Configuration (Postmark via django-anymail)
+EMAIL_BACKEND = "anymail.backends.postmark.EmailBackend"
+ANYMAIL = {
+    "POSTMARK_SERVER_TOKEN": os.getenv("POSTMARK_SERVER_TOKEN"),
+}
+# Update DEFAULT_FROM_EMAIL once you have a verified Sender Signature in Postmark
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {

@@ -72,23 +72,25 @@ class UserPasswordChangeRequestView(APIView):
 
             # Generate password reset token
             token = default_token_generator.make_token(user)
+            reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm?token={token}&user_id={user.public_id}"
 
-            # In a real app, you'd send this via email
-            # For now, we'll return it in the response (NOT for production)
-            # reset_link = f"http://localhost:3000/reset-password?token={token}&user_id={user.public_id}"
-
-            # TODO: Send actual email in production
-            # send_mail(
-            #     'Password Reset Request',
-            #     f'Click here to reset your password: {reset_link}',
-            #     settings.DEFAULT_FROM_EMAIL,
-            #     [email],
-            #     fail_silently=False,
-            # )
+            send_mail(
+                subject='NutriChoice - Password Reset Request',
+                message=(
+                    f"Hi {user.first_name},\n\n"
+                    f"You requested a password reset for your NutriChoice account.\n\n"
+                    f"Click the link below to reset your password:\n"
+                    f"{reset_link}\n\n"
+                    f"If you did not request this, you can safely ignore this email.\n\n"
+                    f"- The NutriChoice Team"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
 
             return Response({
                 'message': 'Password reset email sent',
-                # 'reset_link': reset_link  # Remove this in production
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
