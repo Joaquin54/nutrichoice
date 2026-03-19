@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.views.health import HealthView
 from api.views.recipes import (
-    TriedRecipeViewSet
+    TriedRecipeViewSet,
+    RecipeCreateView
 )
 from api.views.profiles import (
     UserProfileViewSet
@@ -24,6 +25,7 @@ router.register(r'user-profiles', UserProfileViewSet, basename='userprofile')
 urlpatterns = [
     path('', include(router.urls)),
     path('health/', HealthView.as_view(), name='health-check'),
+    path('recipes/create/', RecipeCreateView.as_view(), name='recipe-create'),
 
     # Authentication endpoints
     path('auth/register/', UserRegistrationView.as_view(), name='user-register'),

@@ -44,6 +44,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     # OPTIONAL: Add validation for calorie and protein goals
     def validate_daily_calorie_goal(self, value):
+        if value is None:
+            return value
         if value < 1000 or value > 10000:
             raise serializers.ValidationError(
                 "Daily calorie goal must be between 1000 and 10000"
@@ -51,6 +53,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return value
 
     def validate_daily_protein_goal(self, value):
+        if value is None:
+            return value
         if value < 20 or value > 500:
             raise serializers.ValidationError(
                 "Daily protein goal must be between 20 and 500 grams"
