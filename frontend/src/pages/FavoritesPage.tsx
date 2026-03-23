@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { RecipeModal } from '../components/recipe/RecipeModal';
 import { CreateRecipeModal } from '../components/recipe/CreateRecipeModal';
 import { useRecipeActions } from '../hooks/useRecipeActions';
-import { mockRecipes } from '../data/mockRecipes';
+import { useRecipes } from '../hooks/useRecipes';
 import { Heart, CheckCircle, ChefHat, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { RecipeCard } from '../components/recipe/RecipeCard';
@@ -14,12 +14,13 @@ import type { Recipe } from '../types/recipe';
 export function FavoritesPage() {
   const navigate = useNavigate();
   const { favoriteRecipes, triedRecipes, myRecipes, removeMyRecipe } = useRecipeActions();
+  const { recipes } = useRecipes();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // All available recipes (mock + user-created)
-  const allRecipes = useMemo(() => [...mockRecipes, ...myRecipes], [myRecipes]);
+  // Backend recipes + user-created local recipes
+  const allRecipes = useMemo(() => [...recipes, ...myRecipes], [recipes, myRecipes]);
 
   const favorites = useMemo(
     () => allRecipes.filter(recipe => favoriteRecipes.has(recipe.id)),

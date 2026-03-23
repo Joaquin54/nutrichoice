@@ -1,15 +1,16 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { ChefHat } from "lucide-react";
+import { ChefHat, Loader2 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
 import { HeroSection } from "../components/common/HeroSection";
 import { useUserPreferences } from "../hooks/useUserPreferences";
-import { mockRecipes } from "../data/mockRecipes";
+import { useRecipes } from "../hooks/useRecipes";
 import type { Recipe, DietaryFilter } from "../types/recipe";
 
 export function HomePage() {
   const { dietaryPreferences } = useUserPreferences();
+  const { recipes, isLoading } = useRecipes();
   const [filters, setFilters] = useState<DietaryFilter>(dietaryPreferences);
 
   // Sync filters with user preferences when they change
@@ -38,7 +39,7 @@ export function HomePage() {
 
   // Memoize the filtered recipes to prevent recalculation on every render
   const filteredRecipes = useMemo(() => {
-    return mockRecipes.filter((recipe) => {
+    return recipes.filter((recipe) => {
       // Search filter
       const matchesSearch =
         recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,9 +52,9 @@ export function HomePage() {
       if (!matchesSearch) return false;
 
       // Dietary filters
-      const activeDietaryFilters = Object.entries(filters).filter(([_, value]) => value);
+      const activeDietaryFilters = Object.entries(filters).filter(([, value]) => value);
       if (activeDietaryFilters.length > 0) {
-        const dietaryMatch = activeDietaryFilters.every(([filterKey, _]) => {
+        const dietaryMatch = activeDietaryFilters.every(([filterKey]) => {
           const filterMap: Record<string, string[]> = {
             vegetarian: ["Vegetarian", "Vegan"],
             vegan: ["Vegan"],
@@ -73,7 +74,7 @@ export function HomePage() {
 
       return true;
     });
-  }, [searchQuery, filters]);
+  }, [recipes, searchQuery, filters]);
 
   // Simple calculation - memo overhead > benefit
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
@@ -109,7 +110,11 @@ export function HomePage() {
       </div>
 
       {/* Recipe Grid */}
-      {filteredRecipes.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-[#6ec257]" />
+        </div>
+      ) : filteredRecipes.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mt-4">
           {filteredRecipes.map((recipe) => (
             <RecipeCard

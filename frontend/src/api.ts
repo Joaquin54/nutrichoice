@@ -2,6 +2,8 @@
 // Ensure API_BASE doesn't have a trailing slash to avoid double slashes
 const API_BASE = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, '');
 
+import type { Recipe } from './types/recipe';
+
 export type FoodEntry = {
   id: string;
   name: string;
@@ -369,6 +371,38 @@ export type ApiRecipe = {
   ingredients: { ingredient: { id: number; name: string }; quantity: number; unit: string }[];
   instructions: { step_number: number; text: string; estimated_cooktime: number | null }[];
 };
+
+// Converts a raw backend recipe to the frontend Recipe type.
+// Ingredients/instructions are flattened to display strings.
+export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
+  return {
+    id: String(r.id),
+    name: r.name,
+    description: r.description,
+    cuisine_type: r.cuisine_type,
+    dietary_tags: r.dietary_tags,
+    creator: r.creator,
+    ingredients: r.ingredients.map(
+      (i) => `${i.quantity} ${i.unit} ${i.ingredient.name}`
+    ),
+    instructions: r.instructions.map((i) => i.text),
+  };
+}
+
+export async function getRecipes(): Promise<Recipe[]> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipes/`);
+  if (!r.ok) throw new Error('Failed to load recipes');
+  const data = await r.json();
+  // Handle both paginated ({ results: [...] }) and plain array responses
+  const items: ApiRecipe[] = Array.isArray(data) ? data : (data.results ?? []);
+  return items.map(apiRecipeToRecipe);
+}
+
+export async function getRecipe(id: number): Promise<Recipe> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipes/${id}/`);
+  if (!r.ok) throw new Error('Failed to load recipe');
+  return apiRecipeToRecipe(await r.json());
+}
 
 export async function getCookbooks(): Promise<ApiCookbook[]> {
   const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/`);

@@ -13,6 +13,46 @@ import {
 
 const MY_RECIPES_KEY = 'nutrichoice_my_recipes';
 
+function normalizeStoredRecipe(raw: unknown): Recipe | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+
+  const id = typeof r.id === 'string' ? r.id : null;
+  const name =
+    typeof r.name === 'string'
+      ? r.name
+      : typeof r.title === 'string'
+        ? r.title
+        : null;
+
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    description: typeof r.description === 'string' ? r.description : '',
+    image: typeof r.image === 'string' ? r.image : undefined,
+    dietary_tags: Array.isArray(r.dietary_tags)
+      ? r.dietary_tags.filter((t): t is string => typeof t === 'string')
+      : Array.isArray(r.dietaryTags)
+        ? r.dietaryTags.filter((t): t is string => typeof t === 'string')
+        : [],
+    ingredients: Array.isArray(r.ingredients)
+      ? r.ingredients.filter((i): i is string => typeof i === 'string')
+      : [],
+    instructions: Array.isArray(r.instructions)
+      ? r.instructions.filter((i): i is string => typeof i === 'string')
+      : [],
+    cuisine_type: typeof r.cuisine_type === 'string'
+      ? r.cuisine_type
+      : typeof r.cuisine === 'string'
+        ? r.cuisine
+        : undefined,
+    creator: typeof r.creator === 'string' ? r.creator : undefined,
+    rating: typeof r.rating === 'number' ? r.rating : undefined,
+  };
+}
+
 interface RecipeActionsContextType {
   favoriteRecipes: Set<string>;
   triedRecipes: Set<string>;
@@ -39,7 +79,18 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
   const [myRecipes, setMyRecipes] = useState<Recipe[]>(() => {
     try {
       const stored = localStorage.getItem(MY_RECIPES_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return [];
+
+      const normalized = parsed
+        .map(normalizeStoredRecipe)
+        .filter((r): r is Recipe => r !== null);
+
+      // Persist normalized shape so older localStorage payloads are upgraded once.
+      localStorage.setItem(MY_RECIPES_KEY, JSON.stringify(normalized));
+      return normalized;
     } catch {
       return [];
     }

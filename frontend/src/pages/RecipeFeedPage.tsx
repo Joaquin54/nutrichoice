@@ -1,27 +1,16 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Heart, User, ChevronRight, Star } from "lucide-react";
+import { Heart, User, ChevronRight, Star, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { ImageWithFallback } from "../components/ui/ImageWithFallback";
 import { useRecipeActions } from "../hooks/useRecipeActions";
 import { useCookbooks } from "../hooks/useCookbooks";
-import { mockRecipes } from "../data/mockRecipes";
+import { useRecipes } from "../hooks/useRecipes";
 import { getReviewsForRecipe, getAverageRating } from "../data/mockReviews";
 import { RecipeReviewsModal } from "../components/recipe/RecipeReviewsModal";
 import type { RecipeReview } from "../types/recipe";
-
-// Mock user data for each recipe
-const mockRecipeOwners: Record<string, { username: string; profilePicture?: string }> = {
-  '1': { username: 'chef_maria', profilePicture: undefined },
-  '2': { username: 'italian_chef', profilePicture: undefined },
-  '3': { username: 'seafood_lover', profilePicture: undefined },
-  '4': { username: 'dessert_master', profilePicture: undefined },
-  '5': { username: 'spice_queen', profilePicture: undefined },
-  '6': { username: 'healthy_eats', profilePicture: undefined },
-  '7': { username: 'breakfast_pro', profilePicture: undefined },
-};
 
 // Cultural cuisine tags to filter out from dietary tags
 const CULTURAL_CUISINE_TAGS = [
@@ -133,6 +122,7 @@ export function RecipeFeedPage() {
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { toggleFavorite, isFavorite } = useRecipeActions();
   const { cookbooks, addRecipeToCookbook } = useCookbooks();
+  const { recipes, isLoading } = useRecipes();
 
   const getCardPageIndex = (recipeId: string) => {
     const cardElement = cardRefs.current.get(recipeId);
@@ -200,9 +190,13 @@ export function RecipeFeedPage() {
         className="flex-1 overflow-y-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-snap-type:y_mandatory] [scroll-padding-top:0px]"
       >
         <div className="w-[90%] max-w-[90%] mx-auto pt-0 pb-4 sm:pb-6">
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-[#6ec257]" />
+            </div>
+          )}
           <div className="flex flex-col gap-4 sm:gap-4">
-        {mockRecipes.map((recipe) => {
-          // Filter out cultural cuisine tags from dietary tags
+        {recipes.map((recipe) => {
           const dietaryTagsOnly = recipe.dietary_tags.filter(
             tag => !CULTURAL_CUISINE_TAGS.includes(tag)
           );
@@ -446,18 +440,10 @@ export function RecipeFeedPage() {
                   <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-30">
                     <div className="flex items-center gap-1.5 sm:gap-2 bg-white dark:bg-gray-800 rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-md border border-gray-200 dark:border-gray-700 w-fit">
                       <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-[#6ec257] to-[#5ba045] flex items-center justify-center overflow-hidden">
-                        {mockRecipeOwners[recipe.id]?.profilePicture ? (
-                          <img
-                            src={mockRecipeOwners[recipe.id].profilePicture}
-                            alt={mockRecipeOwners[recipe.id]?.username || 'User'}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
-                        )}
+                        <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                       </div>
                       <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white pr-1.5">
-                        {mockRecipeOwners[recipe.id]?.username || 'User'}
+                        {recipe.creator ?? 'User'}
                       </span>
                     </div>
                   </div>
