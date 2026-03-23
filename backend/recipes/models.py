@@ -78,6 +78,7 @@ class Cookbook(models.Model):
         on_delete=models.CASCADE,
         related_name="cookbooks",
     )
+    description = models.CharField(max_length=300, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
