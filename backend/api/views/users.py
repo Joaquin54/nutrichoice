@@ -62,6 +62,26 @@ class UserLogoutView(APIView):
 
 
 class UserPasswordChangeRequestView(APIView):
+    """
+    POST /api/auth/password-reset-request/
+
+    Accepts a registered email address and sends a password reset email via
+    Postmark (through django-anymail). Open to unauthenticated users so that
+    logged-out users can recover their accounts.
+
+    Flow:
+      1. Validate that the submitted email belongs to an existing user
+         (PasswordChangeRequestSerializer raises 400 if not found).
+      2. Generate a time-limited, one-time token using Django's
+         default_token_generator (HMAC-based, tied to the user's password hash
+         and last_login — invalidated automatically on password change).
+      3. Build a reset link pointing to the frontend confirm page, embedding
+         the token and the user's public_id as query params.
+      4. Send a plain-text email via send_mail, which is routed through the
+         Anymail Postmark backend configured in settings.py.
+      5. Always return a generic success message regardless of outcome to avoid
+         leaking whether an email address is registered (email enumeration).
+    """
     permission_classes = [AllowAny]
 
     def post(self, request: Request) -> Response:
@@ -70,26 +90,33 @@ class UserPasswordChangeRequestView(APIView):
             email = serializer.validated_data['email']  # type: ignore
             user = User.objects.get(email=email)
 
-            # Generate password reset token
+            # Generate a one-time, time-limited reset token bound to the user's
+            # current password hash. It becomes invalid once the password changes.
             token = default_token_generator.make_token(user)
 
-            # In a real app, you'd send this via email
-            # For now, we'll return it in the response (NOT for production)
-            # reset_link = f"http://localhost:3000/reset-password?token={token}&user_id={user.public_id}"
+            # Build the frontend URL the user clicks in the email.
+            # The confirm page reads `token` and `user_id` from query params and
+            # calls POST /api/auth/password-reset-confirm/ to finalise the reset.
+            reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm?token={token}&user_id={user.public_id}"
 
-            # TODO: Send actual email in production
-            # send_mail(
-            #     'Password Reset Request',
-            #     f'Click here to reset your password: {reset_link}',
-            #     settings.DEFAULT_FROM_EMAIL,
-            #     [email],
-            #     fail_silently=False,
-            # )
+            # Send plain-text email via django-anymail's Postmark backend.
+            # Credentials and sender address are resolved from settings.py / .env.
+            send_mail(
+                subject='NutriChoice - Password Reset Request',
+                message=(
+                    f"Hi {user.first_name},\n\n"
+                    f"You requested a password reset for your NutriChoice account.\n\n"
+                    f"Click the link below to reset your password:\n"
+                    f"{reset_link}\n\n"
+                    f"If you did not request this, you can safely ignore this email.\n\n"
+                    f"- The NutriChoice Team"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
 
-            return Response({
-                'message': 'Password reset email sent',
-                # 'reset_link': reset_link  # Remove this in production
-            })
+            return Response({'message': 'Password reset email sent'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
