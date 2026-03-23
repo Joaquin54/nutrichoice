@@ -328,14 +328,259 @@ export async function refreshToken(): Promise<LoginResponse> {
 // Export token management functions
 export { getAuthToken, setAuthToken };
 
-// Existing functions
+// Health
 export async function ping(): Promise<{ status: string }> {
   const r = await fetch(`${API_BASE}/api/health/`);
   return r.json();
 }
 
+// Ingredients
 export async function getFoods(): Promise<FoodEntry[]> {
   const r = await authenticatedFetch(`${API_BASE}/api/ingredients/`);
+  return r.json();
+}
+
+// ---------------------------------------------------------------------------
+// Cookbook types + API
+// ---------------------------------------------------------------------------
+
+export type ApiCookbook = {
+  id: number;
+  public_id: string;
+  name: string;
+  owner_username: string;
+  recipe_count: number;
+  date_created: string;
+  date_updated: string;
+};
+
+export type ApiCookbookDetail = ApiCookbook & {
+  recipes: ApiRecipe[];
+};
+
+export type ApiRecipe = {
+  id: number;
+  name: string;
+  description: string;
+  cuisine_type: string;
+  dietary_tags: string[];
+  date_created: string;
+  creator: string;
+  ingredients: { ingredient: { id: number; name: string }; quantity: number; unit: string }[];
+  instructions: { step_number: number; text: string; estimated_cooktime: number | null }[];
+};
+
+export async function getCookbooks(): Promise<ApiCookbook[]> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/`);
+  if (!r.ok) throw new Error('Failed to load cookbooks');
+  return r.json();
+}
+
+export async function getCookbookDetail(publicId: string): Promise<ApiCookbookDetail> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/${publicId}/`);
+  if (!r.ok) throw new Error('Failed to load cookbook');
+  return r.json();
+}
+
+export async function createCookbook(name: string): Promise<ApiCookbook> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function updateCookbook(publicId: string, name: string): Promise<ApiCookbook> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/${publicId}/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function deleteCookbook(publicId: string): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/${publicId}/`, {
+    method: 'DELETE',
+  });
+  if (!r.ok) throw new Error('Failed to delete cookbook');
+}
+
+export async function addRecipeToCookbook(publicId: string, recipeId: number): Promise<ApiCookbookDetail> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/${publicId}/add-recipe/`, {
+    method: 'POST',
+    body: JSON.stringify({ recipe_id: recipeId }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function removeRecipeFromCookbook(publicId: string, recipeId: number): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/${publicId}/remove-recipe/`, {
+    method: 'DELETE',
+    body: JSON.stringify({ recipe_id: recipeId }),
+  });
+  if (!r.ok) throw new Error('Failed to remove recipe from cookbook');
+}
+
+// ---------------------------------------------------------------------------
+// Recipe Likes types + API
+// ---------------------------------------------------------------------------
+
+export type ApiRecipeLike = {
+  id: number;
+  recipe: number;
+  created_at: string;
+};
+
+export async function getRecipeLikes(): Promise<ApiRecipeLike[]> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipe-likes/`);
+  if (!r.ok) throw new Error('Failed to load liked recipes');
+  return r.json();
+}
+
+export async function likeRecipe(recipeId: number): Promise<ApiRecipeLike> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipe-likes/`, {
+    method: 'POST',
+    body: JSON.stringify({ recipe: recipeId }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function unlikeRecipe(likeId: number): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipe-likes/${likeId}/`, {
+    method: 'DELETE',
+  });
+  if (!r.ok) throw new Error('Failed to unlike recipe');
+}
+
+// ---------------------------------------------------------------------------
+// Tried Recipes types + API
+// ---------------------------------------------------------------------------
+
+export type ApiTriedRecipe = {
+  public_id: string;
+  recipe: number;
+  date_added: string;
+  tried_by: number;
+};
+
+export async function getTriedRecipes(): Promise<ApiTriedRecipe[]> {
+  const r = await authenticatedFetch(`${API_BASE}/api/tried-recipes/`);
+  if (!r.ok) throw new Error('Failed to load tried recipes');
+  return r.json();
+}
+
+export async function markRecipeTried(recipeId: number): Promise<ApiTriedRecipe> {
+  const r = await authenticatedFetch(`${API_BASE}/api/tried-recipes/`, {
+    method: 'POST',
+    body: JSON.stringify({ recipe: recipeId }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function unmarkRecipeTried(publicId: string): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/tried-recipes/${publicId}/`, {
+    method: 'DELETE',
+  });
+  if (!r.ok) throw new Error('Failed to unmark recipe as tried');
+}
+
+// ---------------------------------------------------------------------------
+// Social (follows + blocks) types + API
+// ---------------------------------------------------------------------------
+
+export type ApiFollow = {
+  id: number;
+  follower: number;
+  followee: number;
+  followee_username: string;
+  created_at: string;
+};
+
+export type ApiBlock = {
+  id: number;
+  blocker: number;
+  blocked: number;
+  blocked_username: string;
+  created_at: string;
+};
+
+export async function getFollowing(): Promise<ApiFollow[]> {
+  const r = await authenticatedFetch(`${API_BASE}/api/follows/`);
+  if (!r.ok) throw new Error('Failed to load following list');
+  return r.json();
+}
+
+export async function createFollow(followeeId: number): Promise<ApiFollow> {
+  const r = await authenticatedFetch(`${API_BASE}/api/follows/`, {
+    method: 'POST',
+    body: JSON.stringify({ followee: followeeId }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function deleteFollow(followId: number): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/follows/${followId}/`, {
+    method: 'DELETE',
+  });
+  if (!r.ok) throw new Error('Failed to unfollow');
+}
+
+export async function getBlocks(): Promise<ApiBlock[]> {
+  const r = await authenticatedFetch(`${API_BASE}/api/blocks/`);
+  if (!r.ok) throw new Error('Failed to load block list');
+  return r.json();
+}
+
+export async function createBlock(blockedId: number): Promise<ApiBlock> {
+  const r = await authenticatedFetch(`${API_BASE}/api/blocks/`, {
+    method: 'POST',
+    body: JSON.stringify({ blocked: blockedId }),
+  });
+  if (!r.ok) {
+    const err = await r.json();
+    throw new Error(formatApiError(err));
+  }
+  return r.json();
+}
+
+export async function deleteBlock(blockId: number): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/blocks/${blockId}/`, {
+    method: 'DELETE',
+  });
+  if (!r.ok) throw new Error('Failed to unblock');
+}
+
+// ---------------------------------------------------------------------------
+// User profile
+// ---------------------------------------------------------------------------
+
+export async function getMyProfile(): Promise<UserProfile> {
+  const r = await authenticatedFetch(`${API_BASE}/api/user-profiles/me/`);
+  if (!r.ok) throw new Error('Failed to load profile');
   return r.json();
 }
 

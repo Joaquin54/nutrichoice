@@ -3,15 +3,23 @@ import { useCookbooks } from '../hooks/useCookbooks';
 import { mockRecipes } from '../data/mockRecipes';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ui/ImageWithFallback';
-import { ChevronLeft, ChevronRight, BookOpen, GripVertical, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, GripVertical, X, Loader2 } from 'lucide-react';
 import type { Recipe } from '../types/recipe';
 import { useState, useMemo, useEffect } from 'react';
+
 
 export function CookbookViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getCookbook, reorderRecipes } = useCookbooks();
+  const { getCookbook, reorderRecipes, fetchCookbookDetail } = useCookbooks();
   const cookbook = id ? getCookbook(id) : undefined;
+  const [detailLoading, setDetailLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    setDetailLoading(true);
+    fetchCookbookDetail(id).finally(() => setDetailLoading(false));
+  }, [id, fetchCookbookDetail]);
   const [reorderOpen, setReorderOpen] = useState(false);
   const [reorderIds, setReorderIds] = useState<string[]>([]);
 
@@ -41,10 +49,16 @@ export function CookbookViewPage() {
   if (!cookbook) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-muted-foreground">Cookbook not found.</p>
-        <Button variant="outline" onClick={() => navigate('/cookbooks')}>
-          Back to Cookbooks
-        </Button>
+        {detailLoading ? (
+          <Loader2 className="h-8 w-8 animate-spin text-[#6ec257]" />
+        ) : (
+          <>
+            <p className="text-muted-foreground">Cookbook not found.</p>
+            <Button variant="outline" onClick={() => navigate('/cookbooks')}>
+              Back to Cookbooks
+            </Button>
+          </>
+        )}
       </div>
     );
   }

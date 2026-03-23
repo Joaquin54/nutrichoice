@@ -33,18 +33,26 @@ export function AccountPage() {
   const { dietaryPreferences, updateDietaryPreferences } = useUserPreferences();
   const { cookbooks } = useCookbooks();
   
+  type ProfileFields = {
+    first_name: string;
+    last_name: string;
+    username: string;
+    bio: string;
+    profile_picture?: string;
+  };
+
   // User data from API
   const [user, setUser] = useState<User | null>(null);
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileFields>({
     first_name: '',
     last_name: '',
     username: '',
     bio: '',
-    profile_picture: ''
+    profile_picture: '',
   });
 
   // Store temporary values while editing
-  const [tempProfileData, setTempProfileData] = useState(profileData);
+  const [tempProfileData, setTempProfileData] = useState<ProfileFields>(profileData);
   const [tempDietaryPreferences, setTempDietaryPreferences] = useState(dietaryPreferences);
 
   // Update tempDietaryPreferences when dietaryPreferences change
@@ -167,13 +175,8 @@ export function AccountPage() {
   }, [user]);
 
   const handleDietaryPreferencesChange = useCallback(async (preferences: DietaryFilter) => {
-    // Update dietary preferences in context
-    updateDietaryPreferences(preferences);
-    
-    // Update diet_type in profile
-    await updateUserProfile({
-      diet_type: preferences,
-    });
+    // updateDietaryPreferences now handles both local state and backend persistence.
+    await updateDietaryPreferences(preferences);
   }, [updateDietaryPreferences]);
 
   const isSaving = profileLoading || dietaryLoading;
@@ -297,7 +300,7 @@ export function AccountPage() {
                   <Link key={cb.id} to={`/cookbooks/${cb.id}`}>
                     <span className="inline-flex items-center rounded-lg bg-[#6ec257]/10 dark:bg-[#6ec257]/20 px-3 py-1.5 text-sm font-medium text-[#6ec257] hover:bg-[#6ec257]/20 dark:hover:bg-[#6ec257]/30 transition-colors">
                       {cb.name}
-                      <span className="ml-1.5 text-xs opacity-80">({cb.recipeIds.length})</span>
+                      <span className="ml-1.5 text-xs opacity-80">({cb.recipeCount})</span>
                     </span>
                   </Link>
                 ))}

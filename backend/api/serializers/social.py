@@ -43,14 +43,18 @@ class RecipeReviewReadSerializer(serializers.ModelSerializer):
 
 
 class UserFollowSerializer(serializers.ModelSerializer):
+    followee_username = serializers.CharField(source="followee.username", read_only=True)
+
     class Meta:
         model = UserFollow
-        fields = ["id", "follower", "followee", "created_at"]
-        read_only_fields = ["id", "follower", "created_at"]
+        fields = ["id", "follower", "followee", "followee_username", "created_at"]
+        read_only_fields = ["id", "follower", "followee_username", "created_at"]
 
 
 class UserBlockSerializer(serializers.ModelSerializer):
+    blocked_username = serializers.CharField(source="blocked.username", read_only=True)
+
     class Meta:
         model = UserBlock
-        fields = ["id", "blocker", "blocked", "created_at"]
-        read_only_fields = ["id", "blocker", "created_at"]
+        fields = ["id", "blocker", "blocked", "blocked_username", "created_at"]
+        read_only_fields = ["id", "blocker", "blocked_username", "created_at"]
