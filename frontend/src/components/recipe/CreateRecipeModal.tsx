@@ -27,8 +27,6 @@ const DIETARY_TAG_OPTIONS = [
   'Nut-Free',
 ];
 
-const DIFFICULTY_OPTIONS: Recipe['difficulty'][] = ['Easy', 'Medium', 'Hard'];
-
 interface CreateRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,9 +42,6 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
   const [title, setTitle] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [description, setDescription] = useState('');
-  const [cookTime, setCookTime] = useState('');
-  const [servings, setServings] = useState('');
-  const [difficulty, setDifficulty] = useState<Recipe['difficulty']>('Easy');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<string[]>(['']);
   const [instructions, setInstructions] = useState<string[]>(['']);
@@ -56,9 +51,6 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
     setTitle('');
     setImageUrl('');
     setDescription('');
-    setCookTime('');
-    setServings('');
-    setDifficulty('Easy');
     setSelectedTags([]);
     setIngredients(['']);
     setInstructions(['']);
@@ -102,10 +94,6 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
     const newErrors: Record<string, string> = {};
     if (!title.trim()) newErrors.title = 'Title is required';
     if (!description.trim()) newErrors.description = 'Description is required';
-    if (!cookTime || isNaN(Number(cookTime)) || Number(cookTime) <= 0)
-      newErrors.cookTime = 'Enter a valid cook time in minutes';
-    if (!servings || isNaN(Number(servings)) || Number(servings) <= 0)
-      newErrors.servings = 'Enter a valid number of servings';
     const filledIngredients = ingredients.filter(i => i.trim());
     if (filledIngredients.length === 0)
       newErrors.ingredients = 'Add at least one ingredient';
@@ -121,13 +109,10 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
 
     const recipe: Recipe = {
       id: generateId(),
-      title: title.trim(),
+      name: title.trim(),
       description: description.trim(),
-      image: imageUrl.trim() || '',
-      cookTime: Number(cookTime),
-      servings: Number(servings),
-      difficulty,
-      dietaryTags: selectedTags,
+      image: imageUrl.trim() || undefined,
+      dietary_tags: selectedTags,
       ingredients: ingredients.filter(i => i.trim()),
       instructions: instructions.filter(i => i.trim()),
     };
@@ -206,59 +191,6 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
             {errors.description && (
               <p className="text-xs text-red-500">{errors.description}</p>
             )}
-          </div>
-
-          {/* Cook time, servings, difficulty */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="recipe-cooktime">
-                Cook Time (min) <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="recipe-cooktime"
-                type="number"
-                placeholder="30"
-                min={1}
-                value={cookTime}
-                onChange={e => setCookTime(e.target.value)}
-                className={errors.cookTime ? 'border-red-400' : ''}
-              />
-              {errors.cookTime && (
-                <p className="text-xs text-red-500">{errors.cookTime}</p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="recipe-servings">
-                Servings <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="recipe-servings"
-                type="number"
-                placeholder="4"
-                min={1}
-                value={servings}
-                onChange={e => setServings(e.target.value)}
-                className={errors.servings ? 'border-red-400' : ''}
-              />
-              {errors.servings && (
-                <p className="text-xs text-red-500">{errors.servings}</p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="recipe-difficulty">Difficulty</Label>
-              <select
-                id="recipe-difficulty"
-                value={difficulty}
-                onChange={e => setDifficulty(e.target.value as Recipe['difficulty'])}
-                className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50 transition-colors"
-              >
-                {DIFFICULTY_OPTIONS.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
           </div>
 
           {/* Dietary Tags */}

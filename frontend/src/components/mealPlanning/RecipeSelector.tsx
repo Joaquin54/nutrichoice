@@ -19,7 +19,7 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
   const { addMealPlan } = useMealPlanning();
 
   const filteredRecipes = mockRecipes.filter((recipe) =>
-    recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     recipe.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -64,20 +64,16 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
                 <div className="flex gap-3">
                   <ImageWithFallback
                     src={recipe.image}
-                    alt={recipe.title}
+                    alt={recipe.name}
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm line-clamp-2 group-hover:text-[#6ec257] dark:group-hover:text-[#6ec257]/90 text-gray-900 dark:text-white">
-                      {recipe.title}
+                      {recipe.name}
                     </h3>
                     <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
                       {recipe.description}
                     </p>
-                    <div className="flex gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      <span>⏱ {recipe.cookTime}m</span>
-                      <span>👥 {recipe.servings}</span>
-                    </div>
                   </div>
                 </div>
               </button>

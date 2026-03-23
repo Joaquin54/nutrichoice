@@ -258,7 +258,7 @@ function ReorderRecipesPanel({
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {recipeIds.map((recipeId, index) => {
             const recipe = mockRecipes.find((r) => r.id === recipeId);
-            const title = recipe?.title ?? 'Unknown recipe';
+            const title = recipe?.name ?? 'Unknown recipe';
             const isDragging = draggedIndex === index;
             const isDragOver = dragOverIndex === index;
             return (
@@ -308,16 +308,13 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
       <div className="relative w-full rounded-lg overflow-hidden mb-3 bg-amber-100 dark:bg-stone-800 shrink-0" style={{ aspectRatio: '16 / 8.1' }}>
         <ImageWithFallback
           src={recipe.image}
-          alt={recipe.title}
+          alt={recipe.name}
           className="w-full h-full object-cover"
         />
       </div>
       <h2 className="font-serif text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1">
-        {recipe.title}
+        {recipe.name}
       </h2>
-      <p className="text-xs text-amber-800 dark:text-stone-400 mb-3">
-        {recipe.cookTime} min · {recipe.servings} servings
-      </p>
       <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
         {recipe.description}
       </p>

@@ -273,7 +273,7 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
                   <div className="relative">
                     <ImageWithFallback
                       src={recipe.image}
-                      alt={recipe.title}
+                      alt={recipe.name}
                       className="w-full h-24 sm:h-28 md:h-32 object-cover rounded-t-lg"
                     />
                     {selectedRecipes.includes(recipe.id) && (
@@ -283,7 +283,7 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
                     )}
                   </div>
                   <div className="p-2 sm:p-3">
-                    <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{recipe.title}</h4>
+                    <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{recipe.name}</h4>
                   </div>
                 </Card>
               ))}

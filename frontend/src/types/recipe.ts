@@ -9,21 +9,17 @@ export interface RecipeReview {
   createdAt: string; // ISO date string
 }
 
-// Core recipe interface
+// Core recipe interface — field names match the backend API
 export interface Recipe {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  image: string;
-  cookTime: number;
-  servings: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  dietaryTags: string[];
+  image?: string;
+  dietary_tags: string[];
   ingredients: string[];
   instructions: string[];
-  cuisine?: string;
+  cuisine_type?: string;
   rating?: number;
-  calories?: number;
 }
 
 // Dietary filter interface
@@ -64,24 +60,22 @@ export interface RecipeModalProps {
   onClose: () => void;
 }
 
+
 export interface DietaryPreferencesProps {
   filters: DietaryFilter;
   onFiltersChange: (filters: DietaryFilter) => void;
 }
 
-// Utility types for future expansion
+// Utility types
 export type DietaryFilterKey = keyof DietaryFilter;
-export type RecipeDifficulty = Recipe['difficulty'];
-export type SortOption = 'title' | 'cookTime' | 'difficulty' | 'rating';
+export type SortOption = 'name' | 'rating';
 export type SortDirection = 'asc' | 'desc';
 
 // Search and filter types
 export interface SearchFilters {
   query: string;
   dietary: DietaryFilter;
-  difficulty?: RecipeDifficulty;
-  maxCookTime?: number;
-  cuisine?: string;
+  cuisine_type?: string;
 }
 
 // Future expansion types

@@ -132,7 +132,7 @@ export function WeeklyCalendar() {
                             <div
                               className={`text-[10px] sm:text-xs p-1.5 sm:p-2 rounded border ${MEAL_TYPE_COLORS[mealType]} relative group`}
                             >
-                              <div className="pr-5 sm:pr-6 line-clamp-2 leading-tight">{meal.recipe.title}</div>
+                              <div className="pr-5 sm:pr-6 line-clamp-2 leading-tight">{meal.recipe.name}</div>
                               <button
                                 onClick={() => removeMealPlan(dateString, mealType)}
                                 className="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
