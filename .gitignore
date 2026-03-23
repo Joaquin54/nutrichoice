@@ -14,7 +14,8 @@ backend/venv
 backend/pyrightconfig.json
 backend/.nutri-env
 backend/.nutri-env/bin
-
+backend/server/__pycache__/
+*.pyc
 # Environment files (DON'T leak secrets!)
 *.env
 .env.*
