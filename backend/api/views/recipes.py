@@ -78,7 +78,7 @@ class TriedRecipeViewSet(viewsets.ModelViewSet):
     """
     queryset = TriedRecipe.objects.all()  # type: ignore
     serializer_class = TriedRecipeSerializer
-    lookup_field = 'id'
+    lookup_field = 'public_id'
 
     def get_queryset(self) -> QuerySet[TriedRecipe]:  # type: ignore
         """

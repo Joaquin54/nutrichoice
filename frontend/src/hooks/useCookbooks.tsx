@@ -4,76 +4,121 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
 } from 'react';
 import type { ReactNode } from 'react';
 import type { Cookbook } from '../types/recipe';
+import {
+  getCookbooks,
+  getCookbookDetail,
+  createCookbook as apiCreateCookbook,
+  updateCookbook as apiUpdateCookbook,
+  deleteCookbook as apiDeleteCookbook,
+  addRecipeToCookbook as apiAddRecipeToCookbook,
+  removeRecipeFromCookbook as apiRemoveRecipeFromCookbook,
+  getAuthToken,
+  type ApiCookbook,
+} from '../api';
 
-const STORAGE_KEY = 'nutrichoice_cookbooks';
-
-function loadCookbooks(): Cookbook[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCookbooks(cookbooks: Cookbook[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cookbooks));
-}
-
-function generateId(): string {
-  return `cb_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+function mapApiCookbook(cb: ApiCookbook): Cookbook {
+  return {
+    id: cb.public_id,
+    name: cb.name,
+    recipeIds: [],
+    recipeCount: cb.recipe_count,
+    createdAt: cb.date_created,
+  };
 }
 
 interface CookbooksContextType {
   cookbooks: Cookbook[];
-  createCookbook: (name: string, description?: string) => Cookbook;
-  updateCookbook: (id: string, updates: { name?: string; description?: string }) => void;
-  deleteCookbook: (id: string) => void;
-  addRecipeToCookbook: (cookbookId: string, recipeId: string) => void;
-  removeRecipeFromCookbook: (cookbookId: string, recipeId: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  createCookbook: (name: string, description?: string) => Promise<Cookbook>;
+  updateCookbook: (id: string, updates: { name?: string; description?: string }) => Promise<void>;
+  deleteCookbook: (id: string) => Promise<void>;
+  addRecipeToCookbook: (cookbookId: string, recipeId: string) => Promise<void>;
+  removeRecipeFromCookbook: (cookbookId: string, recipeId: string) => Promise<void>;
   reorderRecipes: (cookbookId: string, recipeIds: string[]) => void;
   getCookbook: (id: string) => Cookbook | undefined;
+  fetchCookbookDetail: (id: string) => Promise<void>;
 }
 
 const CookbooksContext = createContext<CookbooksContextType | undefined>(undefined);
 
 export function CookbooksProvider({ children }: { children: ReactNode }) {
   const [cookbooks, setCookbooks] = useState<Cookbook[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Track which cookbooks have already had their detail fetched so we
+  // don't redundantly re-fetch on repeated getCookbook calls.
+  const detailFetched = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    setCookbooks(loadCookbooks());
+    if (!getAuthToken()) return;
+    setIsLoading(true);
+    getCookbooks()
+      .then((list) => setCookbooks(list.map(mapApiCookbook)))
+      .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (cookbooks.length > 0) saveCookbooks(cookbooks);
-  }, [cookbooks]);
-
-  const createCookbook = useCallback((name: string, description?: string): Cookbook => {
-    const newCookbook: Cookbook = {
-      id: generateId(),
-      name,
-      description,
-      recipeIds: [],
-      createdAt: new Date().toISOString(),
-    };
-    setCookbooks((prev) => [...prev, newCookbook]);
-    return newCookbook;
+  const createCookbook = useCallback(async (name: string): Promise<Cookbook> => {
+    const created = await apiCreateCookbook(name);
+    const cookbook = mapApiCookbook(created);
+    setCookbooks((prev) => [...prev, cookbook]);
+    return cookbook;
   }, []);
 
   const updateCookbook = useCallback(
-    (id: string, updates: { name?: string; description?: string }) => {
+    async (id: string, updates: { name?: string }) => {
+      if (!updates.name) return;
+      const updated = await apiUpdateCookbook(id, updates.name);
       setCookbooks((prev) =>
         prev.map((cb) =>
-          cb.id === id
+          cb.id === id ? { ...cb, name: updated.name } : cb
+        )
+      );
+    },
+    []
+  );
+
+  const deleteCookbook = useCallback(async (id: string) => {
+    await apiDeleteCookbook(id);
+    setCookbooks((prev) => prev.filter((cb) => cb.id !== id));
+    detailFetched.current.delete(id);
+  }, []);
+
+  const addRecipeToCookbook = useCallback(
+    async (cookbookId: string, recipeId: string) => {
+      const numericId = parseInt(recipeId, 10);
+      if (isNaN(numericId)) return;
+      const detail = await apiAddRecipeToCookbook(cookbookId, numericId);
+      const recipeIds = detail.recipes.map((r) => String(r.id));
+      setCookbooks((prev) =>
+        prev.map((cb) =>
+          cb.id === cookbookId
+            ? { ...cb, recipeIds, recipeCount: detail.recipe_count }
+            : cb
+        )
+      );
+      detailFetched.current.add(cookbookId);
+    },
+    []
+  );
+
+  const removeRecipeFromCookbook = useCallback(
+    async (cookbookId: string, recipeId: string) => {
+      const numericId = parseInt(recipeId, 10);
+      if (isNaN(numericId)) return;
+      await apiRemoveRecipeFromCookbook(cookbookId, numericId);
+      setCookbooks((prev) =>
+        prev.map((cb) =>
+          cb.id === cookbookId
             ? {
                 ...cb,
-                ...(updates.name !== undefined && { name: updates.name }),
-                ...(updates.description !== undefined && { description: updates.description }),
+                recipeIds: cb.recipeIds.filter((id) => id !== recipeId),
+                recipeCount: Math.max(0, cb.recipeCount - 1),
               }
             : cb
         )
@@ -82,30 +127,7 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const deleteCookbook = useCallback((id: string) => {
-    setCookbooks((prev) => prev.filter((cb) => cb.id !== id));
-  }, []);
-
-  const addRecipeToCookbook = useCallback((cookbookId: string, recipeId: string) => {
-    setCookbooks((prev) =>
-      prev.map((cb) =>
-        cb.id === cookbookId && !cb.recipeIds.includes(recipeId)
-          ? { ...cb, recipeIds: [...cb.recipeIds, recipeId] }
-          : cb
-      )
-    );
-  }, []);
-
-  const removeRecipeFromCookbook = useCallback((cookbookId: string, recipeId: string) => {
-    setCookbooks((prev) =>
-      prev.map((cb) =>
-        cb.id === cookbookId
-          ? { ...cb, recipeIds: cb.recipeIds.filter((id) => id !== recipeId) }
-          : cb
-      )
-    );
-  }, []);
-
+  // Local-only reorder — no backend endpoint exists for this.
   const reorderRecipes = useCallback((cookbookId: string, recipeIds: string[]) => {
     setCookbooks((prev) =>
       prev.map((cb) =>
@@ -119,10 +141,33 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
     [cookbooks]
   );
 
+  const fetchCookbookDetail = useCallback(
+    async (id: string) => {
+      if (detailFetched.current.has(id)) return;
+      try {
+        const detail = await getCookbookDetail(id);
+        const recipeIds = detail.recipes.map((r) => String(r.id));
+        setCookbooks((prev) =>
+          prev.map((cb) =>
+            cb.id === id
+              ? { ...cb, recipeIds, recipeCount: detail.recipe_count }
+              : cb
+          )
+        );
+        detailFetched.current.add(id);
+      } catch {
+        // Non-fatal — page will show empty cookbook
+      }
+    },
+    []
+  );
+
   return (
     <CookbooksContext.Provider
       value={{
         cookbooks,
+        isLoading,
+        error,
         createCookbook,
         updateCookbook,
         deleteCookbook,
@@ -130,6 +175,7 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
         removeRecipeFromCookbook,
         reorderRecipes,
         getCookbook,
+        fetchCookbookDetail,
       }}
     >
       {children}

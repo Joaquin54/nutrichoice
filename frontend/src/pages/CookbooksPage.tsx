@@ -28,10 +28,10 @@ export function CookbooksPage() {
   const [renameDescription, setRenameDescription] = useState('');
   const [deleteCookbookId, setDeleteCookbookId] = useState<string | null>(null);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const name = newName.trim();
     if (!name) return;
-    const created = createCookbook(name, newDescription.trim() || undefined);
+    const created = await createCookbook(name, newDescription.trim() || undefined);
     setNewName('');
     setNewDescription('');
     setIsCreateOpen(false);
@@ -156,7 +156,7 @@ export function CookbooksPage() {
                       {cb.name}
                     </h3>
                     <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                      {cb.recipeIds.length} recipe{cb.recipeIds.length !== 1 ? 's' : ''}
+                      {cb.recipeCount} recipe{cb.recipeCount !== 1 ? 's' : ''}
                     </p>
                   </Link>
                   {/* Add recipes: bottom of book */}

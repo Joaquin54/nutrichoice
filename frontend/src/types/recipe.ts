@@ -104,9 +104,10 @@ export interface RecipeCollection {
 
 // User cookbook: a named collection of recipe IDs (like a real cookbook)
 export interface Cookbook {
-  id: string;
+  id: string;        // maps to backend public_id
   name: string;
   description?: string;
-  recipeIds: string[];
-  createdAt: string; // ISO date string
+  recipeIds: string[];   // backend recipe IDs as strings; empty until detail is fetched
+  recipeCount: number;   // authoritative count from backend recipe_count
+  createdAt: string;
 }
