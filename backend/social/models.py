@@ -131,6 +131,48 @@ class UserFollow(models.Model):
         return f"{self.follower_id} -> {self.followee_id}"  # type: ignore
 
 
+class RecipeLike(models.Model):
+    """
+    Tracks recipes that a user has liked.
+    A user may like any recipe; liking your own recipe is permitted.
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="liked_recipes",
+    )
+    recipe = models.ForeignKey(
+        "recipes.Recipe",
+        on_delete=models.CASCADE,
+        related_name="recipe_likes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.user_id} liked {self.recipe_id}"
+
+    class Meta:
+        db_table = "recipe_likes"
+        verbose_name = "Recipe Like"
+        verbose_name_plural = "Recipe Likes"
+        ordering = ["-created_at"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "recipe"],
+                name="uq_recipelike_user_recipe",
+            )
+        ]
+
+        indexes = [
+            models.Index(fields=["user"], name="ix_recipelike_user"),
+            models.Index(fields=["recipe"], name="ix_recipelike_recipe"),
+            models.Index(fields=["created_at"], name="ix_recipelike_created_at"),
+        ]
+
+
 class TriedRecipe(models.Model):
     """
     Tracks recipes that users have tried.

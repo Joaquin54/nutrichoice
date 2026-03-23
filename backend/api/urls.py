@@ -2,8 +2,10 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.views.health import HealthView
 from api.views.recipes import (
+    CookbookViewSet,
+    RecipeCreateView,
+    RecipeLikeViewSet,
     TriedRecipeViewSet,
-    RecipeCreateView
 )
 from api.views.profiles import (
     UserProfileViewSet
@@ -20,6 +22,8 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'tried-recipes', TriedRecipeViewSet)
 router.register(r'user-profiles', UserProfileViewSet, basename='userprofile')
+router.register(r'cookbooks', CookbookViewSet, basename='cookbook')
+router.register(r'recipe-likes', RecipeLikeViewSet, basename='recipelike')
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
