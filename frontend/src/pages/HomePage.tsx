@@ -41,12 +41,12 @@ export function HomePage() {
     return mockRecipes.filter((recipe) => {
       // Search filter
       const matchesSearch =
-        recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.dietaryTags.some((tag) =>
+        recipe.dietary_tags.some((tag) =>
           tag.toLowerCase().includes(searchQuery.toLowerCase())
         ) ||
-        recipe.cuisine?.toLowerCase().includes(searchQuery.toLowerCase());
+        recipe.cuisine_type?.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
 
@@ -66,7 +66,7 @@ export function HomePage() {
           };
 
           const requiredTags = filterMap[filterKey] || [];
-          return requiredTags.some((tag) => recipe.dietaryTags.includes(tag));
+          return requiredTags.some((tag) => recipe.dietary_tags.includes(tag));
         });
         if (!dietaryMatch) return false;
       }

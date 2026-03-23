@@ -31,7 +31,7 @@ export function CookbookRecipeSelector({
     const filtered = query
       ? mockRecipes.filter(
           (r) =>
-            r.title.toLowerCase().includes(query) ||
+            r.name.toLowerCase().includes(query) ||
             r.description.toLowerCase().includes(query)
         )
       : [...mockRecipes];
@@ -87,7 +87,7 @@ export function CookbookRecipeSelector({
                     <div className="relative shrink-0">
                       <ImageWithFallback
                         src={recipe.image}
-                        alt={recipe.title}
+                        alt={recipe.name}
                         className="w-20 h-20 object-cover rounded"
                       />
                       {isFavorite && (
@@ -98,15 +98,11 @@ export function CookbookRecipeSelector({
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm line-clamp-2 group-hover:text-[#6ec257] dark:group-hover:text-[#6ec257]/90 text-gray-900 dark:text-white">
-                        {recipe.title}
+                        {recipe.name}
                       </h3>
                       <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
                         {recipe.description}
                       </p>
-                      <div className="flex gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>⏱ {recipe.cookTime}m</span>
-                        <span>👥 {recipe.servings}</span>
-                      </div>
                       {isInCookbook && (
                         <span className="inline-block mt-1 text-xs text-[#6ec257] font-medium">
                           Added ✓

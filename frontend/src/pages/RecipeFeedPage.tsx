@@ -203,7 +203,7 @@ export function RecipeFeedPage() {
           <div className="flex flex-col gap-4 sm:gap-4">
         {mockRecipes.map((recipe) => {
           // Filter out cultural cuisine tags from dietary tags
-          const dietaryTagsOnly = recipe.dietaryTags.filter(
+          const dietaryTagsOnly = recipe.dietary_tags.filter(
             tag => !CULTURAL_CUISINE_TAGS.includes(tag)
           );
 
@@ -241,7 +241,7 @@ export function RecipeFeedPage() {
                     <div className="w-full sm:w-[60%] h-64 sm:h-full relative bg-gray-100 dark:bg-gray-900 flex-shrink-0">
                       <ImageWithFallback
                         src={recipe.image}
-                        alt={recipe.title}
+                        alt={recipe.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -268,7 +268,7 @@ export function RecipeFeedPage() {
                       {/* Recipe Title */}
                       <div className="mt-1 sm:mt-0">
                         <h2 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 pr-10">
-                          {recipe.title}
+                          {recipe.name}
                         </h2>
                       </div>
 
@@ -295,7 +295,7 @@ export function RecipeFeedPage() {
                       {/* Reviews & Ratings */}
                       <RecipeReviewsSection
                         recipeId={recipe.id}
-                        recipeTitle={recipe.title}
+                        recipeTitle={recipe.name}
                         onOpenReviews={handleOpenReviews}
                       />
 

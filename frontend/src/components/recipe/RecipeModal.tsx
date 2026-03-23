@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { Clock, Users, Heart, CheckCircle, BookOpen } from "lucide-react";
+import { Heart, CheckCircle, BookOpen } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import { useCookbooks } from "../../hooks/useCookbooks";
@@ -52,8 +52,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
     setCookbookPopoverOpen(false);
   };
 
-  // Filter out cultural cuisine tags from dietary tags
-  const dietaryTagsOnly = recipe.dietaryTags.filter(
+  const dietaryTagsOnly = recipe.dietary_tags.filter(
     tag => !CULTURAL_CUISINE_TAGS.includes(tag)
   );
 
@@ -70,7 +69,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
       <DialogContent className="max-w-5xl sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-[80vw] p-4 sm:p-6 md:p-10">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <span className="flex-1">{recipe.title}</span>
+            <span className="flex-1">{recipe.name}</span>
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <Popover open={cookbookPopoverOpen} onOpenChange={setCookbookPopoverOpen}>
                 <PopoverTrigger asChild>
@@ -151,23 +150,12 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
           <div className="relative">
             <ImageWithFallback
               src={recipe.image}
-              alt={recipe.title}
+              alt={recipe.name}
               className="w-full h-64 md:h-80 object-cover rounded-lg"
             />
           </div>
 
           <p className="text-muted-foreground">{recipe.description}</p>
-
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-[#6ec257]" />
-              <span className="text-sm sm:text-base">{recipe.cookTime} minutes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-[#6ec257]" />
-              <span className="text-sm sm:text-base">{recipe.servings} servings</span>
-            </div>
-          </div>
 
           <div className="flex flex-wrap gap-2">
             {dietaryTagsOnly.map((tag, index) => (

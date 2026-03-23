@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Clock, Users, ChefHat, Heart, CheckCircle } from "lucide-react";
+import { ChefHat, Heart, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
@@ -29,8 +29,7 @@ interface RecipeCardProps {
 export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
   const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
 
-  // Filter out cultural cuisine tags from dietary tags
-  const dietaryTagsOnly = recipe.dietaryTags.filter(
+  const dietaryTagsOnly = recipe.dietary_tags.filter(
     tag => !CULTURAL_CUISINE_TAGS.includes(tag)
   );
 
@@ -52,7 +51,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
       <div className="relative overflow-hidden">
         <ImageWithFallback
           src={recipe.image}
-          alt={recipe.title}
+          alt={recipe.name}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -87,7 +86,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
 
       <CardHeader className="pb-0 pt-0">
         <h3 className="line-clamp-2 mb-2 group-hover:text-[#6ec257] transition-colors duration-200 -mt-1">
-          {recipe.title}
+          {recipe.name}
         </h3>
         <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed mt-[-4px]">
           {recipe.description}
@@ -95,18 +94,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="flex items-center gap-4 mb-3 text-sm -mt-3">
-          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
-            <Clock className="h-4 w-4" />
-            <span>{recipe.cookTime}m</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground hover:text-[#6ec257] transition-colors">
-            <Users className="h-4 w-4" />
-            <span>{recipe.servings}</span>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-1 mb-4 min-h-[28px]">
+        <div className="flex flex-wrap gap-1 mb-4 min-h-[28px] -mt-3">
           {dietaryTagsOnly.slice(0, 3).map((tag, index) => (
             <Badge
               key={index}
