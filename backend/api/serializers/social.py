@@ -1,26 +1,33 @@
 from rest_framework import serializers
 from django.core.validators import MaxValueValidator, MinValueValidator
-# from nutrition.models import
+
+from social.models import RecipeReview, UserFollow, UserBlock
 
 
 class AuthorSummarySerializer(serializers.Serializer):
     public_id = serializers.UUIDField()
     username = serializers.CharField()
-    profile_picture = serializers.CharField(allow_blank=True)
+    profile_picture = serializers.CharField(
+        source="profile.profile_picture",
+        allow_blank=True,
+        default="",
+    )
 
 
 class RecipeReviewWriteSerializer(serializers.ModelSerializer):
-    # Text can be left blank
     text = serializers.CharField(max_length=250, allow_blank=True)
-    # Rating is required
     rating = serializers.IntegerField(
-        allow_blank=False,
+        required=True,
         allow_null=False,
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(5)
-        ]
+            MaxValueValidator(5),
+        ],
     )
+
+    class Meta:
+        model = RecipeReview
+        fields = ["recipe", "text", "rating"]
 
 
 class RecipeReviewReadSerializer(serializers.ModelSerializer):
@@ -29,14 +36,21 @@ class RecipeReviewReadSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     author = AuthorSummarySerializer(read_only=True)
 
+    class Meta:
+        model = RecipeReview
+        fields = ["id", "recipe", "author", "text", "rating", "created_at"]
+        read_only_fields = fields
 
-class UserFollowSerializer(serializers.Serializer):
-    follower_id = serializers.IntegerField()
-    followee_id = serializers.IntegerField()
-    created_at = serializers.DateTimeField()
+
+class UserFollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollow
+        fields = ["id", "follower", "followee", "created_at"]
+        read_only_fields = ["id", "follower", "created_at"]
 
 
-class UserBlockSerializer(serializers.Serializer):
-    blocker_id = serializers.IntegerField()
-    blocked_id = serializers.IntegerField()
-    created_at = serializers.DateTimeField()
+class UserBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserBlock
+        fields = ["id", "blocker", "blocked", "created_at"]
+        read_only_fields = ["id", "blocker", "created_at"]
