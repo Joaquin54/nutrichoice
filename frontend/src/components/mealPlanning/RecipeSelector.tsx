@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { mockRecipes } from '../../data/mockRecipes';
 import { useMealPlanning, type MealPlan } from '../../hooks/useMealPlanning';
 import type { Recipe } from '../../types/recipe';

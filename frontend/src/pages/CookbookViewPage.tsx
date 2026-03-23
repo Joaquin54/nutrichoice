@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCookbooks } from '../hooks/useCookbooks';
-import { mockRecipes } from '../data/mockRecipes';
+import { useRecipes } from '../hooks/useRecipes';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ui/ImageWithFallback';
 import { ChevronLeft, ChevronRight, BookOpen, GripVertical, X, Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ export function CookbookViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getCookbook, reorderRecipes, fetchCookbookDetail } = useCookbooks();
+  const { getRecipeById } = useRecipes();
   const cookbook = id ? getCookbook(id) : undefined;
   const [detailLoading, setDetailLoading] = useState(true);
 
@@ -26,9 +27,9 @@ export function CookbookViewPage() {
   const recipes: Recipe[] = useMemo(() => {
     if (!cookbook) return [];
     return cookbook.recipeIds
-      .map((rid) => mockRecipes.find((r) => r.id === rid))
+      .map((rid) => getRecipeById(rid))
       .filter((r): r is Recipe => r != null);
-  }, [cookbook]);
+  }, [cookbook, getRecipeById]);
 
   // One "spread" = two pages (left + right). spreadIndex 0 = recipes 0,1; 1 = recipes 2,3; etc.
   const [spreadIndex, setSpreadIndex] = useState(0);
@@ -185,6 +186,7 @@ function ReorderRecipesPanel({
   onReorder: (ids: string[]) => void;
   onSave: () => void;
 }) {
+  const { getRecipeById } = useRecipes();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -257,7 +259,7 @@ function ReorderRecipesPanel({
         </p>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {recipeIds.map((recipeId, index) => {
-            const recipe = mockRecipes.find((r) => r.id === recipeId);
+            const recipe = getRecipeById(recipeId);
             const title = recipe?.name ?? 'Unknown recipe';
             const isDragging = draggedIndex === index;
             const isDragOver = dragOverIndex === index;

@@ -19,7 +19,8 @@ export interface Recipe {
   ingredients: string[];
   instructions: string[];
   cuisine_type?: string;
-  rating?: number;
+  creator?: string;   // username of the recipe author (from backend)
+  rating?: number;    // frontend/mock only — not stored in backend
 }
 
 // Dietary filter interface

@@ -2,9 +2,9 @@ import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Search, Heart } from 'lucide-react';
-import { mockRecipes } from '../../data/mockRecipes';
 import { useCookbooks } from '../../hooks/useCookbooks';
 import { useRecipeActions } from '../../hooks/useRecipeActions';
+import { useRecipes } from '../../hooks/useRecipes';
 import type { Recipe } from '../../types/recipe';
 import { ImageWithFallback } from '../ui/ImageWithFallback';
 
@@ -22,6 +22,7 @@ export function CookbookRecipeSelector({
   const [searchQuery, setSearchQuery] = useState('');
   const { addRecipeToCookbook, getCookbook } = useCookbooks();
   const { favoriteRecipes } = useRecipeActions();
+  const { recipes } = useRecipes();
 
   const cookbook = getCookbook(cookbookId);
   const existingIds = cookbook ? new Set(cookbook.recipeIds) : new Set<string>();
@@ -29,12 +30,12 @@ export function CookbookRecipeSelector({
   const filteredAndSortedRecipes = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     const filtered = query
-      ? mockRecipes.filter(
+      ? recipes.filter(
           (r) =>
             r.name.toLowerCase().includes(query) ||
             r.description.toLowerCase().includes(query)
         )
-      : [...mockRecipes];
+      : [...recipes];
     // Favorites first, then the rest (recommended)
     return filtered.sort((a, b) => {
       const aFav = favoriteRecipes.has(a.id) ? 1 : 0;
@@ -42,7 +43,7 @@ export function CookbookRecipeSelector({
       if (bFav !== aFav) return bFav - aFav;
       return 0;
     });
-  }, [searchQuery, favoriteRecipes]);
+  }, [recipes, searchQuery, favoriteRecipes]);
 
   const handleSelectRecipe = (recipe: Recipe) => {
     if (existingIds.has(recipe.id)) return;
