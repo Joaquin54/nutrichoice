@@ -6,6 +6,7 @@ from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -22,6 +23,36 @@ from api.serializers.recipes import (
 from ingredients.models import Ingredient
 from recipes.models import Cookbook, CookbookRecipe, Recipe, RecipeIngredient, RecipeInstruction
 from social.models import RecipeLike, TriedRecipe
+
+
+class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Read-only ViewSet for listing and retrieving recipes.
+
+    GET /api/recipes/               — paginated list with optional filters
+    GET /api/recipes/<pk>/          — full detail with ingredients + instructions
+
+    Query params:
+      ?search=<term>         — searches name and cuisine_type
+      ?ordering=name         — sorts by name (prefix with - for descending)
+      ?ordering=-date_created
+    """
+
+    serializer_class = RecipeDetailSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ["name", "cuisine_type"]
+    ordering_fields = ["name", "date_created"]
+    ordering = ["-date_created"]
+    # Restrict pk lookups to integers so routes like /recipes/create/ are
+    # never accidentally captured by the detail pattern.
+    lookup_value_regex = r"\d+"
+
+    def get_queryset(self) -> QuerySet[Recipe]:
+        return Recipe.objects.prefetch_related(
+            "ingredients__ingredient",
+            "instructions",
+        ).all()
 
 
 class RecipeCreateView(generics.CreateAPIView):

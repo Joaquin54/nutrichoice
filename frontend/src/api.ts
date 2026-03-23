@@ -335,7 +335,7 @@ export async function ping(): Promise<{ status: string }> {
 }
 
 export async function getFoods(): Promise<FoodEntry[]> {
-  const r = await fetch(`${API_BASE}/api/foods/`);
+  const r = await authenticatedFetch(`${API_BASE}/api/ingredients/`);
   return r.json();
 }
 
