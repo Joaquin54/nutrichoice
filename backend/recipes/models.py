@@ -1,7 +1,10 @@
-from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from ingredients.models import Ingredient
+from uuid import uuid4
+
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+
+from ingredients.models import Ingredient
 
 
 # Create your models here.
@@ -59,3 +62,84 @@ class RecipeInstruction(models.Model):
 
     estimated_cooktime = models.PositiveSmallIntegerField(
         null=True, blank=True)
+
+
+class Cookbook(models.Model):
+    """
+    A named collection of recipes belonging to a single user.
+    Each user may have multiple cookbooks, but names must be unique per owner.
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    public_id = models.UUIDField(default=uuid4, editable=False, unique=True)
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="cookbooks",
+    )
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.name} (owner: {self.owner_id})"
+
+    class Meta:
+        db_table = "cookbooks"
+        verbose_name = "Cookbook"
+        verbose_name_plural = "Cookbooks"
+        ordering = ["-date_updated"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "name"],
+                name="uq_cookbook_owner_name",
+            )
+        ]
+
+        indexes = [
+            models.Index(fields=["owner"], name="ix_cookbook_owner"),
+            models.Index(fields=["date_updated"], name="ix_cookbook_date_updated"),
+        ]
+
+
+class CookbookRecipe(models.Model):
+    """
+    Join table linking recipes to cookbooks.
+    A recipe may appear in multiple cookbooks; a cookbook may contain many recipes.
+    Each (cookbook, recipe) pair is unique.
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    cookbook = models.ForeignKey(
+        Cookbook,
+        on_delete=models.CASCADE,
+        related_name="cookbook_recipes",
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="in_cookbooks",
+    )
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"Recipe {self.recipe_id} in Cookbook {self.cookbook_id}"
+
+    class Meta:
+        db_table = "cookbook_recipes"
+        verbose_name = "Cookbook Recipe"
+        verbose_name_plural = "Cookbook Recipes"
+        ordering = ["-date_added"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cookbook", "recipe"],
+                name="uq_cookbookrecipe_cookbook_recipe",
+            )
+        ]
+
+        indexes = [
+            models.Index(fields=["cookbook"], name="ix_cookbookrecipe_cookbook"),
+            models.Index(fields=["recipe"], name="ix_cookbookrecipe_recipe"),
+        ]
