@@ -416,10 +416,10 @@ export async function getCookbookDetail(publicId: string): Promise<ApiCookbookDe
   return r.json();
 }
 
-export async function createCookbook(name: string): Promise<ApiCookbook> {
+export async function createCookbook(name: string, description?: string): Promise<ApiCookbook> {
   const r = await authenticatedFetch(`${API_BASE}/api/cookbooks/`, {
     method: 'POST',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, ...(description && { description }) }),
   });
   if (!r.ok) {
     const err = await r.json();

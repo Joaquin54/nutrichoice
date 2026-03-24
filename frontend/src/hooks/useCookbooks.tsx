@@ -63,8 +63,8 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const createCookbook = useCallback(async (name: string): Promise<Cookbook> => {
-    const created = await apiCreateCookbook(name);
+  const createCookbook = useCallback(async (name: string, description?: string): Promise<Cookbook> => {
+    const created = await apiCreateCookbook(name, description);
     const cookbook = mapApiCookbook(created);
     setCookbooks((prev) => [...prev, cookbook]);
     return cookbook;
