@@ -18,8 +18,8 @@ class Recipe(models.Model):
     name = models.CharField(max_length=30, unique=True)
     date_created = models.DateTimeField(auto_now=True)
     description = models.TextField(max_length=500)
-    cuisine_type = models.TextField(max_length=12)
-    dietary_tags = ArrayField(models.CharField(max_length=12))
+    cuisine_type = models.TextField(max_length=20)
+    dietary_tags = ArrayField(models.CharField(max_length=25))
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

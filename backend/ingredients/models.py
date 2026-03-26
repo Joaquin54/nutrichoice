@@ -13,7 +13,7 @@ class Ingredient(models.Model):
     fat_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
     fiber_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
     sugar_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
-    sodium_per_100g = models.DecimalField(max_digits=6, decimal_places=2)
+    sodium_per_100g = models.DecimalField(max_digits=8, decimal_places=2)
     default_unit = models.CharField(max_length=20, default="g")
 
     def save(self, *args, **kwargs):
