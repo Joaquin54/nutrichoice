@@ -1,6 +1,8 @@
 Django>=5.2,<5.3
 psycopg2-binary
+pyright
 djangorestframework
+django-stubs
 mongoengine
 django-rest-framework-mongoengine
 blinker
