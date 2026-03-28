@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Type
 
 from django.db import IntegrityError
 from django.db.models import QuerySet
@@ -10,6 +10,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 
 from api.serializers.recipes import (
     CookbookDetailSerializer,
@@ -197,7 +198,7 @@ class CookbookViewSet(viewsets.ModelViewSet):
                               "cookbook_recipes__recipe__instructions")
         )
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[BaseSerializer]:
         """
         Use the full detail serializer (with nested recipes) only on retrieve.
         All other actions use the lightweight CookbookSerializer.
@@ -235,7 +236,8 @@ class CookbookViewSet(viewsets.ModelViewSet):
           403 — user neither owns nor has liked the recipe
           400 — recipe is already in this cookbook
         """
-        cookbook = self.get_object()
+        cookbook_pk = cookbook.pk
+        cookbook = self.get_queryset().get(pk=cookbook_pk)
 
         input_serializer = CookbookRecipeAddSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
@@ -264,7 +266,8 @@ class CookbookViewSet(viewsets.ModelViewSet):
         ).exists():
             raise DRFValidationError("This recipe is already in the cookbook.")
 
-        CookbookRecipe.objects.create(cookbook=cookbook, recipe=recipe)  # type: ignore
+        CookbookRecipe.objects.create(
+            cookbook=cookbook, recipe=recipe)  # type: ignore
 
         # Re-fetch the cookbook instance to reflect the new recipe in the response.
         cookbook.refresh_from_db()
