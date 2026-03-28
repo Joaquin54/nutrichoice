@@ -1,0 +1,6 @@
+{
+  "venvPath": ".",
+  "venv": ".nutri-env",
+  "reportUnreachable": "none",
+  "typeCheckingMode": "basic"
+}
