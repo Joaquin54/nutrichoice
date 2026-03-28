@@ -11,7 +11,6 @@ backend/.venv/
 *.pyd
 *.sqlite3
 backend/venv
-backend/pyrightconfig.json
 backend/.nutri-env
 backend/.nutri-env/bin
 backend/server/__pycache__/
