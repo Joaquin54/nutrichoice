@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     "users",
     "ingredients",
     "recipes",
-    "social"
+    "social",
+    "nutrition",
 ]
 
 MIDDLEWARE = [
