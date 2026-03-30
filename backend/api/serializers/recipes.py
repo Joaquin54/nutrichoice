@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from api.serializers.ingredients import IngredientSerializer
+from nutrition.services import compute_and_store_nutrition
 from recipes.models import Cookbook, CookbookRecipe, Recipe, RecipeIngredient, RecipeInstruction
 from social.models import RecipeLike, TriedRecipe
 
@@ -50,6 +51,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 RecipeIngredient.objects.create(recipe=recipe, **item)
             for step in instructions_data:
                 RecipeInstruction.objects.create(recipe=recipe, **step)
+            compute_and_store_nutrition(recipe=recipe)
         return recipe
 
 
