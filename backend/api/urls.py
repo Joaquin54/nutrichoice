@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from api.views.feed import RecipeFeedView
 from api.views.health import HealthView
 from api.views.ingredients import IngredientsViewSet
 from api.views.nutrition import RecipeNutritionView
@@ -35,6 +36,7 @@ urlpatterns = [
     # Explicit paths are listed before the router include so that
     # /api/recipes/create/ is never captured by the recipes detail pattern.
     path('health/', HealthView.as_view(), name='health-check'),
+    path('recipe-feed/', RecipeFeedView.as_view(), name='recipe-feed'),
     path('recipes/create/', RecipeCreateView.as_view(), name='recipe-create'),
     path('recipes/<int:recipe_id>/nutrition/', RecipeNutritionView.as_view(), name='recipe-nutrition'),
 

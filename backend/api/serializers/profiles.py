@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from profiles.models import UserProfile
+from recipes.services.feed import ALLOWED_DIET_KEYS
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -50,6 +51,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Daily calorie goal must be between 1000 and 10000"
             )
+        return value
+
+    def validate_diet_type(self, value: dict) -> dict:
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("diet_type must be a JSON object.")
+
+        unknown_keys = set(value.keys()) - ALLOWED_DIET_KEYS
+        if unknown_keys:
+            raise serializers.ValidationError(
+                f"Unknown dietary preference keys: {sorted(unknown_keys)}. "
+                f"Allowed keys: {sorted(ALLOWED_DIET_KEYS)}."
+            )
+
+        non_bool_keys = [k for k, v in value.items() if not isinstance(v, bool)]
+        if non_bool_keys:
+            raise serializers.ValidationError(
+                f"Values for dietary preferences must be boolean. "
+                f"Invalid keys: {sorted(non_bool_keys)}."
+            )
+
         return value
 
     def validate_daily_protein_goal(self, value):
