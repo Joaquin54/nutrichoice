@@ -618,3 +618,20 @@ export async function getMyProfile(): Promise<UserProfile> {
   return r.json();
 }
 
+// ---------------------------------------------------------------------------
+// Recipe Feed
+// ---------------------------------------------------------------------------
+
+export type RecipeFeedPage = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: ApiRecipe[];
+};
+
+export async function getRecipeFeed(page: number = 1): Promise<RecipeFeedPage> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipe-feed/?page=${page}`);
+  if (!r.ok) throw new Error('Failed to load recipe feed');
+  return r.json() as Promise<RecipeFeedPage>;
+}
+
