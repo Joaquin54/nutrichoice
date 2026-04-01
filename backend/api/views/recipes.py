@@ -37,23 +37,52 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
       ?search=<term>         — searches name and cuisine_type
       ?ordering=name         — sorts by name (prefix with - for descending)
       ?ordering=-date_created
+      ?ingredient=<name>     — filter to recipes containing this ingredient
+                               (repeatable; AND semantics when repeated)
+                               e.g. ?ingredient=flour&ingredient=egg
     """
 
     serializer_class = RecipeDetailSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ["name", "cuisine_type"]
+    search_fields = ["name", "cuisine_type", "ingredients__ingredient__name"]
     ordering_fields = ["name", "date_created"]
     ordering = ["-date_created"]
     # Restrict pk lookups to integers so routes like /recipes/create/ are
     # never accidentally captured by the detail pattern.
     lookup_value_regex = r"\d+"
 
+    _MAX_INGREDIENT_FILTERS = 5
+    _MAX_INGREDIENT_NAME_LENGTH = 50
+
     def get_queryset(self) -> QuerySet[Recipe]:
-        return Recipe.objects.prefetch_related(
+        queryset = Recipe.objects.prefetch_related(
             "ingredients__ingredient",
             "instructions",
         ).all()
+
+        ingredient_names = self.request.query_params.getlist("ingredient")
+        if not ingredient_names:
+            return queryset
+
+        if len(ingredient_names) > self._MAX_INGREDIENT_FILTERS:
+            raise DRFValidationError(
+                f"Maximum {self._MAX_INGREDIENT_FILTERS} ingredient filters allowed."
+            )
+
+        for name in ingredient_names:
+            if not name or len(name) > self._MAX_INGREDIENT_NAME_LENGTH:
+                raise DRFValidationError(
+                    f"Each ingredient name must be 1–{self._MAX_INGREDIENT_NAME_LENGTH} characters."
+                )
+            # Each chained filter produces a separate JOIN, enforcing AND
+            # semantics: the recipe must contain ALL specified ingredients.
+            queryset = queryset.filter(
+                ingredients__ingredient__name__icontains=name
+            )
+
+        # JOIN fan-out can produce duplicate recipe rows; deduplicate here.
+        return queryset.distinct()
 
 
 class RecipeCreateView(generics.CreateAPIView):
