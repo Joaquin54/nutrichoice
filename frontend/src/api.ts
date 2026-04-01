@@ -389,8 +389,16 @@ export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
   };
 }
 
-export async function getRecipes(): Promise<Recipe[]> {
-  const r = await authenticatedFetch(`${API_BASE}/api/recipes/`);
+export interface RecipeFilters {
+  search?: string;
+  ingredient?: string[];
+}
+
+export async function getRecipes(filters?: RecipeFilters): Promise<Recipe[]> {
+  const url = new URL(`${API_BASE}/api/recipes/`);
+  if (filters?.search) url.searchParams.set('search', filters.search);
+  filters?.ingredient?.forEach((name) => url.searchParams.append('ingredient', name));
+  const r = await authenticatedFetch(url.toString());
   if (!r.ok) throw new Error('Failed to load recipes');
   const data = await r.json();
   // Handle both paginated ({ results: [...] }) and plain array responses

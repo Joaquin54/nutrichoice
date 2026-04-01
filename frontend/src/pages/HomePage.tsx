@@ -5,12 +5,11 @@ import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
 import { HeroSection } from "../components/common/HeroSection";
 import { useUserPreferences } from "../hooks/useUserPreferences";
-import { useRecipes } from "../hooks/useRecipes";
+import { useRecipeSearch } from "../hooks/useRecipeSearch";
 import type { Recipe, DietaryFilter } from "../types/recipe";
 
 export function HomePage() {
   const { dietaryPreferences } = useUserPreferences();
-  const { recipes, isLoading } = useRecipes();
   const [filters, setFilters] = useState<DietaryFilter>(dietaryPreferences);
 
   // Sync filters with user preferences when they change
@@ -21,6 +20,10 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Text search is server-side via useRecipeSearch (debounced).
+  // On empty query the hook returns the full pre-loaded recipe list from context.
+  const { recipes, isLoading } = useRecipeSearch(searchQuery);
 
   // Memoize the handleViewRecipe function to prevent unnecessary re-renders
   const handleViewRecipe = useCallback((recipe: Recipe) => {
@@ -37,44 +40,30 @@ export function HomePage() {
     setFilters(newFilters);
   }, []);
 
-  // Memoize the filtered recipes to prevent recalculation on every render
+  // Dietary tag filtering remains client-side — the recipes endpoint has no
+  // dietary filter query param. Text search is already handled server-side.
   const filteredRecipes = useMemo(() => {
+    const activeDietaryFilters = Object.entries(filters).filter(([, value]) => value);
+    if (activeDietaryFilters.length === 0) return recipes;
+
     return recipes.filter((recipe) => {
-      // Search filter
-      const matchesSearch =
-        recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.dietary_tags.some((tag) =>
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        ) ||
-        recipe.cuisine_type?.toLowerCase().includes(searchQuery.toLowerCase());
+      const filterMap: Record<string, string[]> = {
+        vegetarian: ["Vegetarian", "Vegan"],
+        vegan: ["Vegan"],
+        glutenFree: ["Gluten-Free"],
+        dairyFree: ["Dairy-Free"],
+        eggFree: ["Egg-Free"],
+        pescatarian: ["Pescatarian"],
+        lowCarb: ["Low Carb"],
+        keto: ["Keto"],
+      };
 
-      if (!matchesSearch) return false;
-
-      // Dietary filters
-      const activeDietaryFilters = Object.entries(filters).filter(([, value]) => value);
-      if (activeDietaryFilters.length > 0) {
-        const dietaryMatch = activeDietaryFilters.every(([filterKey]) => {
-          const filterMap: Record<string, string[]> = {
-            vegetarian: ["Vegetarian", "Vegan"],
-            vegan: ["Vegan"],
-            glutenFree: ["Gluten-Free"],
-            dairyFree: ["Dairy-Free"],
-            eggFree: ["Egg-Free"],
-            pescatarian: ["Pescatarian"],
-            lowCarb: ["Low Carb"],
-            keto: ["Keto"],
-          };
-
-          const requiredTags = filterMap[filterKey] || [];
-          return requiredTags.some((tag) => recipe.dietary_tags.includes(tag));
-        });
-        if (!dietaryMatch) return false;
-      }
-
-      return true;
+      return activeDietaryFilters.every(([filterKey]) => {
+        const requiredTags = filterMap[filterKey] || [];
+        return requiredTags.some((tag) => recipe.dietary_tags.includes(tag));
+      });
     });
-  }, [recipes, searchQuery, filters]);
+  }, [recipes, filters]);
 
   // Simple calculation - memo overhead > benefit
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
@@ -82,7 +71,7 @@ export function HomePage() {
   return (
     <div>
       {/* Hero Section with Dietary Dropdown */}
-      <HeroSection 
+      <HeroSection
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         dietaryFilters={filters}
