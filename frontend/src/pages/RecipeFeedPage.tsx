@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Heart, User, ChevronRight, Star, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popove
 import { ImageWithFallback } from "../components/ui/ImageWithFallback";
 import { useRecipeActions } from "../hooks/useRecipeActions";
 import { useCookbooks } from "../hooks/useCookbooks";
-import { useRecipes } from "../hooks/useRecipes";
+import { useRecipeFeed } from "../hooks/useRecipeFeed";
 import { getReviewsForRecipe, getAverageRating } from "../data/mockReviews";
 import { RecipeReviewsModal } from "../components/recipe/RecipeReviewsModal";
 import type { RecipeReview } from "../types/recipe";
@@ -120,9 +120,31 @@ export function RecipeFeedPage() {
   const [reviewsModalRecipeTitle, setReviewsModalRecipeTitle] = useState<string>("");
   const feedContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const { toggleFavorite, isFavorite } = useRecipeActions();
   const { cookbooks, addRecipeToCookbook } = useCookbooks();
-  const { recipes, isLoading } = useRecipes();
+  const { recipes, isLoading, isLoadingMore, hasMore, loadMore } = useRecipeFeed();
+
+  // Keep a stable ref to loadMore so the observer callback never goes stale.
+  const loadMoreRef = useRef(loadMore);
+  loadMoreRef.current = loadMore;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreRef.current();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []); // observer is created once; loadMoreRef keeps the callback current
 
   const getCardPageIndex = (recipeId: string) => {
     const cardElement = cardRefs.current.get(recipeId);
@@ -493,6 +515,23 @@ export function RecipeFeedPage() {
           );
         })}
           </div>
+
+          {/* Sentinel div observed by IntersectionObserver to trigger loadMore */}
+          <div ref={sentinelRef} className="h-4" aria-hidden="true" />
+
+          {/* Loading indicator shown while fetching the next page */}
+          {isLoadingMore && (
+            <div className="flex justify-center items-center py-6">
+              <Loader2 className="h-6 w-6 animate-spin text-[#6ec257]" />
+            </div>
+          )}
+
+          {/* End-of-feed message once all recipes have been loaded */}
+          {!hasMore && !isLoading && recipes.length > 0 && (
+            <p className="text-center text-xs text-gray-400 dark:text-gray-600 py-4">
+              You&apos;ve seen all recipes in your feed.
+            </p>
+          )}
         </div>
       </div>
 
