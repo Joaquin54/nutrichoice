@@ -1,10 +1,24 @@
+import logging
+from decimal import Decimal
+from typing import TypedDict
+
 from django.db import transaction
 from rest_framework import serializers
 
 from api.serializers.ingredients import IngredientSerializer
 from nutrition.services import compute_and_store_nutrition
+from nutrition.services.conversions import convert_from_grams, convert_to_grams
 from recipes.models import Cookbook, CookbookRecipe, Recipe, RecipeIngredient, RecipeInstruction
 from social.models import RecipeLike, TriedRecipe
+
+logger = logging.getLogger(__name__)
+
+
+class DisplayQuantity(TypedDict):
+    ingredient: str
+    quantity: str
+    unit: str
+    display_string: str
 
 
 # --- Write serializers (used for input) ---
@@ -27,7 +41,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ['name', 'description', 'cuisine_type', 'dietary_tags', 'ingredients', 'instructions']
+        fields = ['name', 'description', 'cuisine_type', 'dietary_tags', 'measure_type', 'ingredients', 'instructions']
 
     def validate_ingredients(self, value):
         if not value:
@@ -69,11 +83,91 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientDetailSerializer(many=True, read_only=True)
     instructions = RecipeInstructionSerializer(many=True, read_only=True)
     creator = serializers.StringRelatedField(read_only=True)
+    display_quantities = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = ['id', 'name', 'description', 'cuisine_type', 'dietary_tags', 'date_created', 'creator', 'ingredients', 'instructions']
+        fields = [
+            'id', 'name', 'description', 'cuisine_type', 'dietary_tags',
+            'measure_type', 'date_created', 'creator', 'ingredients',
+            'instructions', 'display_quantities',
+        ]
         read_only_fields = fields
+
+    def get_display_quantities(self, obj: Recipe) -> list[DisplayQuantity]:
+        """
+        Convert each ingredient's stored quantity to the recipe's measure_type
+        for display purposes.
+
+        Uses pre-fetched ingredients via prefetch_related — no additional queries.
+        """
+        measure_type: str = obj.measure_type  # type: ignore[assignment]
+        result: list[DisplayQuantity] = []
+        count_units = frozenset({"count", "each", "whole"})
+
+        for ri in obj.ingredients.all():  # type: ignore[union-attr]
+            ingredient_name: str = ri.ingredient.name
+            stored_unit: str = ri.unit.strip().lower()
+
+            # Count-based items: skip volume conversion.
+            if stored_unit in count_units or ri.ingredient.default_unit in count_units:
+                if measure_type == "grams":
+                    display = f"{int(Decimal(str(ri.quantity)).to_integral_value())}g {ingredient_name}"
+                else:
+                    display = f"{int(Decimal(str(ri.quantity)).to_integral_value())} {ingredient_name}"
+                result.append(DisplayQuantity(
+                    ingredient=ingredient_name,
+                    quantity=str(ri.quantity),
+                    unit=ri.unit,
+                    display_string=display,
+                ))
+                continue
+
+            # Grams mode: display raw values with gram formatting.
+            if measure_type == "grams":
+                qty_grams = convert_to_grams(
+                    quantity=Decimal(str(ri.quantity)), unit=ri.unit,
+                )
+                rounded_grams = int(qty_grams.to_integral_value())
+                result.append(DisplayQuantity(
+                    ingredient=ingredient_name,
+                    quantity=str(qty_grams),
+                    unit="g",
+                    display_string=f"{rounded_grams}g {ingredient_name}",
+                ))
+                continue
+
+            # Volume mode: convert to grams first, then to target unit.
+            try:
+                qty_grams = convert_to_grams(
+                    quantity=Decimal(str(ri.quantity)), unit=ri.unit,
+                )
+                conversion = convert_from_grams(
+                    grams=qty_grams,
+                    target_unit=measure_type,
+                    ingredient_name=ingredient_name,
+                )
+                gram_display = int(qty_grams.to_integral_value())
+                display = f"{conversion.display_string} ({gram_display}g) {ingredient_name}"
+                result.append(DisplayQuantity(
+                    ingredient=ingredient_name,
+                    quantity=str(conversion.quantity),
+                    unit=conversion.unit,
+                    display_string=display,
+                ))
+            except ValueError as exc:
+                logger.warning(
+                    "Conversion error for %s in recipe %s: %s",
+                    ingredient_name, obj.pk, exc,
+                )
+                result.append(DisplayQuantity(
+                    ingredient=ingredient_name,
+                    quantity=str(ri.quantity),
+                    unit=ri.unit,
+                    display_string=f"{ri.quantity} {ri.unit} {ingredient_name}",
+                ))
+
+        return result
 
 
 class TriedRecipeSerializer(serializers.ModelSerializer):

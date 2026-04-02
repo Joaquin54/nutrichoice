@@ -13,6 +13,11 @@ class Recipe(models.Model):
     Record of recipes
     """
 
+    class MeasureType(models.TextChoices):
+        GRAMS = "grams", "Grams"
+        CUPS = "cups", "Cups"
+        TABLESPOONS = "tablespoons", "Tablespoons"
+
     id = models.BigAutoField(primary_key=True)
     # public_id = modles. Maybe?
     name = models.CharField(max_length=30, unique=True)
@@ -26,6 +31,11 @@ class Recipe(models.Model):
         null=True,
         blank=True,
         related_name="recipe_creator"
+    )
+    measure_type = models.CharField(
+        max_length=12,
+        choices=MeasureType.choices,
+        default=MeasureType.GRAMS,
     )
 
     class Meta:
