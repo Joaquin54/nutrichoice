@@ -59,7 +59,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           <button
             onClick={handleFavoriteClick}
             className="p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
-            aria-label={isFavorite(recipe.id) ? "Remove from favorites" : "Add to favorites"}
+            aria-label={isFavorite(recipe.id) ? "Unlike recipe" : "Like recipe"}
           >
             <Heart
               className={`h-4 w-4 ${
