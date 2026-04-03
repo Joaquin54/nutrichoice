@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Search, Heart } from 'lucide-react';
@@ -6,6 +6,7 @@ import { useCookbooks } from '../../hooks/useCookbooks';
 import { useRecipeActions } from '../../hooks/useRecipeActions';
 import { useRecipes } from '../../hooks/useRecipes';
 import type { Recipe } from '../../types/recipe';
+import { cn } from '../../lib/utils';
 import { ImageWithFallback } from '../ui/ImageWithFallback';
 
 interface CookbookRecipeSelectorProps {
@@ -20,7 +21,13 @@ export function CookbookRecipeSelector({
   onClose,
 }: CookbookRecipeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { addRecipeToCookbook, getCookbook } = useCookbooks();
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addingRecipeId, setAddingRecipeId] = useState<string | null>(null);
+  const { addRecipeToCookbook, getCookbook, fetchCookbookDetail } = useCookbooks();
+
+  useEffect(() => {
+    void fetchCookbookDetail(cookbookId);
+  }, [cookbookId, fetchCookbookDetail]);
   const { favoriteRecipes } = useRecipeActions();
   const { recipes } = useRecipes();
 
@@ -45,22 +52,44 @@ export function CookbookRecipeSelector({
     });
   }, [recipes, searchQuery, favoriteRecipes]);
 
-  const handleSelectRecipe = (recipe: Recipe) => {
-    if (existingIds.has(recipe.id)) return;
-    addRecipeToCookbook(cookbookId, recipe.id);
+  const handleSelectRecipe = async (recipe: Recipe) => {
+    if (existingIds.has(recipe.id) || addingRecipeId) return;
+    setAddError(null);
+    setAddingRecipeId(recipe.id);
+    try {
+      await addRecipeToCookbook(cookbookId, recipe.id);
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : 'Could not add recipe. Try again.');
+    } finally {
+      setAddingRecipeId(null);
+    }
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent
+        className="z-[100] max-w-4xl max-h-[80vh] overflow-hidden flex flex-col"
+        style={{ pointerEvents: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl">
             Add recipes to “{cookbookName}”
           </DialogTitle>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Favorites appear first, then other recipes
+            Favorites appear first, then the rest of the catalog.
           </p>
         </DialogHeader>
+
+        {addError && (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {addError}
+          </p>
+        )}
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -77,12 +106,23 @@ export function CookbookRecipeSelector({
             {filteredAndSortedRecipes.map((recipe) => {
               const isInCookbook = existingIds.has(recipe.id);
               const isFavorite = favoriteRecipes.has(recipe.id);
+              const isAdding = addingRecipeId === recipe.id;
               return (
                 <button
                   key={recipe.id}
-                  onClick={() => handleSelectRecipe(recipe)}
-                  disabled={isInCookbook}
-                  className="text-left border rounded-lg p-3 hover:border-[#6ec257] dark:hover:border-[#6ec257]/70 hover:bg-[#6ec257]/10 dark:hover:bg-[#6ec257]/20 transition-all group bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 disabled:opacity-60 disabled:cursor-default disabled:hover:bg-transparent disabled:hover:border-gray-200"
+                  type="button"
+                  disabled={isAdding}
+                  onClick={() => {
+                    if (isInCookbook) return;
+                    void handleSelectRecipe(recipe);
+                  }}
+                  className={cn(
+                    'group text-left rounded-lg border p-3 transition-all bg-white dark:bg-gray-800',
+                    isInCookbook
+                      ? 'cursor-default border-[#6ec257] bg-[#6ec257]/10 dark:border-[#6ec257]/70 dark:bg-[#6ec257]/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-[#6ec257] hover:bg-[#6ec257]/10 dark:hover:border-[#6ec257]/70 dark:hover:bg-[#6ec257]/20',
+                    isAdding && 'cursor-wait opacity-60'
+                  )}
                 >
                   <div className="flex gap-3">
                     <div className="relative shrink-0">
@@ -98,7 +138,14 @@ export function CookbookRecipeSelector({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm line-clamp-2 group-hover:text-[#6ec257] dark:group-hover:text-[#6ec257]/90 text-gray-900 dark:text-white">
+                      <h3
+                        className={cn(
+                          'line-clamp-2 text-sm font-medium',
+                          isInCookbook
+                            ? 'text-[#6ec257] dark:text-[#6ec257]/90'
+                            : 'text-gray-900 group-hover:text-[#6ec257] dark:text-white dark:group-hover:text-[#6ec257]/90'
+                        )}
+                      >
                         {recipe.name}
                       </h3>
                       <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">

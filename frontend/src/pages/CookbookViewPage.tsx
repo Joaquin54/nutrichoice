@@ -3,7 +3,7 @@ import { useCookbooks } from '../hooks/useCookbooks';
 import { useRecipes } from '../hooks/useRecipes';
 import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ui/ImageWithFallback';
-import { ChevronLeft, ChevronRight, BookOpen, GripVertical, X, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, GripVertical, Trash2, X, Loader2 } from 'lucide-react';
 import type { Recipe } from '../types/recipe';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -11,7 +11,8 @@ import { useState, useMemo, useEffect } from 'react';
 export function CookbookViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getCookbook, reorderRecipes, fetchCookbookDetail } = useCookbooks();
+  const { getCookbook, reorderRecipes, removeRecipeFromCookbook, fetchCookbookDetail } =
+    useCookbooks();
   const { getRecipeById } = useRecipes();
   const cookbook = id ? getCookbook(id) : undefined;
   const [detailLoading, setDetailLoading] = useState(true);
@@ -71,7 +72,7 @@ export function CookbookViewPage() {
   return (
     <div className="flex flex-col items-center min-h-screen pb-4 sm:pb-8 px-2 sm:px-4">
       <div className="w-full max-w-6xl flex flex-col items-center flex-1 min-h-0">
-        <div className="flex items-center justify-between w-full mb-1 shrink-0">
+        <div className="flex items-center justify-between w-full mb-1 shrink-0 mt-4">
           <Button
             variant="ghost"
             size="sm"
@@ -99,8 +100,10 @@ export function CookbookViewPage() {
         <ReorderRecipesPanel
           open={reorderOpen}
           onOpenChange={setReorderOpen}
+          cookbookId={cookbook.id}
           recipeIds={reorderIds}
           onReorder={setReorderIds}
+          removeRecipeFromCookbook={removeRecipeFromCookbook}
           onSave={() => {
             reorderRecipes(cookbook.id, reorderIds);
             setReorderOpen(false);
@@ -108,7 +111,7 @@ export function CookbookViewPage() {
         />
 
         {/* Opened book: left page | spine | right page */}
-        <div className="relative flex items-center w-full max-w-[1344px] flex-1 min-h-0">
+        <div className="relative flex items-center w-full max-w-[1344px] flex-1 min-h-0 mb-4">
           {/* Left arrow */}
           <button
             type="button"
@@ -176,19 +179,38 @@ export function CookbookViewPage() {
 function ReorderRecipesPanel({
   open,
   onOpenChange,
+  cookbookId,
   recipeIds,
   onReorder,
+  removeRecipeFromCookbook,
   onSave,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  cookbookId: string;
   recipeIds: string[];
   onReorder: (ids: string[]) => void;
+  removeRecipeFromCookbook: (cookbookId: string, recipeId: string) => Promise<void>;
   onSave: () => void;
 }) {
   const { getRecipeById } = useRecipes();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const handleRemove = async (recipeId: string) => {
+    setRemoveError(null);
+    setRemovingId(recipeId);
+    try {
+      await removeRecipeFromCookbook(cookbookId, recipeId);
+      onReorder(recipeIds.filter((id) => id !== recipeId));
+    } catch (e) {
+      setRemoveError(e instanceof Error ? e.message : 'Failed to remove recipe.');
+    } finally {
+      setRemovingId(null);
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -226,6 +248,13 @@ function ReorderRecipesPanel({
     setDragOverIndex(null);
   };
 
+  useEffect(() => {
+    if (!open) {
+      setRemoveError(null);
+      setRemovingId(null);
+    }
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -255,29 +284,54 @@ function ReorderRecipesPanel({
           </Button>
         </div>
         <p className="text-sm text-muted-foreground px-4 pt-2">
-          Drag recipes to change the order.
+          Drag the handle to reorder. Use remove to take a recipe out of this cookbook.
         </p>
+        {removeError && (
+          <p className="mx-4 mt-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {removeError}
+          </p>
+        )}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {recipeIds.map((recipeId, index) => {
             const recipe = getRecipeById(recipeId);
             const title = recipe?.name ?? 'Unknown recipe';
             const isDragging = draggedIndex === index;
             const isDragOver = dragOverIndex === index;
+            const isRemoving = removingId === recipeId;
             return (
               <div
                 key={recipeId}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 cursor-grab active:cursor-grabbing transition-colors ${
+                className={`flex items-center gap-1 rounded-lg border px-2 py-2 transition-colors ${
                   isDragging ? 'opacity-50 border-[#6ec257] bg-[#6ec257]/10' : ''
                 } ${isDragOver ? 'border-[#6ec257] bg-[#6ec257]/10 ring-2 ring-[#6ec257]/30' : 'border-border bg-muted/30'}`}
               >
-                <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-                <span className="flex-1 truncate text-sm font-medium">{title}</span>
+                <div
+                  draggable={!isRemoving}
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className="flex min-w-0 flex-1 cursor-grab items-center gap-2 py-0.5 pl-1 active:cursor-grabbing"
+                >
+                  <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <span className="truncate text-sm font-medium">{title}</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  disabled={isRemoving}
+                  aria-label={`Remove ${title} from cookbook`}
+                  onClick={() => void handleRemove(recipeId)}
+                >
+                  {isRemoving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             );
           })}
