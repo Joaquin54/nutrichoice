@@ -93,16 +93,50 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
     async (cookbookId: string, recipeId: string) => {
       const numericId = parseInt(recipeId, 10);
       if (isNaN(numericId)) return;
-      const detail = await apiAddRecipeToCookbook(cookbookId, numericId);
-      const recipeIds = detail.recipes.map((r) => String(r.id));
-      setCookbooks((prev) =>
-        prev.map((cb) =>
-          cb.id === cookbookId
-            ? { ...cb, recipeIds, recipeCount: detail.recipe_count }
-            : cb
-        )
-      );
-      detailFetched.current.add(cookbookId);
+
+      let optimisticApplied = false;
+      setCookbooks((prev) => {
+        const cb = prev.find((c) => c.id === cookbookId);
+        if (!cb || cb.recipeIds.includes(recipeId)) return prev;
+        optimisticApplied = true;
+        return prev.map((c) =>
+          c.id === cookbookId
+            ? {
+                ...c,
+                recipeIds: [...c.recipeIds, recipeId],
+                recipeCount: c.recipeCount + 1,
+              }
+            : c
+        );
+      });
+
+      try {
+        const detail = await apiAddRecipeToCookbook(cookbookId, numericId);
+        const recipeIds = detail.recipes.map((r) => String(r.id));
+        setCookbooks((prev) =>
+          prev.map((cb) =>
+            cb.id === cookbookId
+              ? { ...cb, recipeIds, recipeCount: detail.recipe_count }
+              : cb
+          )
+        );
+        detailFetched.current.add(cookbookId);
+      } catch (e) {
+        if (optimisticApplied) {
+          setCookbooks((prev) =>
+            prev.map((cb) =>
+              cb.id === cookbookId
+                ? {
+                    ...cb,
+                    recipeIds: cb.recipeIds.filter((id) => id !== recipeId),
+                    recipeCount: Math.max(0, cb.recipeCount - 1),
+                  }
+                : cb
+            )
+          );
+        }
+        throw e;
+      }
     },
     []
   );

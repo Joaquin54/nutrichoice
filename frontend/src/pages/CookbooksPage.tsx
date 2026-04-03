@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCookbooks } from '../hooks/useCookbooks';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -12,9 +12,8 @@ import {
 } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
-import { CookbookRecipeSelector } from '../components/cookbook';
-import { BookOpen, Plus, BookMarked, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { CookbookBookshelf, CookbookRecipeSelector } from '../components/cookbook';
+import { BookOpen, Plus } from 'lucide-react';
 
 export function CookbooksPage() {
   const navigate = useNavigate();
@@ -101,84 +100,21 @@ export function CookbooksPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {cookbooks.map((cb) => (
-            <Card
-              key={cb.id}
-              className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#6ec257]/40 group flex flex-col w-full max-w-[220px] mx-auto p-0"
-            >
-              {/* Closed book shape: spine + cover, all inside one card */}
-              <div className="flex flex-1 min-h-[320px] rounded-lg overflow-hidden">
-                {/* Spine (left edge of closed book) */}
-                <div className="w-3 sm:w-4 shrink-0 bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 dark:from-slate-700 dark:via-slate-800 dark:to-slate-900 shadow-[inset_2px_0_6px_rgba(0,0,0,0.15)]" />
-                {/* Cover - contains menu, title, and Add recipes */}
-                <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-[#fef9f0] to-amber-100/80 dark:from-stone-900 dark:to-stone-800/90 relative">
-                  {/* 3-dot menu: top left */}
-                  <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="icon"
-                          className="h-8 w-8 rounded-full shadow border border-border text-muted-foreground hover:text-foreground bg-background/80"
-                          aria-label="Cookbook options"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-44 p-1 z-50" align="start" side="bottom">
-                        <button
-                          type="button"
-                          className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted"
-                          onClick={() => openRename(cb)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Rename
-                        </button>
-                        <button
-                          type="button"
-                          className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                          onClick={() => setDeleteCookbookId(cb.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  {/* Title + recipe count (clickable → open cookbook) */}
-                  <Link
-                    to={`/cookbooks/${cb.id}`}
-                    className="flex-1 flex flex-col min-h-0 px-3 pt-12 pb-2 text-center"
-                  >
-                    <h3 className="font-serif font-semibold text-base text-gray-900 dark:text-white line-clamp-3 leading-tight">
-                      {cb.name}
-                    </h3>
-                    <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                      {cb.recipeCount} recipe{cb.recipeCount !== 1 ? 's' : ''}
-                    </p>
-                  </Link>
-                  {/* Add recipes: bottom of book */}
-                  <div className="p-3 pt-0" onClick={(e) => e.preventDefault()}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-[#6ec257]/40 text-[#6ec257] hover:bg-[#6ec257]/10 hover:text-[#5ba045] text-xs"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setAddRecipesCookbookId(cb.id);
-                      }}
-                    >
-                      <BookMarked className="mr-1.5 h-3.5 w-3.5" />
-                      Add recipes
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card className="border-[#6ec257]/20 bg-gradient-to-b from-card to-muted/20 py-4 overflow-visible">
+          <CardContent className="px-0 pb-0 pt-0">
+            <p className="mb-3 px-6 text-sm text-muted-foreground">
+              The first cookbook starts open. Hover another spine to switch the open book; it stays open
+              when you move the pointer away. On touch, tap to toggle. Use the round arrows to scroll when
+              there are many books. Press Escape to shelve the open book.
+            </p>
+            <CookbookBookshelf
+              cookbooks={cookbooks}
+              onAddRecipes={(id: string) => setAddRecipesCookbookId(id)}
+              onRename={openRename}
+              onDelete={(id: string) => setDeleteCookbookId(id)}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {addRecipesCookbookId && (() => {
