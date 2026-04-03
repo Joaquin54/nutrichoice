@@ -117,6 +117,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                 variant="outline"
                 size="sm"
                 className="gap-2 flex-1 sm:flex-initial"
+                aria-label={isFavorite(recipe.id) ? "Unlike recipe" : "Like recipe"}
               >
                 <Heart
                   className={`h-4 w-4 ${
@@ -125,7 +126,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                       : ""
                   } transition-colors`}
                 />
-                <span className="hidden sm:inline">{isFavorite(recipe.id) ? "Favorited" : "Favorite"}</span>
+                <span className="hidden sm:inline">{isFavorite(recipe.id) ? "Liked" : "Like"}</span>
               </Button>
               <Button
                 onClick={handleTriedClick}

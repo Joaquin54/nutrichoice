@@ -270,7 +270,7 @@ export function RecipeFeedPage() {
                         variant="ghost"
                         size="icon"
                         className="absolute top-2 right-2 h-8 w-8 sm:h-10 sm:w-10 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 z-10"
-                        aria-label={isFavorite(recipe.id) ? "Remove from favorites" : "Add to favorites"}
+                        aria-label={isFavorite(recipe.id) ? "Unlike recipe" : "Like recipe"}
                       >
                         <Heart
                           className={`h-4 w-4 sm:h-5 sm:w-5 transition-all ${
