@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FavoritesGrid, EmptyFavorites } from '../components/favorites';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -6,30 +6,40 @@ import { RecipeModal } from '../components/recipe/RecipeModal';
 import { CreateRecipeModal } from '../components/recipe/CreateRecipeModal';
 import { useRecipeActions } from '../hooks/useRecipeActions';
 import { useRecipes } from '../hooks/useRecipes';
-import { Heart, CheckCircle, ChefHat, Plus, Trash2 } from 'lucide-react';
+import { getRecipes } from '../api';
+import { Heart, CheckCircle, ChefHat, Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { RecipeCard } from '../components/recipe/RecipeCard';
 import type { Recipe } from '../types/recipe';
 
 export function FavoritesPage() {
   const navigate = useNavigate();
-  const { favoriteRecipes, triedRecipes, myRecipes, removeMyRecipe } = useRecipeActions();
+  const { favoriteRecipes, triedRecipes } = useRecipeActions();
   const { recipes } = useRecipes();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Backend recipes + user-created local recipes
-  const allRecipes = useMemo(() => [...recipes, ...myRecipes], [recipes, myRecipes]);
+  const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
+
+  const refetchMyRecipes = useCallback(() => {
+    getRecipes({ creator: 'me' })
+      .then(setMyRecipes)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refetchMyRecipes();
+  }, [refetchMyRecipes]);
 
   const favorites = useMemo(
-    () => allRecipes.filter(recipe => favoriteRecipes.has(recipe.id)),
-    [allRecipes, favoriteRecipes]
+    () => recipes.filter(recipe => favoriteRecipes.has(recipe.id)),
+    [recipes, favoriteRecipes]
   );
 
   const tried = useMemo(
-    () => allRecipes.filter(recipe => triedRecipes.has(recipe.id)),
-    [allRecipes, triedRecipes]
+    () => recipes.filter(recipe => triedRecipes.has(recipe.id)),
+    [recipes, triedRecipes]
   );
 
   const handleViewRecipe = (recipe: Recipe) => {
@@ -126,16 +136,7 @@ export function FavoritesPage() {
             {myRecipes.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {myRecipes.map(recipe => (
-                  <div key={recipe.id} className="relative group/card">
-                    <RecipeCard recipe={recipe} onViewRecipe={handleViewRecipe} />
-                    <button
-                      onClick={() => removeMyRecipe(recipe.id)}
-                      className="absolute top-2 left-2 p-1.5 rounded-full bg-white/90 hover:bg-red-50 shadow-md opacity-0 group-hover/card:opacity-100 transition-all duration-200 hover:scale-110 z-10"
-                      aria-label="Delete recipe"
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                    </button>
-                  </div>
+                  <RecipeCard key={recipe.id} recipe={recipe} onViewRecipe={handleViewRecipe} />
                 ))}
               </div>
             ) : (
@@ -170,7 +171,7 @@ export function FavoritesPage() {
 
       <CreateRecipeModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => { setIsCreateModalOpen(false); refetchMyRecipes(); }}
       />
     </div>
   );

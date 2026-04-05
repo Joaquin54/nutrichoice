@@ -41,6 +41,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
                                (repeatable; AND semantics when repeated)
                                e.g. ?ingredient=flour&ingredient=egg
       ?scope=cookbook         — restrict to recipes the user created or liked
+      ?creator=me            — filter to recipes created by the authenticated user
     """
 
     serializer_class = RecipeDetailSerializer
@@ -63,6 +64,10 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
         ).all()
 
         needs_distinct = False
+
+        creator_param = self.request.query_params.get("creator")
+        if creator_param == "me":
+            queryset = queryset.filter(creator=self.request.user)
 
         # Scope filter: restrict to recipes the user created or liked.
         scope = self.request.query_params.get("scope")
