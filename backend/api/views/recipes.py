@@ -265,8 +265,7 @@ class CookbookViewSet(viewsets.ModelViewSet):
           403 — user neither owns nor has liked the recipe
           400 — recipe is already in this cookbook
         """
-        cookbook_pk = cookbook.pk
-        cookbook = self.get_queryset().get(pk=cookbook_pk)
+        cookbook = self.get_object()
 
         input_serializer = CookbookRecipeAddSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
