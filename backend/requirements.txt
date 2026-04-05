@@ -9,3 +9,4 @@ blinker
 django-cors-headers
 python-dotenv
 django-anymail
+supabase

@@ -82,6 +82,11 @@ WSGI_APPLICATION = "server.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# Supabase Storage configuration
+SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_SIGNED_URL_EXPIRY: int = 120  # seconds
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
