@@ -50,7 +50,7 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
     >
       <div className="relative overflow-hidden">
         <ImageWithFallback
-          src={recipe.image}
+          src={recipe.image_1}
           alt={recipe.name}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />

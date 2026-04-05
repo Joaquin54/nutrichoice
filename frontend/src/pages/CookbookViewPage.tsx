@@ -363,7 +363,7 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
     <div className="h-full flex flex-col">
       <div className="relative w-full rounded-lg overflow-hidden mb-3 bg-amber-100 dark:bg-stone-800 shrink-0" style={{ aspectRatio: '16 / 8.1' }}>
         <ImageWithFallback
-          src={recipe.image}
+          src={recipe.image_1}
           alt={recipe.name}
           className="w-full h-full object-cover"
         />

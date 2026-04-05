@@ -14,7 +14,9 @@ export interface Recipe {
   id: string;
   name: string;
   description: string;
-  image?: string;
+  image_1?: string;
+  image_2?: string;
+  image_3?: string;
   dietary_tags: string[];
   ingredients: string[];
   instructions: string[];

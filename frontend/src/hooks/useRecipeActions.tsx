@@ -1,6 +1,10 @@
+// hooks/useRecipeActions.tsx
+// Manages favorites and tried-recipes state — backed by the backend API.
+// myRecipes localStorage logic has been removed; recipe creation now goes through
+// the backend via CreateRecipeModal + useRecipes.addRecipe().
+
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { Recipe } from '../types/recipe';
 import {
   getRecipeLikes,
   likeRecipe,
@@ -11,58 +15,13 @@ import {
   getAuthToken,
 } from '../api';
 
-const MY_RECIPES_KEY = 'nutrichoice_my_recipes';
-
-function normalizeStoredRecipe(raw: unknown): Recipe | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const r = raw as Record<string, unknown>;
-
-  const id = typeof r.id === 'string' ? r.id : null;
-  const name =
-    typeof r.name === 'string'
-      ? r.name
-      : typeof r.title === 'string'
-        ? r.title
-        : null;
-
-  if (!id || !name) return null;
-
-  return {
-    id,
-    name,
-    description: typeof r.description === 'string' ? r.description : '',
-    image: typeof r.image === 'string' ? r.image : undefined,
-    dietary_tags: Array.isArray(r.dietary_tags)
-      ? r.dietary_tags.filter((t): t is string => typeof t === 'string')
-      : Array.isArray(r.dietaryTags)
-        ? r.dietaryTags.filter((t): t is string => typeof t === 'string')
-        : [],
-    ingredients: Array.isArray(r.ingredients)
-      ? r.ingredients.filter((i): i is string => typeof i === 'string')
-      : [],
-    instructions: Array.isArray(r.instructions)
-      ? r.instructions.filter((i): i is string => typeof i === 'string')
-      : [],
-    cuisine_type: typeof r.cuisine_type === 'string'
-      ? r.cuisine_type
-      : typeof r.cuisine === 'string'
-        ? r.cuisine
-        : undefined,
-    creator: typeof r.creator === 'string' ? r.creator : undefined,
-    rating: typeof r.rating === 'number' ? r.rating : undefined,
-  };
-}
-
 interface RecipeActionsContextType {
   favoriteRecipes: Set<string>;
   triedRecipes: Set<string>;
-  myRecipes: Recipe[];
   toggleFavorite: (recipeId: string) => Promise<void>;
   toggleTried: (recipeId: string) => Promise<void>;
   isFavorite: (recipeId: string) => boolean;
   isTried: (recipeId: string) => boolean;
-  addMyRecipe: (recipe: Recipe) => void;
-  removeMyRecipe: (recipeId: string) => void;
 }
 
 const RecipeActionsContext = createContext<RecipeActionsContextType | undefined>(undefined);
@@ -75,26 +34,6 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
   const likeEdgeIds = useRef<Map<string, number>>(new Map());
   // triedId lookup: recipe string ID → backend tried public_id (for deletion)
   const triedEdgeIds = useRef<Map<string, string>>(new Map());
-
-  const [myRecipes, setMyRecipes] = useState<Recipe[]>(() => {
-    try {
-      const stored = localStorage.getItem(MY_RECIPES_KEY);
-      if (!stored) return [];
-
-      const parsed = JSON.parse(stored);
-      if (!Array.isArray(parsed)) return [];
-
-      const normalized = parsed
-        .map(normalizeStoredRecipe)
-        .filter((r): r is Recipe => r !== null);
-
-      // Persist normalized shape so older localStorage payloads are upgraded once.
-      localStorage.setItem(MY_RECIPES_KEY, JSON.stringify(normalized));
-      return normalized;
-    } catch {
-      return [];
-    }
-  });
 
   // Hydrate likes and tried from backend on mount
   useEffect(() => {
@@ -142,7 +81,7 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
       return next;
     });
 
-    if (isNaN(numericId)) return; // mock/non-backend recipe — keep optimistic only
+    if (isNaN(numericId)) return; // non-backend recipe — keep optimistic only
 
     try {
       if (isLiked) {
@@ -174,7 +113,7 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
       return next;
     });
 
-    if (isNaN(numericId)) return; // mock/non-backend recipe — keep optimistic only
+    if (isNaN(numericId)) return; // non-backend recipe — keep optimistic only
 
     try {
       if (isTried) {
@@ -205,37 +144,9 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
     [triedRecipes]
   );
 
-  // myRecipes stays on localStorage — recipe creation requires deeper backend
-  // integration that is out of scope for this migration phase.
-  const addMyRecipe = useCallback((recipe: Recipe) => {
-    setMyRecipes((prev) => {
-      const updated = [recipe, ...prev];
-      localStorage.setItem(MY_RECIPES_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  const removeMyRecipe = useCallback((recipeId: string) => {
-    setMyRecipes((prev) => {
-      const updated = prev.filter((r) => r.id !== recipeId);
-      localStorage.setItem(MY_RECIPES_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
   return (
     <RecipeActionsContext.Provider
-      value={{
-        favoriteRecipes,
-        triedRecipes,
-        myRecipes,
-        toggleFavorite,
-        toggleTried,
-        isFavorite,
-        isTried,
-        addMyRecipe,
-        removeMyRecipe,
-      }}
+      value={{ favoriteRecipes, triedRecipes, toggleFavorite, toggleTried, isFavorite, isTried }}
     >
       {children}
     </RecipeActionsContext.Provider>
