@@ -148,12 +148,24 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="relative">
+          <div className="space-y-2">
             <ImageWithFallback
-              src={recipe.image}
+              src={recipe.image_1}
               alt={recipe.name}
               className="w-full h-64 md:h-80 object-cover rounded-lg"
             />
+            {(recipe.image_2 || recipe.image_3) && (
+              <div className="flex gap-2">
+                {recipe.image_2 && (
+                  <img src={recipe.image_2} alt={`${recipe.name} — photo 2`}
+                    className="h-20 w-20 rounded-md object-cover flex-shrink-0" />
+                )}
+                {recipe.image_3 && (
+                  <img src={recipe.image_3} alt={`${recipe.name} — photo 3`}
+                    className="h-20 w-20 rounded-md object-cover flex-shrink-0" />
+                )}
+              </div>
+            )}
           </div>
 
           <p className="text-muted-foreground">{recipe.description}</p>

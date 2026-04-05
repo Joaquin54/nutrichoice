@@ -272,7 +272,7 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
                 >
                   <div className="relative">
                     <ImageWithFallback
-                      src={recipe.image}
+                      src={recipe.image_1}
                       alt={recipe.name}
                       className="w-full h-24 sm:h-28 md:h-32 object-cover rounded-t-lg"
                     />

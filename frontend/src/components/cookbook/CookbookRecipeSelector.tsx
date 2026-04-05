@@ -143,7 +143,7 @@ export function CookbookRecipeSelector({
                       <div className="flex gap-3">
                         <div className="relative shrink-0">
                           <ImageWithFallback
-                            src={recipe.image}
+                            src={recipe.image_1}
                             alt={recipe.name}
                             className="w-20 h-20 object-cover rounded"
                           />

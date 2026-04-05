@@ -1,13 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ProfileForm, 
+import {
+  ProfileForm,
   DietaryPreferencesCard
 } from '../components/account';
 import { SocialStats } from '../components/account/SocialStats';
 import { SocialModal } from '../components/account/SocialModal';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import { useCookbooks } from '../hooks/useCookbooks';
+import { useSupabaseUpload } from '../hooks/useSupabaseUpload';
 import { Button } from '../components/ui/button';
 import { Edit2, Save, X, BookOpen, ChevronRight } from 'lucide-react';
 import type { DietaryFilter } from '../types/recipe';
@@ -32,6 +33,7 @@ export function AccountPage() {
   // Get dietary preferences from shared context
   const { dietaryPreferences, updateDietaryPreferences } = useUserPreferences();
   const { cookbooks } = useCookbooks();
+  const { uploadProfilePicture, state: uploadState } = useSupabaseUpload();
   
   type ProfileFields = {
     first_name: string;
@@ -251,12 +253,14 @@ export function AccountPage() {
 
       <div className="space-y-4 sm:space-y-6">
         <div className="w-full md:w-1/2">
-          <ProfileForm 
-            onSubmit={handleProfileSubmit} 
+          <ProfileForm
+            onSubmit={handleProfileSubmit}
             isLoading={profileLoading}
             initialData={isEditMode ? tempProfileData : profileData}
             isReadOnly={!isEditMode}
             onDataChange={setTempProfileData}
+            onProfilePictureUpload={uploadProfilePicture}
+            isUploadingPicture={uploadState.isUploading}
           />
         </div>
 
