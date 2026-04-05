@@ -1,7 +1,7 @@
 from typing import Optional, TYPE_CHECKING, Type
 
 from django.db import IntegrityError
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -40,6 +40,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
       ?ingredient=<name>     — filter to recipes containing this ingredient
                                (repeatable; AND semantics when repeated)
                                e.g. ?ingredient=flour&ingredient=egg
+      ?scope=cookbook         — restrict to recipes the user created or liked
     """
 
     serializer_class = RecipeDetailSerializer
@@ -56,33 +57,47 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
     _MAX_INGREDIENT_NAME_LENGTH = 50
 
     def get_queryset(self) -> QuerySet[Recipe]:
-        queryset = Recipe.objects.prefetch_related(
+        queryset = Recipe.objects.prefetch_related(  # type: ignore
             "ingredients__ingredient",
             "instructions",
         ).all()
 
-        ingredient_names = self.request.query_params.getlist("ingredient")
-        if not ingredient_names:
-            return queryset
+        needs_distinct = False
 
-        if len(ingredient_names) > self._MAX_INGREDIENT_FILTERS:
-            raise DRFValidationError(
-                f"Maximum {self._MAX_INGREDIENT_FILTERS} ingredient filters allowed."
-            )
-
-        for name in ingredient_names:
-            if not name or len(name) > self._MAX_INGREDIENT_NAME_LENGTH:
-                raise DRFValidationError(
-                    f"Each ingredient name must be 1–{self._MAX_INGREDIENT_NAME_LENGTH} characters."
-                )
-            # Each chained filter produces a separate JOIN, enforcing AND
-            # semantics: the recipe must contain ALL specified ingredients.
+        # Scope filter: restrict to recipes the user created or liked.
+        scope = self.request.query_params.get("scope")
+        if scope == "cookbook":
             queryset = queryset.filter(
-                ingredients__ingredient__name__icontains=name
+                Q(creator=self.request.user)
+                | Q(recipe_likes__user=self.request.user)
             )
+            needs_distinct = True
+
+        # Ingredient filter (AND semantics across repeated params).
+        ingredient_names = self.request.query_params.getlist("ingredient")
+        if ingredient_names:
+            if len(ingredient_names) > self._MAX_INGREDIENT_FILTERS:
+                raise DRFValidationError(
+                    f"Maximum {self._MAX_INGREDIENT_FILTERS} ingredient filters allowed."
+                )
+
+            for name in ingredient_names:
+                if not name or len(name) > self._MAX_INGREDIENT_NAME_LENGTH:
+                    raise DRFValidationError(
+                        f"Each ingredient name must be 1–{self._MAX_INGREDIENT_NAME_LENGTH} characters."
+                    )
+                # Each chained filter produces a separate JOIN, enforcing AND
+                # semantics: the recipe must contain ALL specified ingredients.
+                queryset = queryset.filter(
+                    ingredients__ingredient__name__icontains=name
+                )
+            needs_distinct = True
 
         # JOIN fan-out can produce duplicate recipe rows; deduplicate here.
-        return queryset.distinct()
+        if needs_distinct:
+            queryset = queryset.distinct()
+
+        return queryset
 
 
 class RecipeCreateView(generics.CreateAPIView):

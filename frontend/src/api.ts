@@ -392,11 +392,13 @@ export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
 export interface RecipeFilters {
   search?: string;
   ingredient?: string[];
+  scope?: string;
 }
 
 export async function getRecipes(filters?: RecipeFilters): Promise<Recipe[]> {
   const url = new URL(`${API_BASE}/api/recipes/`);
   if (filters?.search) url.searchParams.set('search', filters.search);
+  if (filters?.scope) url.searchParams.set('scope', filters.scope);
   filters?.ingredient?.forEach((name) => url.searchParams.append('ingredient', name));
   const r = await authenticatedFetch(url.toString());
   if (!r.ok) throw new Error('Failed to load recipes');
