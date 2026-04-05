@@ -23,7 +23,7 @@ class UserProfile(models.Model):
                            default='')  # Added blank/default
     diet_type = models.JSONField(default=dict, blank=True)  # Added default
     # Fixed typo: profil -> profile
-    profile_picture = models.URLField(blank=True, default='')
+    profile_picture = models.URLField(max_length=500, blank=True, default='')
 
     def __str__(self):
         return f"Profile for {self.user.username}" # type: ignore

@@ -1,5 +1,5 @@
 import { useSocialActions } from '../../hooks/useSocialActions';
-import { useRecipeActions } from '../../hooks/useRecipeActions';
+import { useRecipes } from '../../hooks/useRecipes';
 
 type SocialTab = 'followers' | 'following' | 'blocked';
 
@@ -9,12 +9,12 @@ interface SocialStatsProps {
 
 export function SocialStats({ onOpenTab }: SocialStatsProps) {
   const { followers, following } = useSocialActions();
-  const { myRecipes } = useRecipeActions();
+  const { recipes } = useRecipes();
 
   const stats = [
     { label: 'Followers', count: followers.length, tab: 'followers' as SocialTab },
     { label: 'Following', count: following.length, tab: 'following' as SocialTab },
-    { label: 'Recipes', count: myRecipes.length, tab: null },
+    { label: 'Recipes', count: recipes.length, tab: null },
   ];
 
   return (

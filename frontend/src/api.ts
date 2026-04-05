@@ -366,10 +366,14 @@ export type ApiRecipe = {
   description: string;
   cuisine_type: string;
   dietary_tags: string[];
+  measure_type?: string;
   date_created: string;
   creator: string;
   ingredients: { ingredient: { id: number; name: string }; quantity: number; unit: string }[];
   instructions: { step_number: number; text: string; estimated_cooktime: number | null }[];
+  image_1: string;
+  image_2: string;
+  image_3: string;
 };
 
 // Converts a raw backend recipe to the frontend Recipe type.
@@ -382,6 +386,9 @@ export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
     cuisine_type: r.cuisine_type,
     dietary_tags: r.dietary_tags,
     creator: r.creator,
+    image_1: r.image_1 || undefined,
+    image_2: r.image_2 || undefined,
+    image_3: r.image_3 || undefined,
     ingredients: r.ingredients.map(
       (i) => `${i.quantity} ${i.unit} ${i.ingredient.name}`
     ),
@@ -392,12 +399,16 @@ export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
 export interface RecipeFilters {
   search?: string;
   ingredient?: string[];
+  scope?: string;
+  creator?: string;
 }
 
 export async function getRecipes(filters?: RecipeFilters): Promise<Recipe[]> {
   const url = new URL(`${API_BASE}/api/recipes/`);
   if (filters?.search) url.searchParams.set('search', filters.search);
+  if (filters?.scope) url.searchParams.set('scope', filters.scope);
   filters?.ingredient?.forEach((name) => url.searchParams.append('ingredient', name));
+  if (filters?.creator) url.searchParams.set('creator', filters.creator);
   const r = await authenticatedFetch(url.toString());
   if (!r.ok) throw new Error('Failed to load recipes');
   const data = await r.json();
@@ -656,5 +667,108 @@ export async function getRecipeFeed(page: number = 1): Promise<RecipeFeedPage> {
   const r = await authenticatedFetch(`${API_BASE}/api/recipe-feed/?page=${page}`);
   if (!r.ok) throw new Error('Failed to load recipe feed');
   return r.json() as Promise<RecipeFeedPage>;
+}
+
+// ---------------------------------------------------------------------------
+// Storage — signed URL + save URL
+// ---------------------------------------------------------------------------
+
+export type SignedUrlParams =
+  | { bucket: 'recipe_images'; recipe_id: number; image_index: 0 | 1 | 2 }
+  | { bucket: 'profile_picture' };
+
+export type SignedUrlResult = {
+  signed_url: string;
+  path: string;
+  token: string;
+};
+
+export async function requestSignedUrl(params: SignedUrlParams): Promise<SignedUrlResult> {
+  const r = await authenticatedFetch(`${API_BASE}/api/storage/signed-url/`, {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(formatApiError(err) || `Failed to get signed URL (${r.status})`);
+  }
+  return r.json();
+}
+
+export type SaveUrlParams = { bucket: 'recipe_images' | 'profile_picture'; path: string };
+export type SaveUrlResult =
+  | { recipe_id: number; image_1: string; image_2: string; image_3: string }
+  | { profile_picture: string };
+
+export async function saveImageUrl(params: SaveUrlParams): Promise<SaveUrlResult> {
+  const r = await authenticatedFetch(`${API_BASE}/api/storage/save-url/`, {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(formatApiError(err) || `Failed to save image URL (${r.status})`);
+  }
+  return r.json();
+}
+
+// ---------------------------------------------------------------------------
+// Recipe creation
+// ---------------------------------------------------------------------------
+
+export type CreateRecipeIngredient = {
+  ingredient: number;
+  quantity: number;
+  unit: string;
+};
+
+export type CreateRecipeInstruction = {
+  step_number: number;
+  text: string;
+  estimated_cooktime: number | null;
+};
+
+export type CreateRecipePayload = {
+  name: string;
+  description: string;
+  cuisine_type: string;
+  dietary_tags: string[];
+  measure_type: 'grams' | 'cups' | 'tablespoons';
+  ingredients: CreateRecipeIngredient[];
+  instructions: CreateRecipeInstruction[];
+};
+
+export async function createRecipe(data: CreateRecipePayload): Promise<ApiRecipe> {
+  const r = await authenticatedFetch(`${API_BASE}/api/recipes/create/`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(formatApiError(err) || `Failed to create recipe (${r.status})`);
+  }
+  return r.json();
+}
+
+// ---------------------------------------------------------------------------
+// Ingredient search
+// ---------------------------------------------------------------------------
+
+export type IngredientSearchResult = {
+  id: number;
+  name: string;
+  default_unit: string;
+};
+
+export async function searchIngredients(query: string): Promise<IngredientSearchResult[]> {
+  const url = new URL(`${API_BASE}/api/ingredients/`);
+  url.searchParams.set('search', query);
+  const r = await authenticatedFetch(url.toString());
+  if (!r.ok) throw new Error('Failed to search ingredients');
+  const data = await r.json();
+  const results: IngredientSearchResult[] = Array.isArray(data)
+    ? data
+    : (data.results ?? []);
+  return results;
 }
 

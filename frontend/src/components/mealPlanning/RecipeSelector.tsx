@@ -62,7 +62,7 @@ export function RecipeSelector({ date, mealType, onClose }: RecipeSelectorProps)
               >
                 <div className="flex gap-3">
                   <ImageWithFallback
-                    src={recipe.image}
+                    src={recipe.image_1}
                     alt={recipe.name}
                     className="w-20 h-20 object-cover rounded"
                   />

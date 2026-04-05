@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { Heart, BookOpen } from "lucide-react";
+import { Heart, CheckCircle, BookOpen } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import { useCookbooks } from "../../hooks/useCookbooks";
@@ -41,7 +41,7 @@ interface RecipeModalProps {
 }
 
 export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
-  const { toggleFavorite, isFavorite } = useRecipeActions();
+  const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
   const { cookbooks, addRecipeToCookbook } = useCookbooks();
   const [cookbookPopoverOpen, setCookbookPopoverOpen] = useState(false);
   
@@ -58,6 +58,10 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
 
   const handleFavoriteClick = () => {
     toggleFavorite(recipe.id);
+  };
+
+  const handleTriedClick = () => {
+    toggleTried(recipe.id);
   };
 
   return (
@@ -124,17 +128,44 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                 />
                 <span className="hidden sm:inline">{isFavorite(recipe.id) ? "Liked" : "Like"}</span>
               </Button>
+              <Button
+                onClick={handleTriedClick}
+                variant="outline"
+                size="sm"
+                className="gap-2 flex-1 sm:flex-initial"
+              >
+                <CheckCircle
+                  className={`h-4 w-4 ${
+                    isTried(recipe.id)
+                      ? "text-[#6ec257]"
+                      : ""
+                  } transition-colors`}
+                />
+                <span className="hidden sm:inline">{isTried(recipe.id) ? "Tried" : "Mark as Tried"}</span>
+              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="relative">
+          <div className="space-y-2">
             <ImageWithFallback
-              src={recipe.image}
+              src={recipe.image_1}
               alt={recipe.name}
               className="w-full h-64 md:h-80 object-cover rounded-lg"
             />
+            {(recipe.image_2 || recipe.image_3) && (
+              <div className="flex gap-2">
+                {recipe.image_2 && (
+                  <img src={recipe.image_2} alt={`${recipe.name} — photo 2`}
+                    className="h-20 w-20 rounded-md object-cover flex-shrink-0" />
+                )}
+                {recipe.image_3 && (
+                  <img src={recipe.image_3} alt={`${recipe.name} — photo 3`}
+                    className="h-20 w-20 rounded-md object-cover flex-shrink-0" />
+                )}
+              </div>
+            )}
           </div>
 
           <p className="text-muted-foreground">{recipe.description}</p>

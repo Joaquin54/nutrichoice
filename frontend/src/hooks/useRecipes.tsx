@@ -7,6 +7,7 @@ interface RecipesContextType {
   recipes: Recipe[];
   isLoading: boolean;
   getRecipeById: (id: string) => Recipe | undefined;
+  addRecipe: (recipe: Recipe) => void;
 }
 
 const RecipesContext = createContext<RecipesContextType | undefined>(undefined);
@@ -31,8 +32,13 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
     [recipes]
   );
 
+  // Prepends a newly-created recipe to the global list without a full refetch.
+  const addRecipe = useCallback((recipe: Recipe) => {
+    setRecipes((prev) => [recipe, ...prev]);
+  }, []);
+
   return (
-    <RecipesContext.Provider value={{ recipes, isLoading, getRecipeById }}>
+    <RecipesContext.Provider value={{ recipes, isLoading, getRecipeById, addRecipe }}>
       {children}
     </RecipesContext.Provider>
   );

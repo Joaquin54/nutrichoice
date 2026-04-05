@@ -256,7 +256,7 @@ export function RecipeFeedPage() {
                     {/* Left Side: Recipe Image (60% width on desktop, full width on mobile) */}
                     <div className="w-full sm:w-[60%] h-64 sm:h-full relative bg-gray-100 dark:bg-gray-900 flex-shrink-0">
                       <ImageWithFallback
-                        src={recipe.image}
+                        src={recipe.image_1}
                         alt={recipe.name}
                         className="w-full h-full object-cover"
                       />

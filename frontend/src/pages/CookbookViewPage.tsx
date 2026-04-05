@@ -740,7 +740,7 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
     <div className="flex min-h-0 min-w-0 max-w-full flex-col break-words">
       <div className="relative mb-3 h-36 w-full shrink-0 overflow-hidden rounded-lg bg-amber-100 dark:bg-stone-800">
         <ImageWithFallback
-          src={recipe.image}
+          src={recipe.image_1}
           alt={recipe.name}
           className="h-full w-full object-cover"
         />
