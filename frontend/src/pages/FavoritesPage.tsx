@@ -6,14 +6,14 @@ import { RecipeModal } from '../components/recipe/RecipeModal';
 import { CreateRecipeModal } from '../components/recipe/CreateRecipeModal';
 import { useRecipeActions } from '../hooks/useRecipeActions';
 import { useRecipes } from '../hooks/useRecipes';
-import { Heart, CheckCircle, ChefHat, Plus, Trash2 } from 'lucide-react';
+import { Heart, ChefHat, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { RecipeCard } from '../components/recipe/RecipeCard';
 import type { Recipe } from '../types/recipe';
 
 export function FavoritesPage() {
   const navigate = useNavigate();
-  const { favoriteRecipes, triedRecipes, myRecipes, removeMyRecipe } = useRecipeActions();
+  const { favoriteRecipes, myRecipes, removeMyRecipe } = useRecipeActions();
   const { recipes } = useRecipes();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,11 +25,6 @@ export function FavoritesPage() {
   const favorites = useMemo(
     () => allRecipes.filter(recipe => favoriteRecipes.has(recipe.id)),
     [allRecipes, favoriteRecipes]
-  );
-
-  const tried = useMemo(
-    () => allRecipes.filter(recipe => triedRecipes.has(recipe.id)),
-    [allRecipes, triedRecipes]
   );
 
   const handleViewRecipe = (recipe: Recipe) => {
@@ -53,23 +48,17 @@ export function FavoritesPage() {
           My Recipes
         </h1>
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-          Your favorites, tried recipes, and creations
+          Your favorites and creations
         </p>
       </div>
 
       <Tabs defaultValue="my-recipes" className="w-full">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
           <TabsTrigger value="favorites" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Favorites</span>
             <span className="sm:hidden">Fav</span>
             <span>({favorites.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="tried" className="flex items-center gap-1.5 text-xs sm:text-sm">
-            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Tried</span>
-            <span className="sm:hidden">Tried</span>
-            <span>({tried.length})</span>
           </TabsTrigger>
           <TabsTrigger value="my-recipes" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <ChefHat className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -88,19 +77,6 @@ export function FavoritesPage() {
               onBrowseRecipes={handleBrowseRecipes}
               message="No favorites yet"
               description="Start adding recipes to your favorites by clicking the heart icon on any recipe card!"
-            />
-          )}
-        </TabsContent>
-
-        {/* Tried Tab */}
-        <TabsContent value="tried" className="mt-4 sm:mt-6">
-          {tried.length > 0 ? (
-            <FavoritesGrid favorites={tried} onViewRecipe={handleViewRecipe} />
-          ) : (
-            <EmptyFavorites
-              onBrowseRecipes={handleBrowseRecipes}
-              message="No tried recipes yet"
-              description="Mark recipes as tried by clicking the check icon on any recipe card!"
             />
           )}
         </TabsContent>

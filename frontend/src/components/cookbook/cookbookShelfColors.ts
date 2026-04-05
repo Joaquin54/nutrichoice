@@ -1,6 +1,6 @@
 import type { Cookbook } from '../../types/recipe';
 
-/** Deterministic palette so each cookbook keeps a stable “binding” color. No yellow / orange / brown. */
+/** Deterministic palette so each cookbook keeps a stable “binding” color. No brown or muddy earth tones. */
 const SPINE_PALETTE: { bg: string; fg: string; coverFrom: string; coverTo: string }[] = [
   { bg: '#047857', fg: '#ecfdf5', coverFrom: '#a7f3d0', coverTo: '#10b981' },
   { bg: '#1d4ed8', fg: '#eff6ff', coverFrom: '#bfdbfe', coverTo: '#3b82f6' },
@@ -10,6 +10,10 @@ const SPINE_PALETTE: { bg: string; fg: string; coverFrom: string; coverTo: strin
   { bg: '#5b21b6', fg: '#faf5ff', coverFrom: '#ddd6fe', coverTo: '#8b5cf6' },
   { bg: '#9d174d', fg: '#fdf2f8', coverFrom: '#fbcfe8', coverTo: '#ec4899' },
   { bg: '#3730a3', fg: '#eef2ff', coverFrom: '#c7d2fe', coverTo: '#6366f1' },
+  { bg: '#c2410c', fg: '#fff7ed', coverFrom: '#ffedd5', coverTo: '#fb923c' },
+  { bg: '#be123c', fg: '#fff1f2', coverFrom: '#fecdd3', coverTo: '#f43f5e' },
+  { bg: '#4d7c0f', fg: '#f7fee7', coverFrom: '#d9f99d', coverTo: '#84cc16' },
+  { bg: '#a21caf', fg: '#fdf4ff', coverFrom: '#f5d0fe', coverTo: '#d946ef' },
 ];
 
 function hashId(s: string): number {

@@ -54,9 +54,9 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
       <PopoverTrigger asChild>
         <Button 
           variant="outline" 
-          className="gap-2 bg-white hover:bg-gray-50 border-gray-300 shadow-sm relative"
+          className="gap-2 bg-white hover:bg-gray-50 border-gray-300 shadow-sm relative dark:border-emerald-300 dark:bg-emerald-50 dark:text-green-900 dark:hover:bg-emerald-100"
         >
-          <Leaf className="h-4 w-4 text-[#6ec257]" />
+          <Leaf className="h-4 w-4 text-[#6ec257] dark:text-green-800" />
           <span>Dietary Filters</span>
           {activeFilterCount > 0 && (
             <Badge 
@@ -66,14 +66,17 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
               {activeFilterCount}
             </Badge>
           )}
-          <SlidersHorizontal className="h-4 w-4 text-gray-500" />
+          <SlidersHorizontal className="h-4 w-4 text-gray-500 dark:text-green-800/90" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="end">
+      <PopoverContent
+        className="w-80 p-4 dark:border-emerald-200 dark:bg-emerald-50 dark:text-green-900"
+        align="end"
+      >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-sm flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-[#6ec257]" />
+            <h4 className="font-semibold text-sm flex items-center gap-2 dark:text-green-900">
+              <Leaf className="h-4 w-4 text-[#6ec257] dark:text-green-800" />
               Dietary Preferences
             </h4>
             {activeFilterCount > 0 && (
@@ -90,7 +93,7 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
                   lowCarb: false,
                   keto: false,
                 })}
-                className="h-7 px-2 text-xs"
+                className="h-7 px-2 text-xs dark:text-green-800 dark:hover:bg-emerald-200/70 dark:hover:text-green-950"
               >
                 Clear all
               </Button>
@@ -100,7 +103,7 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
             {dietaryOptions.map(({ key, label, icon: Icon }) => (
               <div
                 key={key}
-                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-emerald-100/90"
               >
                 <Checkbox
                   id={`dropdown-${key}`}
@@ -108,13 +111,13 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
                   onCheckedChange={(checked: boolean | "indeterminate") =>
                     handleFilterChange(key, checked === true)
                   }
-                  className="border-primary/30 data-[state=checked]:bg-[#6ec257] data-[state=checked]:border-[#6ec257]"
+                  className="border-primary/30 data-[state=checked]:bg-[#6ec257] data-[state=checked]:border-[#6ec257] data-[state=checked]:text-white dark:border-green-800/45 dark:data-[state=unchecked]:bg-white/80"
                 />
                 <Label
                   htmlFor={`dropdown-${key}`}
-                  className="flex items-center gap-2 cursor-pointer flex-1"
+                  className="flex items-center gap-2 cursor-pointer flex-1 dark:text-green-900"
                 >
-                  <Icon className="h-4 w-4 text-[#6ec257]/70" />
+                  <Icon className="h-4 w-4 text-[#6ec257]/70 dark:text-green-800" />
                   <span className="text-sm">{label}</span>
                 </Label>
               </div>

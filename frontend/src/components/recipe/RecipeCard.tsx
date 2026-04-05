@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { ChefHat, Heart, CheckCircle } from "lucide-react";
+import { ChefHat, Heart } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
@@ -27,7 +27,7 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
-  const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
+  const { toggleFavorite, isFavorite } = useRecipeActions();
 
   const dietaryTagsOnly = recipe.dietary_tags.filter(
     tag => !CULTURAL_CUISINE_TAGS.includes(tag)
@@ -36,11 +36,6 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(recipe.id);
-  };
-
-  const handleTriedClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleTried(recipe.id);
   };
 
   return (
@@ -67,18 +62,6 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
                   ? "fill-red-500 text-red-500"
                   : "text-gray-600"
               } transition-colors`}
-            />
-          </button>
-          <button
-            onClick={handleTriedClick}
-            className="relative p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
-            aria-label={isTried(recipe.id) ? "Mark as not tried" : "Mark as tried"}
-          >
-            {isTried(recipe.id) && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-[#6ec257]/70" />
-            )}
-            <CheckCircle
-              className="relative h-4 w-4 text-gray-600 transition-colors"
             />
           </button>
         </div>

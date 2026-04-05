@@ -241,96 +241,60 @@ export function CookbookBookshelf({
                   if (hoverShelf) setSelectedIndex(index);
                 }}
               >
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="flex w-full cursor-pointer items-stretch overflow-visible rounded-sm text-left outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
-                  style={{
-                    width: open ? openBookWidth : spineWidth,
-                    transition: transitionStyle,
-                  }}
-                  onClick={() => {
-                    if (hoverShelf) return;
-                    setSelectedIndex((prev) => (prev === index ? null : index));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedIndex((prev) => (prev === index ? null : index));
-                    }
-                  }}
-                  aria-expanded={open}
-                  aria-label={`${cb.name}, ${cb.recipeCount} recipes. ${open ? 'Expanded' : 'Collapsed'}.`}
+                <Popover
+                  open={openMenuId === cb.id}
+                  onOpenChange={(o) => setOpenMenuId(o ? cb.id : null)}
                 >
                   <div
-                    className="relative flex shrink-0 flex-col items-center overflow-hidden rounded-l-sm motion-reduce:transition-none"
+                    role="button"
+                    tabIndex={0}
+                    className="flex w-full cursor-pointer items-stretch overflow-visible rounded-sm text-left outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
                     style={{
-                      width: spineWidth,
-                      height: bookHeight,
-                      transformOrigin: 'right center',
-                      backgroundColor: theme.bg,
-                      color: theme.fg,
-                      transform: open
-                        ? 'translate3d(0,0,0) rotateY(-60deg)'
-                        : 'translate3d(0,0,0) rotateY(0deg)',
-                      transition: transformTransition,
-                      transformStyle: 'preserve-3d',
-                      filter: 'brightness(0.88) contrast(1.15)',
+                      width: open ? openBookWidth : spineWidth,
+                      transition: transitionStyle,
                     }}
+                    onClick={() => {
+                      if (hoverShelf) return;
+                      setSelectedIndex((prev) => (prev === index ? null : index));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedIndex((prev) => (prev === index ? null : index));
+                      }
+                    }}
+                    aria-expanded={open}
+                    aria-label={`${cb.name}, ${cb.recipeCount} recipes. ${open ? 'Expanded' : 'Collapsed'}.`}
                   >
-                    <span
-                      className="pointer-events-none absolute inset-0 z-[1] opacity-[0.35] motion-reduce:opacity-0"
-                      style={{ filter: `url(#${paperFilterId})` }}
-                    />
                     <div
-                      className="relative z-[2] flex w-full flex-col items-center pt-1"
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => e.stopPropagation()}
-                    >
-                      <Popover
-                        open={openMenuId === cb.id}
-                        onOpenChange={(o) => setOpenMenuId(o ? cb.id : null)}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            className="h-9 w-9 rounded-full border border-white/20 bg-black/15 text-inherit shadow-sm hover:bg-black/25"
-                            aria-label={`Options for ${cb.name}`}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-44 p-1" align="start" side="bottom">
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted"
-                            onClick={() => onRename(cb)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Rename
-                          </button>
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                            onClick={() => onDelete(cb.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </button>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <h3
-                      className="relative z-[2] mt-2 max-h-[calc(100%-4.5rem)] flex-1 overflow-hidden text-ellipsis px-0.5 text-center text-lg font-semibold leading-snug"
+                      className="relative flex shrink-0 flex-col items-center overflow-hidden rounded-l-sm motion-reduce:transition-none"
                       style={{
-                        writingMode: 'vertical-rl',
-                        textOrientation: 'mixed',
+                        width: spineWidth,
+                        height: bookHeight,
+                        transformOrigin: 'right center',
+                        backgroundColor: theme.bg,
+                        color: theme.fg,
+                        transform: open
+                          ? 'translate3d(0,0,0) rotateY(-60deg)'
+                          : 'translate3d(0,0,0) rotateY(0deg)',
+                        transition: transformTransition,
+                        transformStyle: 'preserve-3d',
+                        filter: 'brightness(0.88) contrast(1.15)',
                       }}
                     >
-                      {cb.name}
-                    </h3>
+                      <span
+                        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.35] motion-reduce:opacity-0"
+                        style={{ filter: `url(#${paperFilterId})` }}
+                      />
+                      <h3
+                        className="relative z-[2] mt-0 max-h-[calc(100%-1.25rem)] flex-1 overflow-hidden text-ellipsis px-0.5 pt-2 text-center text-lg font-semibold leading-snug"
+                        style={{
+                          writingMode: 'vertical-rl',
+                          textOrientation: 'mixed',
+                        }}
+                      >
+                        {cb.name}
+                      </h3>
                   </div>
 
                   <div
@@ -359,12 +323,31 @@ export function CookbookBookshelf({
                       }}
                     />
                     <div
-                      className="absolute inset-0 z-0 flex flex-col bg-gradient-to-br p-4 text-left"
+                      className="absolute inset-0 z-0 flex flex-col bg-gradient-to-br p-4 pt-3 text-left"
                       style={{
                         backgroundImage: `linear-gradient(135deg, ${theme.coverFrom}, ${theme.coverTo})`,
                       }}
                     >
-                      <p className="font-serif text-base font-bold leading-tight text-gray-900 line-clamp-4 dark:text-stone-900">
+                      {open && (
+                        <div
+                          className="absolute right-1 top-1 z-[5]"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              className="h-9 w-9 rounded-full border border-white/20 bg-black/15 text-inherit shadow-sm hover:bg-black/25"
+                              aria-label={`Options for ${cb.name}`}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                        </div>
+                      )}
+                      <p className="pr-10 font-serif text-base font-bold leading-tight text-gray-900 line-clamp-4 dark:text-stone-900">
                         {cb.name}
                       </p>
                       <p className="mt-1 text-sm text-stone-700/90">
@@ -385,7 +368,7 @@ export function CookbookBookshelf({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-10 w-full border-[#6ec257]/50 text-sm text-[#5ba045] hover:bg-[#6ec257]/10"
+                            className="h-10 w-full border-[#6ec257]/50 text-sm text-[#2d5a27] hover:!bg-white/40 dark:border-[#6ec257]/45 dark:text-white dark:hover:!bg-[#6ec257]/50"
                             onClick={() => onAddRecipes(cb.id)}
                           >
                             <BookMarked className="mr-1.5 h-4 w-4" />
@@ -396,6 +379,31 @@ export function CookbookBookshelf({
                     </div>
                   </div>
                 </div>
+                <PopoverContent className="w-44 p-1" align="end" side="bottom">
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted"
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      onRename(cb);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Rename
+                  </button>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      onDelete(cb.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </PopoverContent>
+              </Popover>
               </div>
             );
           })}

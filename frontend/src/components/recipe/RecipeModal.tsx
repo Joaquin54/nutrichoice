@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { Heart, CheckCircle, BookOpen } from "lucide-react";
+import { Heart, BookOpen } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import { useCookbooks } from "../../hooks/useCookbooks";
@@ -41,7 +41,7 @@ interface RecipeModalProps {
 }
 
 export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
-  const { toggleFavorite, toggleTried, isFavorite, isTried } = useRecipeActions();
+  const { toggleFavorite, isFavorite } = useRecipeActions();
   const { cookbooks, addRecipeToCookbook } = useCookbooks();
   const [cookbookPopoverOpen, setCookbookPopoverOpen] = useState(false);
   
@@ -58,10 +58,6 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
 
   const handleFavoriteClick = () => {
     toggleFavorite(recipe.id);
-  };
-
-  const handleTriedClick = () => {
-    toggleTried(recipe.id);
   };
 
   return (
@@ -127,21 +123,6 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                   } transition-colors`}
                 />
                 <span className="hidden sm:inline">{isFavorite(recipe.id) ? "Liked" : "Like"}</span>
-              </Button>
-              <Button
-                onClick={handleTriedClick}
-                variant="outline"
-                size="sm"
-                className="gap-2 flex-1 sm:flex-initial"
-              >
-                <CheckCircle
-                  className={`h-4 w-4 ${
-                    isTried(recipe.id)
-                      ? "text-[#6ec257]"
-                      : ""
-                  } transition-colors`}
-                />
-                <span className="hidden sm:inline">{isTried(recipe.id) ? "Tried" : "Mark as Tried"}</span>
               </Button>
             </div>
           </DialogTitle>
