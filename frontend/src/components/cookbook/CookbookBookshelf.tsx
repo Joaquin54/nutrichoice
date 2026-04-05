@@ -1,8 +1,16 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import type { Cookbook } from '../../types/recipe';
+import { cn } from '../../lib/utils';
 import { getCookbookShelfTheme } from './cookbookShelfColors';
 import { BookMarked, ChevronLeft, ChevronRight, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 
@@ -14,6 +22,33 @@ const GAP_PX = Math.round(11 * BOOK_SCALE);
 const COVER_PX = SPINE_PX * 4;
 const OPEN_BOOK_PX = SPINE_PX + COVER_PX;
 const PERSPECTIVE_PX = Math.round(1000 * BOOK_SCALE);
+
+function bookWidthPx(bookIndex: number, openIndex: number | null): number {
+  return openIndex === bookIndex ? OPEN_BOOK_PX : SPINE_PX;
+}
+
+/** Pixel offset of the left edge of `bookIndex` in the shelf row. */
+function leftEdgeOfBook(bookIndex: number, openIndex: number | null): number {
+  let x = 0;
+  for (let j = 0; j < bookIndex; j++) {
+    x += bookWidthPx(j, openIndex) + GAP_PX;
+  }
+  return x;
+}
+
+/** scrollLeft that horizontally centers the book in the viewport. */
+function scrollLeftToCenterBook(
+  bookIndex: number,
+  openIndex: number | null,
+  clientWidth: number,
+  scrollWidth: number
+): number {
+  const bookLeft = leftEdgeOfBook(bookIndex, openIndex);
+  const bookW = bookWidthPx(bookIndex, openIndex);
+  const ideal = bookLeft - (clientWidth - bookW) / 2;
+  const maxS = Math.max(0, scrollWidth - clientWidth);
+  return Math.max(0, Math.min(maxS, ideal));
+}
 
 export interface CookbookBookshelfProps {
   cookbooks: Cookbook[];
@@ -30,11 +65,8 @@ export function CookbookBookshelf({
 }: CookbookBookshelfProps) {
   const paperFilterId = useId().replace(/:/g, '');
   const viewportRef = useRef<HTMLDivElement>(null);
-  const scrollLeftRef = useRef<HTMLButtonElement>(null);
-  const scrollRightRef = useRef<HTMLButtonElement>(null);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
-  const [scroll, setScroll] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [hoverShelf, setHoverShelf] = useState(false);
@@ -69,45 +101,31 @@ export function CookbookBookshelf({
   const bookHeight = `${HEIGHT_PX}px`;
   const openBookWidth = `${OPEN_BOOK_PX}px`;
 
-  const totalWidthClosed = useMemo(() => {
-    if (cookbooks.length === 0) return 0;
-    return cookbooks.length * SPINE_PX + (cookbooks.length - 1) * GAP_PX;
-  }, [cookbooks.length]);
-
-  const totalWidth = useMemo(() => {
-    if (selectedIndex === null) return totalWidthClosed;
-    return totalWidthClosed - SPINE_PX + OPEN_BOOK_PX;
-  }, [totalWidthClosed, selectedIndex]);
-
-  const maxScroll = useMemo(() => {
-    return Math.max(0, totalWidth - viewportWidth + 8);
-  }, [totalWidth, viewportWidth]);
-
-  const boundedRelativeScroll = useCallback(
-    (dx: number) => {
-      setScroll((s) => {
-        const next = Math.max(0, Math.min(maxScroll, s + dx));
-        return Number.isFinite(next) ? next : s;
-      });
-    },
-    [maxScroll]
-  );
-
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect.width ?? 0;
-      setViewportWidth(w);
+    const ro = new ResizeObserver(() => {
+      setViewportWidth(el.clientWidth);
     });
     ro.observe(el);
-    setViewportWidth(el.getBoundingClientRect().width);
+    setViewportWidth(el.clientWidth);
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => {
-    setScroll((s) => Math.min(s, maxScroll));
-  }, [maxScroll]);
+  useLayoutEffect(() => {
+    const el = viewportRef.current;
+    if (!el || selectedIndex === null) return;
+    const target = scrollLeftToCenterBook(
+      selectedIndex,
+      selectedIndex,
+      el.clientWidth,
+      el.scrollWidth
+    );
+    el.scrollTo({
+      left: target,
+      behavior: reduceMotion || !hoverShelf ? 'auto' : 'smooth',
+    });
+  }, [selectedIndex, viewportWidth, cookbooks.length, reduceMotion, hoverShelf]);
 
   useEffect(() => {
     if (cookbooks.length === 0) return;
@@ -118,27 +136,31 @@ export function CookbookBookshelf({
     });
   }, [cookbooks.length]);
 
-  const booksInViewport = viewportWidth > 0 ? viewportWidth / (SPINE_PX + GAP_PX) : 0;
-
-  const scrollStep = SPINE_PX + GAP_PX;
-
-  useEffect(() => {
-    if (selectedIndex === null || viewportWidth <= 0) return;
-    const slot = SPINE_PX + GAP_PX;
-    const centerOffset =
-      (selectedIndex - Math.max(0, (booksInViewport - 4.5) / 2)) * slot;
-    setScroll((s) => {
-      const next = Math.max(0, Math.min(maxScroll, centerOffset));
-      return Number.isFinite(next) ? next : s;
-    });
-  }, [selectedIndex, booksInViewport, viewportWidth, maxScroll]);
-
   const transitionStyle = reduceMotion ? 'none' : 'width 500ms ease, transform 500ms ease';
 
   const transformTransition = reduceMotion ? 'none' : 'transform 500ms ease';
 
-  const canScrollLeft = scroll > 0;
-  const canScrollRight = scroll < maxScroll;
+  const goShelfLeft = useCallback(() => {
+    setSelectedIndex((prev) => {
+      if (prev === null || prev <= 0) return prev;
+      return prev - 1;
+    });
+  }, []);
+
+  const goShelfRight = useCallback(() => {
+    setSelectedIndex((prev) => {
+      if (cookbooks.length === 0) return prev;
+      if (prev === null) return 0;
+      return Math.min(cookbooks.length - 1, prev + 1);
+    });
+  }, [cookbooks.length]);
+
+  const canScrollLeft = selectedIndex !== null && selectedIndex > 0;
+
+  const canScrollRight =
+    selectedIndex === null
+      ? cookbooks.length > 0
+      : selectedIndex < cookbooks.length - 1;
 
   if (cookbooks.length === 0) return null;
 
@@ -171,14 +193,13 @@ export function CookbookBookshelf({
       <div className="flex w-full items-stretch gap-2 px-2 sm:gap-3 sm:px-3">
         <div className="flex shrink-0 flex-col justify-center py-2">
           <Button
-            ref={scrollLeftRef}
             type="button"
             variant="outline"
             size="icon"
             disabled={!canScrollLeft}
             className="h-11 w-11 shrink-0 rounded-full border-[#6ec257]/50 bg-background shadow-sm hover:bg-[#6ec257]/10 disabled:opacity-40"
-            aria-label="Scroll shelf left"
-            onClick={() => boundedRelativeScroll(-scrollStep)}
+            aria-label="Open previous cookbook on shelf"
+            onClick={goShelfLeft}
           >
             <ChevronLeft className="h-5 w-5 text-[#5ba045]" />
           </Button>
@@ -186,16 +207,20 @@ export function CookbookBookshelf({
 
         <div
           ref={viewportRef}
-          className="min-w-0 flex-1 cursor-grab overflow-x-hidden py-2"
+          className={cn(
+            'min-w-0 flex-1 overflow-x-auto overflow-y-hidden py-2 [scrollbar-width:thin]',
+            hoverShelf && 'cursor-grab',
+            !hoverShelf && '[-webkit-overflow-scrolling:touch]'
+          )}
+          style={
+            !hoverShelf
+              ? { scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain' }
+              : undefined
+          }
         >
         <div
-          className="flex items-end motion-reduce:transition-none"
-          style={{
-            gap: GAP_PX,
-            transform: `translateX(-${scroll}px)`,
-            transition: transitionStyle,
-            width: 'max-content',
-          }}
+          className="flex w-max items-end motion-reduce:transition-none"
+          style={{ gap: GAP_PX }}
         >
           {cookbooks.map((cb, index) => {
             const open = selectedIndex === index;
@@ -209,6 +234,8 @@ export function CookbookBookshelf({
                   width: open ? openBookWidth : spineWidth,
                   perspective: `${PERSPECTIVE_PX}px`,
                   transition: transitionStyle,
+                  scrollSnapAlign: !hoverShelf ? 'center' : undefined,
+                  scrollSnapStop: !hoverShelf ? 'always' : undefined,
                 }}
                 onMouseEnter={() => {
                   if (hoverShelf) setSelectedIndex(index);
@@ -377,14 +404,13 @@ export function CookbookBookshelf({
 
         <div className="flex shrink-0 flex-col justify-center py-2">
           <Button
-            ref={scrollRightRef}
             type="button"
             variant="outline"
             size="icon"
             disabled={!canScrollRight}
             className="h-11 w-11 shrink-0 rounded-full border-[#6ec257]/50 bg-background shadow-sm hover:bg-[#6ec257]/10 disabled:opacity-40"
-            aria-label="Scroll shelf right"
-            onClick={() => boundedRelativeScroll(scrollStep)}
+            aria-label="Open next cookbook on shelf"
+            onClick={goShelfRight}
           >
             <ChevronRight className="h-5 w-5 text-[#5ba045]" />
           </Button>

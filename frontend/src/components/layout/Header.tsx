@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 export const Header = memo(function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-green-100 dark:border-gray-800 shadow-sm">
-      <div className="container mx-auto px-4 pt-0 pb-0.5">
+      <div className="mx-auto w-full max-w-full px-4 pt-0 pb-0.5 sm:max-w-page-sm md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
         <div className="flex items-center justify-center">
           <Link 
             to="/home" 

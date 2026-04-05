@@ -104,8 +104,9 @@ export function CookbooksPage() {
           <CardContent className="px-0 pb-0 pt-0">
             <p className="mb-3 px-6 text-sm text-muted-foreground">
               The first cookbook starts open. Hover another spine to switch the open book; it stays open
-              when you move the pointer away. On touch, tap to toggle. Use the round arrows to scroll when
-              there are many books. Press Escape to shelve the open book.
+              when you move the pointer away. On touch, tap to toggle. Use the round arrows to open the
+              previous or next cookbook. You can still scroll the shelf with a trackpad or by dragging.
+              Press Escape to shelve the open book.
             </p>
             <CookbookBookshelf
               cookbooks={cookbooks}

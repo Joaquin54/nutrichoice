@@ -43,7 +43,7 @@ function TimelineRow({
       </div>
       <div
         className={cn(
-          'min-w-0 flex-1 flex gap-2 pb-4',
+          'min-w-0 flex flex-1 gap-2 pb-2',
           alignField === 'center' ? 'items-center' : 'items-start'
         )}
       >
@@ -64,9 +64,9 @@ function TimelineAddRow({
     <button
       type="button"
       onClick={onAdd}
-      className="group flex w-full gap-3 rounded-md py-1 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#6ec257]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group -mt-0.5 flex w-full items-center gap-3 rounded-md pb-1 pt-0 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#6ec257]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <span className="flex w-9 shrink-0 flex-col items-center">
+      <span className="flex w-9 shrink-0 flex-col items-center justify-center">
         <span
           className={cn(
             TIMELINE_CIRCLE,
@@ -77,7 +77,7 @@ function TimelineAddRow({
           <Plus className="h-4 w-4" strokeWidth={2.5} />
         </span>
       </span>
-      <span className="flex min-w-0 flex-1 items-center py-2 text-sm font-normal text-muted-foreground transition-colors group-hover:text-[#6ec257]">
+      <span className="flex min-w-0 flex-1 items-center text-sm font-normal leading-none text-muted-foreground transition-colors group-hover:text-[#6ec257]">
         {addLabel}
       </span>
     </button>
@@ -201,11 +201,12 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-1">
+        <div className="space-y-3 py-1">
           {/* Title */}
           <div className="space-y-1.5">
-            <Label htmlFor="recipe-title">
-              Recipe Title <span className="text-red-500">*</span>
+            <Label htmlFor="recipe-title" className="items-baseline gap-0.5">
+              Recipe Title
+              <span className="relative top-px text-red-500 ml-1">*</span>
             </Label>
             <Input
               id="recipe-title"
@@ -247,8 +248,9 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
 
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="recipe-description">
-              Description <span className="text-red-500">*</span>
+            <Label htmlFor="recipe-description" className="items-baseline gap-0.5">
+              Description
+              <span className="relative top-px text-red-500 ml-1">*</span>
             </Label>
             <textarea
               id="recipe-description"
@@ -268,7 +270,7 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
           </div>
 
           {/* Dietary Tags */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>Dietary Tags</Label>
             <div className="flex flex-wrap gap-2">
               {DIETARY_TAG_OPTIONS.map(tag => {
@@ -298,13 +300,16 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
           </div>
 
           {/* Ingredients */}
-          <div className="space-y-2">
-            <Label>
-              Ingredients <span className="text-red-500">*</span>
-            </Label>
-            {errors.ingredients && (
-              <p className="text-sm text-red-500">{errors.ingredients}</p>
-            )}
+          <div className="!mt-5 flex flex-col gap-1.5">
+            <div className="space-y-1">
+              <Label className="items-baseline gap-0.5">
+                Ingredients
+                <span className="relative top-px text-red-500 ml-1">*</span>
+              </Label>
+              {errors.ingredients && (
+                <p className="text-sm text-red-500">{errors.ingredients}</p>
+              )}
+            </div>
             <div>
               {ingredients.map((ingredient, index) => (
                 <TimelineRow
@@ -317,13 +322,16 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
                     placeholder={`Add ingredient ${index + 1}`}
                     value={ingredient}
                     onChange={e => updateIngredient(index, e.target.value)}
-                    className={cn(MODAL_FIELD_CLASS, 'rounded-lg')}
+                    className={cn(
+                      MODAL_FIELD_CLASS,
+                      'min-w-0 flex-1 -translate-y-0.5 rounded-lg'
+                    )}
                   />
                   <button
                     type="button"
                     onClick={() => removeIngredient(index)}
                     disabled={ingredients.length === 1}
-                    className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-950/20"
+                    className="shrink-0 self-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-950/20"
                     aria-label="Remove ingredient"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -335,20 +343,23 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
           </div>
 
           {/* Instructions */}
-          <div className="space-y-2">
-            <Label>
-              Instructions <span className="text-red-500">*</span>
-            </Label>
-            {errors.instructions && (
-              <p className="text-sm text-red-500">{errors.instructions}</p>
-            )}
+          <div className="flex flex-col gap-1.5">
+            <div className="space-y-1">
+              <Label className="items-baseline gap-0.5">
+                Instructions
+                <span className="relative top-px text-red-500 ml-1">*</span>
+              </Label>
+              {errors.instructions && (
+                <p className="text-sm text-red-500">{errors.instructions}</p>
+              )}
+            </div>
             <div>
               {instructions.map((instruction, index) => (
                 <TimelineRow
                   key={index}
                   circle={index + 1}
                   showConnectorBelow
-                  alignField="start"
+                  alignField="center"
                 >
                   <textarea
                     placeholder={`Add instruction ${index + 1}`}
@@ -357,14 +368,14 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
                     rows={2}
                     className={cn(
                       MODAL_FIELD_CLASS,
-                      'min-h-[72px] flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50'
+                      'min-h-[72px] min-w-0 flex-1 -translate-y-0.5 resize-none rounded-lg border border-input bg-background px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50'
                     )}
                   />
                   <button
                     type="button"
                     onClick={() => removeInstruction(index)}
                     disabled={instructions.length === 1}
-                    className="mt-1 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-950/20"
+                    className="shrink-0 self-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-950/20"
                     aria-label="Remove step"
                   >
                     <Trash2 className="h-4 w-4" />

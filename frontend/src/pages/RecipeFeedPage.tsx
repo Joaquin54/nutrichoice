@@ -402,8 +402,11 @@ export function RecipeFeedPage() {
                     <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
                       <ul className="space-y-1.5">
                         {recipe.ingredients.map((ingredient, index) => (
-                          <li key={index} className="flex items-start gap-1.5">
-                            <span className="text-[#6ec257] text-base leading-none pt-0.5">•</span>
+                          <li key={index} className="flex items-start gap-2">
+                            <span
+                              className="flex-shrink-0 w-2 h-2 rounded-full bg-[#6ec257] mt-[5px]"
+                              aria-hidden
+                            />
                             <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
                               {ingredient}
                             </span>
@@ -444,8 +447,11 @@ export function RecipeFeedPage() {
                       <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 overflow-y-auto">
                         <ul className="space-y-1.5 sm:space-y-2">
                           {recipe.ingredients.map((ingredient, index) => (
-                            <li key={index} className="flex items-start gap-1.5">
-                              <span className="text-[#6ec257] text-base leading-none pt-0.5">•</span>
+                            <li key={index} className="flex items-start gap-2">
+                              <span
+                                className="flex-shrink-0 w-1.5 h-1.5 sm:w-1.5 sm:h-1.5 rounded-full bg-[#6ec257] mt-[5px] sm:mt-1.5"
+                                aria-hidden
+                              />
                               <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                                 {ingredient}
                               </span>

@@ -1,15 +1,15 @@
 import type { Cookbook } from '../../types/recipe';
 
-/** Deterministic palette so each cookbook keeps a stable “binding” color. */
+/** Deterministic palette so each cookbook keeps a stable “binding” color. No yellow / orange / brown. */
 const SPINE_PALETTE: { bg: string; fg: string; coverFrom: string; coverTo: string }[] = [
-  { bg: '#9a3412', fg: '#fafaf9', coverFrom: '#fef3c7', coverTo: '#fcd34d' },
-  { bg: '#1e40af', fg: '#f8fafc', coverFrom: '#dbeafe', coverTo: '#93c5fd' },
-  { bg: '#3f6212', fg: '#f7fee7', coverFrom: '#ecfccb', coverTo: '#a3e635' },
-  { bg: '#713f12', fg: '#fffbeb', coverFrom: '#fde68a', coverTo: '#d97706' },
-  { bg: '#134e4a', fg: '#f0fdfa', coverFrom: '#ccfbf1', coverTo: '#5eead4' },
-  { bg: '#4c1d95', fg: '#faf5ff', coverFrom: '#ede9fe', coverTo: '#a78bfa' },
-  { bg: '#831843', fg: '#fdf2f8', coverFrom: '#fce7f3', coverTo: '#f472b6' },
-  { bg: '#0c4a6e', fg: '#f0f9ff', coverFrom: '#e0f2fe', coverTo: '#38bdf8' },
+  { bg: '#047857', fg: '#ecfdf5', coverFrom: '#a7f3d0', coverTo: '#10b981' },
+  { bg: '#1d4ed8', fg: '#eff6ff', coverFrom: '#bfdbfe', coverTo: '#3b82f6' },
+  { bg: '#14532d', fg: '#f0fdf4', coverFrom: '#bbf7d0', coverTo: '#22c55e' },
+  { bg: '#0f766e', fg: '#f0fdfa', coverFrom: '#99f6e4', coverTo: '#14b8a6' },
+  { bg: '#164e63', fg: '#ecfeff', coverFrom: '#a5f3fc', coverTo: '#06b6d4' },
+  { bg: '#5b21b6', fg: '#faf5ff', coverFrom: '#ddd6fe', coverTo: '#8b5cf6' },
+  { bg: '#9d174d', fg: '#fdf2f8', coverFrom: '#fbcfe8', coverTo: '#ec4899' },
+  { bg: '#3730a3', fg: '#eef2ff', coverFrom: '#c7d2fe', coverTo: '#6366f1' },
 ];
 
 function hashId(s: string): number {

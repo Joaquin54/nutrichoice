@@ -105,4 +105,6 @@ export interface Cookbook {
   recipeIds: string[];   // backend recipe IDs as strings; empty until detail is fetched
   recipeCount: number;   // authoritative count from backend recipe_count
   createdAt: string;
+  /** Full recipes from GET /cookbooks/:id/; avoids relying on the paginated global recipe list. */
+  recipes?: Recipe[];
 }

@@ -33,7 +33,7 @@ export const Navigation = memo(function Navigation() {
 
   return (
     <nav className="sticky top-[26px] sm:top-[38px] z-30 bg-white/60 dark:bg-gray-900 backdrop-blur-sm border-b border-[#6ec257]/20 dark:border-gray-800 shadow-sm -mt-[1px]">
-      <div className="container mx-auto px-4 py-0.5">
+      <div className="mx-auto w-full max-w-full px-4 py-0.5 sm:max-w-page-sm md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center justify-between">
           <div className="flex space-x-1">

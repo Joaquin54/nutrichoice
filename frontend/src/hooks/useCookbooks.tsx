@@ -17,6 +17,7 @@ import {
   addRecipeToCookbook as apiAddRecipeToCookbook,
   removeRecipeFromCookbook as apiRemoveRecipeFromCookbook,
   getAuthToken,
+  apiRecipeToRecipe,
   type ApiCookbook,
 } from '../api';
 
@@ -113,10 +114,11 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
       try {
         const detail = await apiAddRecipeToCookbook(cookbookId, numericId);
         const recipeIds = detail.recipes.map((r) => String(r.id));
+        const recipes = detail.recipes.map(apiRecipeToRecipe);
         setCookbooks((prev) =>
           prev.map((cb) =>
             cb.id === cookbookId
-              ? { ...cb, recipeIds, recipeCount: detail.recipe_count }
+              ? { ...cb, recipeIds, recipeCount: detail.recipe_count, recipes }
               : cb
           )
         );
@@ -153,6 +155,7 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
                 ...cb,
                 recipeIds: cb.recipeIds.filter((id) => id !== recipeId),
                 recipeCount: Math.max(0, cb.recipeCount - 1),
+                recipes: cb.recipes?.filter((r) => r.id !== recipeId),
               }
             : cb
         )
@@ -181,10 +184,11 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
       try {
         const detail = await getCookbookDetail(id);
         const recipeIds = detail.recipes.map((r) => String(r.id));
+        const recipes = detail.recipes.map(apiRecipeToRecipe);
         setCookbooks((prev) =>
           prev.map((cb) =>
             cb.id === id
-              ? { ...cb, recipeIds, recipeCount: detail.recipe_count }
+              ? { ...cb, recipeIds, recipeCount: detail.recipe_count, recipes }
               : cb
           )
         );

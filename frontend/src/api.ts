@@ -460,11 +460,26 @@ export async function addRecipeToCookbook(publicId: string, recipeId: number): P
     method: 'POST',
     body: JSON.stringify({ recipe_id: recipeId }),
   });
+  const text = await r.text();
   if (!r.ok) {
-    const err = await r.json();
-    throw new Error(formatApiError(err));
+    let message: string;
+    try {
+      message = formatApiError(JSON.parse(text));
+    } catch {
+      message =
+        r.status >= 500
+          ? 'Server error while adding recipe. Please try again.'
+          : `Could not add recipe (${r.status}).`;
+    }
+    throw new Error(message);
   }
-  return r.json();
+  try {
+    return JSON.parse(text) as ApiCookbookDetail;
+  } catch {
+    throw new Error(
+      'Invalid response from server. If you use Docker or a custom host, set VITE_API_URL to your API base URL.'
+    );
+  }
 }
 
 export async function removeRecipeFromCookbook(publicId: string, recipeId: number): Promise<void> {
