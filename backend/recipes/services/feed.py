@@ -105,7 +105,7 @@ class RecipeFeedService:
             qs = qs.filter(dietary_tags__contains=[tag])
 
         # Prefetch nested relations to avoid N+1 queries during serialization.
-        qs = qs.prefetch_related(
+        qs = qs.select_related("creator").prefetch_related(
             "ingredients__ingredient",
             "instructions",
         )
