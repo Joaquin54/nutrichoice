@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useMemo,
 } from 'react';
 import type { ReactNode } from 'react';
 import type { Cookbook } from '../types/recipe';
@@ -200,22 +201,37 @@ export function CookbooksProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const value = useMemo(
+    () => ({
+      cookbooks,
+      isLoading,
+      error,
+      createCookbook,
+      updateCookbook,
+      deleteCookbook,
+      addRecipeToCookbook,
+      removeRecipeFromCookbook,
+      reorderRecipes,
+      getCookbook,
+      fetchCookbookDetail,
+    }),
+    [
+      cookbooks,
+      isLoading,
+      error,
+      createCookbook,
+      updateCookbook,
+      deleteCookbook,
+      addRecipeToCookbook,
+      removeRecipeFromCookbook,
+      reorderRecipes,
+      getCookbook,
+      fetchCookbookDetail,
+    ]
+  );
+
   return (
-    <CookbooksContext.Provider
-      value={{
-        cookbooks,
-        isLoading,
-        error,
-        createCookbook,
-        updateCookbook,
-        deleteCookbook,
-        addRecipeToCookbook,
-        removeRecipeFromCookbook,
-        reorderRecipes,
-        getCookbook,
-        fetchCookbookDetail,
-      }}
-    >
+    <CookbooksContext.Provider value={value}>
       {children}
     </CookbooksContext.Provider>
   );

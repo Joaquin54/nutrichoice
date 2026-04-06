@@ -14,7 +14,7 @@ import type { Recipe } from '../types/recipe';
 
 export function FavoritesPage() {
   const navigate = useNavigate();
-  const { favoriteRecipes, triedRecipes } = useRecipeActions();
+  const { favoriteRecipes, triedRecipes, isFavorite, toggleFavorite } = useRecipeActions();
   const { recipes } = useRecipes();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,15 +42,15 @@ export function FavoritesPage() {
     [recipes, triedRecipes]
   );
 
-  const handleViewRecipe = (recipe: Recipe) => {
+  const handleViewRecipe = useCallback((recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedRecipe(null);
-  };
+  }, []);
 
   const handleBrowseRecipes = () => {
     navigate('/home');
@@ -92,7 +92,12 @@ export function FavoritesPage() {
         {/* Favorites Tab */}
         <TabsContent value="favorites" className="mt-4 sm:mt-6">
           {favorites.length > 0 ? (
-            <FavoritesGrid favorites={favorites} onViewRecipe={handleViewRecipe} />
+            <FavoritesGrid
+              favorites={favorites}
+              onViewRecipe={handleViewRecipe}
+              isFavorite={isFavorite}
+              onToggleFavorite={toggleFavorite}
+            />
           ) : (
             <EmptyFavorites
               onBrowseRecipes={handleBrowseRecipes}
@@ -105,7 +110,12 @@ export function FavoritesPage() {
         {/* Tried Tab */}
         <TabsContent value="tried" className="mt-4 sm:mt-6">
           {tried.length > 0 ? (
-            <FavoritesGrid favorites={tried} onViewRecipe={handleViewRecipe} />
+            <FavoritesGrid
+              favorites={tried}
+              onViewRecipe={handleViewRecipe}
+              isFavorite={isFavorite}
+              onToggleFavorite={toggleFavorite}
+            />
           ) : (
             <EmptyFavorites
               onBrowseRecipes={handleBrowseRecipes}
@@ -136,7 +146,13 @@ export function FavoritesPage() {
             {myRecipes.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {myRecipes.map(recipe => (
-                  <RecipeCard key={recipe.id} recipe={recipe} onViewRecipe={handleViewRecipe} />
+                  <RecipeCard
+                    key={recipe.id}
+                    recipe={recipe}
+                    onViewRecipe={handleViewRecipe}
+                    isFavorite={isFavorite(recipe.id)}
+                    onToggleFavorite={toggleFavorite}
+                  />
                 ))}
               </div>
             ) : (

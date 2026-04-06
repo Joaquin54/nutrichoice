@@ -1,53 +1,47 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getRecipes, type RecipeFilters } from '../api';
 import type { Recipe } from '../types/recipe';
-import { getRecipes, getAuthToken } from '../api';
 
-interface RecipesContextType {
-  recipes: Recipe[];
-  isLoading: boolean;
-  getRecipeById: (id: string) => Recipe | undefined;
-  addRecipe: (recipe: Recipe) => void;
-}
+/**
+ * Stable query key root for recipe list queries.
+ * Scoped queries (search, creator filter, etc.) append filter params so they
+ * sit in their own cache slot while still being invalidatable en-masse via
+ * the root key.
+ */
+export const RECIPES_QUERY_KEY = ['recipes'] as const;
 
-const RecipesContext = createContext<RecipesContextType | undefined>(undefined);
+/**
+ * Fetch and cache recipes from the backend.
+ *
+ * Calling this hook with no filters returns the paginated initial page (the
+ * same data that was previously loaded by RecipesProvider on mount).
+ * Calling with filters fetches a separate, independently cached result.
+ *
+ * TanStack Query deduplicates simultaneous calls with identical keys, so
+ * multiple components calling useRecipes() share a single in-flight request.
+ */
+export function useRecipes(filters?: RecipeFilters) {
+  const queryClient = useQueryClient();
 
-export function RecipesProvider({ children }: { children: ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: recipes = [], isLoading } = useQuery({
+    queryKey: [...RECIPES_QUERY_KEY, filters ?? null],
+    queryFn: () => getRecipes(filters),
+  });
 
-  useEffect(() => {
-    if (!getAuthToken()) return;
-    setIsLoading(true);
-    getRecipes()
-      .then(setRecipes)
-      .catch(() => {
-        // Non-fatal — recipes stay empty; pages degrade gracefully
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  const getRecipeById = useCallback(
-    (id: string) => recipes.find((r) => r.id === id),
-    [recipes]
-  );
-
-  // Prepends a newly-created recipe to the global list without a full refetch.
-  const addRecipe = useCallback((recipe: Recipe) => {
-    setRecipes((prev) => [recipe, ...prev]);
-  }, []);
-
-  return (
-    <RecipesContext.Provider value={{ recipes, isLoading, getRecipeById, addRecipe }}>
-      {children}
-    </RecipesContext.Provider>
-  );
-}
-
-export function useRecipes() {
-  const context = useContext(RecipesContext);
-  if (context === undefined) {
-    throw new Error('useRecipes must be used within a RecipesProvider');
+  function getRecipeById(id: string): Recipe | undefined {
+    return recipes.find((r) => r.id === id);
   }
-  return context;
+
+  /**
+   * Optimistically prepend a newly-created recipe to the unfiltered list cache
+   * without triggering a full refetch.
+   */
+  function addRecipe(recipe: Recipe): void {
+    queryClient.setQueryData<Recipe[]>(
+      [...RECIPES_QUERY_KEY, null],
+      (prev) => [recipe, ...(prev ?? [])]
+    );
+  }
+
+  return { recipes, isLoading, getRecipeById, addRecipe };
 }

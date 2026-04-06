@@ -71,6 +71,24 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
 # --- Read serializers (used for responses) ---
 
+class RecipeListSerializer(serializers.ModelSerializer):
+    """
+    Lightweight read serializer for recipe list views.
+    Excludes nested ingredients, instructions, and the computed display_quantities
+    field to minimise payload size and avoid expensive per-row serialization work.
+    """
+
+    creator = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'id', 'name', 'description', 'cuisine_type', 'dietary_tags',
+            'date_created', 'creator', 'image_1',
+        ]
+        read_only_fields = fields
+
+
 class RecipeIngredientDetailSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer(read_only=True)
 
@@ -271,8 +289,14 @@ class CookbookSerializer(serializers.ModelSerializer):
         ]
 
     def get_recipe_count(self, obj: Cookbook) -> int:
-        """Return the number of recipes currently in this cookbook."""
-        return obj.cookbook_recipes.count()
+        """
+        Return the number of recipes in this cookbook.
+        Uses the annotated_recipe_count from the queryset when available
+        (one COUNT per queryset rather than one per row).
+        """
+        if hasattr(obj, "annotated_recipe_count"):
+            return obj.annotated_recipe_count  # type: ignore[attr-defined]
+        return obj.cookbook_recipes.count()  # type: ignore[attr-defined]
 
     def validate_name(self, value: str) -> str:
         """
@@ -322,8 +346,14 @@ class CookbookDetailSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_recipe_count(self, obj: Cookbook) -> int:
-        """Return the number of recipes currently in this cookbook."""
-        return obj.cookbook_recipes.count()
+        """
+        Return the number of recipes in this cookbook.
+        Uses the annotated_recipe_count from the queryset when available
+        (one COUNT per queryset rather than one per row).
+        """
+        if hasattr(obj, "annotated_recipe_count"):
+            return obj.annotated_recipe_count  # type: ignore[attr-defined]
+        return obj.cookbook_recipes.count()  # type: ignore[attr-defined]
 
     def get_recipes(self, obj: Cookbook) -> list:
         """

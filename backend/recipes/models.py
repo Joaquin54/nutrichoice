@@ -45,6 +45,11 @@ class Recipe(models.Model):
         db_table = "recipe"
         verbose_name = "Recipe"
         verbose_name_plural = "Recipes"
+        indexes = [
+            models.Index(fields=["creator"], name="ix_recipe_creator"),
+            models.Index(fields=["-date_created"], name="ix_recipe_date_created"),
+            models.Index(fields=["cuisine_type"], name="ix_recipe_cuisine_type"),
+        ]
 
 
 class RecipeIngredient(models.Model):
@@ -61,6 +66,14 @@ class RecipeIngredient(models.Model):
 
     quantity = models.FloatField()
     unit = models.CharField(max_length=20)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["recipe", "ingredient"],
+                name="ix_ri_recipe_ingredient",
+            ),
+        ]
 
 
 class RecipeInstruction(models.Model):

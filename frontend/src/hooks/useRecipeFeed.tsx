@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { getRecipeFeed, apiRecipeToRecipe } from '../api';
 import type { Recipe } from '../types/recipe';
 
@@ -10,59 +11,51 @@ export interface RecipeFeedHook {
   loadMore: () => void;
 }
 
+/**
+ * Fetches the personalised recipe feed using cursor-based pagination.
+ * useInfiniteQuery handles deduplication, caching, and background refetching.
+ * The external interface is kept identical to the previous manual implementation
+ * so RecipeFeedPage requires no changes.
+ */
 export function useRecipeFeed(): RecipeFeedHook {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['recipe-feed'],
+    queryFn: ({ pageParam }) => getRecipeFeed(pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _, lastPageParam) =>
+      lastPage.next !== null ? (lastPageParam as number) + 1 : undefined,
+  });
 
-  // Track the next page to fetch and whether a request is in flight.
-  const nextPageRef = useRef(1);
-  const isFetchingRef = useRef(false);
-
-  const loadInitial = useCallback(async () => {
-    // Block any in-flight loadMore from appending after this reset.
-    isFetchingRef.current = true;
-    setIsLoading(true);
-    nextPageRef.current = 1;
-    try {
-      const data = await getRecipeFeed(1);
-      setRecipes(data.results.map(apiRecipeToRecipe));
-      setHasMore(data.next !== null);
-      nextPageRef.current = 2;
-    } catch {
-      setRecipes([]);
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
+  // Flatten all pages into a single deduplicated recipe list.
+  const recipes: Recipe[] = [];
+  const seenIds = new Set<string>();
+  for (const page of data?.pages ?? []) {
+    for (const apiRecipe of page.results) {
+      const recipe = apiRecipeToRecipe(apiRecipe);
+      if (!seenIds.has(recipe.id)) {
+        seenIds.add(recipe.id);
+        recipes.push(recipe);
+      }
     }
-  }, []);
+  }
 
-  const loadMore = useCallback(async () => {
-    // Guard: do not fire if already fetching or no more pages exist.
-    if (isFetchingRef.current || !hasMore) return;
-
-    isFetchingRef.current = true;
-    setIsLoadingMore(true);
-    try {
-      const data = await getRecipeFeed(nextPageRef.current);
-      setRecipes((prev) => {
-        const seenIds = new Set(prev.map(r => r.id));
-        return [...prev, ...data.results.map(apiRecipeToRecipe).filter(r => !seenIds.has(r.id))];
-      });
-      setHasMore(data.next !== null);
-      nextPageRef.current += 1;
-    } catch {
-      // Non-fatal: user can scroll past the sentinel again to retry.
-    } finally {
-      setIsLoadingMore(false);
-      isFetchingRef.current = false;
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
     }
-  }, [hasMore]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  useEffect(() => {
-    loadInitial();
-  }, [loadInitial]);
-
-  return { recipes, isLoading, isLoadingMore, hasMore, loadMore };
+  return {
+    recipes,
+    isLoading,
+    isLoadingMore: isFetchingNextPage,
+    hasMore: hasNextPage ?? false,
+    loadMore,
+  };
 }

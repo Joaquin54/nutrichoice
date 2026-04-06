@@ -4,7 +4,6 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { ChefHat, Heart } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
-import { useRecipeActions } from "../../hooks/useRecipeActions";
 import type { Recipe } from "../../types/recipe";
 
 // Cultural cuisine tags to filter out from dietary tags
@@ -24,18 +23,25 @@ const CULTURAL_CUISINE_TAGS = [
 interface RecipeCardProps {
   recipe: Recipe;
   onViewRecipe: (recipe: Recipe) => void;
+  /** Whether this recipe is currently favourited by the user. */
+  isFavorite: boolean;
+  /** Called when the user clicks the favourite toggle button. */
+  onToggleFavorite: (recipeId: string) => void;
 }
 
-export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: RecipeCardProps) {
-  const { toggleFavorite, isFavorite } = useRecipeActions();
-
+export const RecipeCard = memo(function RecipeCard({
+  recipe,
+  onViewRecipe,
+  isFavorite,
+  onToggleFavorite,
+}: RecipeCardProps) {
   const dietaryTagsOnly = recipe.dietary_tags.filter(
     tag => !CULTURAL_CUISINE_TAGS.includes(tag)
   );
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleFavorite(recipe.id);
+    onToggleFavorite(recipe.id);
   };
 
   return (
@@ -54,11 +60,11 @@ export const RecipeCard = memo(function RecipeCard({ recipe, onViewRecipe }: Rec
           <button
             onClick={handleFavoriteClick}
             className="p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all duration-200 hover:scale-110"
-            aria-label={isFavorite(recipe.id) ? "Unlike recipe" : "Like recipe"}
+            aria-label={isFavorite ? "Unlike recipe" : "Like recipe"}
           >
             <Heart
               className={`h-4 w-4 ${
-                isFavorite(recipe.id)
+                isFavorite
                   ? "fill-red-500 text-red-500"
                   : "text-gray-600"
               } transition-colors`}
