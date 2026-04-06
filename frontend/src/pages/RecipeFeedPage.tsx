@@ -131,7 +131,8 @@ export function RecipeFeedPage() {
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    const container = feedContainerRef.current;
+    if (!sentinel || !container) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -139,7 +140,7 @@ export function RecipeFeedPage() {
           loadMoreRef.current();
         }
       },
-      { threshold: 0.1 }
+      { root: container, threshold: 0.1, rootMargin: '0px 0px 300px 0px' }
     );
 
     observer.observe(sentinel);
@@ -209,7 +210,7 @@ export function RecipeFeedPage() {
       {/* Feed Container - Vertical Scrollable - Full Viewport */}
       <div 
         ref={feedContainerRef}
-        className="flex-1 overflow-y-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-snap-type:y_mandatory] [scroll-padding-top:0px]"
+        className="flex-1 overflow-y-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-snap-type:y_proximity] [scroll-padding-top:0px]"
       >
         <div className="w-[90%] max-w-[90%] mx-auto pt-0 pb-4 sm:pb-6">
           {isLoading && (
@@ -523,7 +524,7 @@ export function RecipeFeedPage() {
           </div>
 
           {/* Sentinel div observed by IntersectionObserver to trigger loadMore */}
-          <div ref={sentinelRef} className="h-4" aria-hidden="true" />
+          <div ref={sentinelRef} className="h-24" aria-hidden="true" />
 
           {/* Loading indicator shown while fetching the next page */}
           {isLoadingMore && (
