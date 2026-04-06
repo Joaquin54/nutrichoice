@@ -1,17 +1,36 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { Layout } from '../components/layout/Layout';
-import { HomePage } from '../pages/HomePage';
 import { AuthPage } from '../pages/AuthPage';
-import { FavoritesPage } from '../pages/FavoritesPage';
-import { AccountPage } from '../pages/AccountPage';
-import { NutritionPage } from '../pages/NutritionPage';
-import { MealPlanningPage } from '../pages/MealPlanningPage';
-import { RecipeFeedPage } from '../pages/RecipeFeedPage';
-import { CookbooksPage } from '../pages/CookbooksPage';
-import { CookbookViewPage } from '../pages/CookbookViewPage';
-import { PasswordResetRequestPage } from '../pages/PasswordResetRequestPage';
-import { PasswordResetConfirmPage } from '../pages/PasswordResetConfirmPage';
-import { PasswordChangePage } from '../pages/PasswordChangePage';
+
+// Lazy-load all authenticated page components so each route is only
+// bundled and parsed when the user first navigates to it.
+const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
+const FavoritesPage = lazy(() => import('../pages/FavoritesPage').then(m => ({ default: m.FavoritesPage })));
+const AccountPage = lazy(() => import('../pages/AccountPage').then(m => ({ default: m.AccountPage })));
+const NutritionPage = lazy(() => import('../pages/NutritionPage').then(m => ({ default: m.NutritionPage })));
+const MealPlanningPage = lazy(() => import('../pages/MealPlanningPage').then(m => ({ default: m.MealPlanningPage })));
+const RecipeFeedPage = lazy(() => import('../pages/RecipeFeedPage').then(m => ({ default: m.RecipeFeedPage })));
+const CookbooksPage = lazy(() => import('../pages/CookbooksPage').then(m => ({ default: m.CookbooksPage })));
+const CookbookViewPage = lazy(() => import('../pages/CookbookViewPage').then(m => ({ default: m.CookbookViewPage })));
+const PasswordResetRequestPage = lazy(() =>
+  import('../pages/PasswordResetRequestPage').then(m => ({ default: m.PasswordResetRequestPage }))
+);
+const PasswordResetConfirmPage = lazy(() =>
+  import('../pages/PasswordResetConfirmPage').then(m => ({ default: m.PasswordResetConfirmPage }))
+);
+const PasswordChangePage = lazy(() =>
+  import('../pages/PasswordChangePage').then(m => ({ default: m.PasswordChangePage }))
+);
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-[#6ec257]" />
+    </div>
+  );
+}
 
 export const router = createBrowserRouter([
   {
@@ -20,15 +39,27 @@ export const router = createBrowserRouter([
   },
   {
     path: '/reset-password',
-    element: <PasswordResetRequestPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <PasswordResetRequestPage />
+      </Suspense>
+    ),
   },
   {
     path: '/reset-password/confirm',
-    element: <PasswordResetConfirmPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <PasswordResetConfirmPage />
+      </Suspense>
+    ),
   },
   {
     path: '/change-password',
-    element: <PasswordChangePage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <PasswordChangePage />
+      </Suspense>
+    ),
   },
   {
     path: '/',
@@ -36,39 +67,75 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'home',
-        element: <HomePage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <HomePage />
+          </Suspense>
+        ),
       },
       {
         path: 'favorites',
-        element: <FavoritesPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <FavoritesPage />
+          </Suspense>
+        ),
       },
       {
         path: 'my-recipes',
-        element: <FavoritesPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <FavoritesPage />
+          </Suspense>
+        ),
       },
       {
         path: 'account',
-        element: <AccountPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AccountPage />
+          </Suspense>
+        ),
       },
       {
         path: 'nutrition',
-        element: <NutritionPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <NutritionPage />
+          </Suspense>
+        ),
       },
       {
         path: 'meal-planning',
-        element: <MealPlanningPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <MealPlanningPage />
+          </Suspense>
+        ),
       },
       {
         path: 'recipe-feed',
-        element: <RecipeFeedPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <RecipeFeedPage />
+          </Suspense>
+        ),
       },
       {
         path: 'cookbooks',
-        element: <CookbooksPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CookbooksPage />
+          </Suspense>
+        ),
       },
       {
         path: 'cookbooks/:id',
-        element: <CookbookViewPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CookbookViewPage />
+          </Suspense>
+        ),
       },
     ],
   },

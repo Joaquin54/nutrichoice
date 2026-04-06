@@ -1,7 +1,7 @@
 from typing import Optional, TYPE_CHECKING, Type
 
 from django.db import IntegrityError
-from django.db.models import Q, QuerySet
+from django.db.models import Count, Q, QuerySet
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -18,9 +18,11 @@ from api.serializers.recipes import (
     CookbookSerializer,
     CreateRecipeSerializer,
     RecipeDetailSerializer,
+    RecipeListSerializer,
     RecipeLikeSerializer,
     TriedRecipeSerializer,
 )
+from api.pagination import FeedPagination
 from ingredients.models import Ingredient
 from recipes.models import Cookbook, CookbookRecipe, Recipe, RecipeIngredient, RecipeInstruction
 from social.models import RecipeLike, TriedRecipe
@@ -46,6 +48,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = RecipeDetailSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = FeedPagination
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ["name", "cuisine_type", "ingredients__ingredient__name"]
     ordering_fields = ["name", "date_created"]
@@ -57,11 +60,22 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
     _MAX_INGREDIENT_FILTERS = 5
     _MAX_INGREDIENT_NAME_LENGTH = 50
 
+    def get_serializer_class(self) -> type[BaseSerializer]:
+        """Use the lightweight list serializer for list actions to minimise payload size."""
+        if self.action == "list":
+            return RecipeListSerializer
+        return RecipeDetailSerializer
+
     def get_queryset(self) -> QuerySet[Recipe]:
-        queryset = Recipe.objects.prefetch_related(  # type: ignore
-            "ingredients__ingredient",
-            "instructions",
-        ).all()
+        # List views only need the creator for StringRelatedField — no nested
+        # ingredient or instruction data is serialised, so skip the heavy prefetch.
+        if self.action == "list":
+            queryset = Recipe.objects.select_related("creator").all()  # type: ignore
+        else:
+            queryset = Recipe.objects.select_related("creator").prefetch_related(  # type: ignore
+                "ingredients__ingredient",
+                "instructions",
+            ).all()
 
         needs_distinct = False
 
@@ -117,6 +131,14 @@ class RecipeCreateView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         recipe = self.perform_create(serializer)
+        # Re-fetch with all relations prefetched so RecipeDetailSerializer
+        # does not fire N+1 queries for ingredients and instructions.
+        recipe = (
+            Recipe.objects  # type: ignore
+            .select_related("creator")
+            .prefetch_related("ingredients__ingredient", "instructions")
+            .get(pk=recipe.pk)
+        )
         response_serializer = RecipeDetailSerializer(recipe)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -135,7 +157,7 @@ class TriedRecipeViewSet(viewsets.ModelViewSet):
         Optionally restricts the returned tried recipes by filtering against
         query parameters in the URL.
         """
-        queryset = TriedRecipe.objects.all()  # type: ignore
+        queryset = TriedRecipe.objects.select_related("tried_by", "recipe").all()  # type: ignore
         user_id: Optional[str] = self.request.query_params.get(
             'user_id', None)  # type: ignore
         recipe_id: Optional[str] = self.request.query_params.get(  # type: ignore
@@ -236,16 +258,27 @@ class CookbookViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet[Cookbook]:  # type: ignore
         """
-        Return only the cookbooks owned by the requesting user,
-        pre-fetching nested recipe relations to avoid N+1 queries
-        on retrieve and custom actions.
+        Return only the cookbooks owned by the requesting user.
+
+        All actions annotate recipe_count to avoid a COUNT query per cookbook
+        in the list serializer, and select_related owner to resolve owner_username
+        without an extra query per row.
+
+        The heavy ingredient/instruction prefetch is scoped to retrieve and
+        the add-recipe action, where full recipe detail is needed.
         """
-        return (
+        base = (
             Cookbook.objects  # type: ignore
             .filter(owner=self.request.user)
-            .prefetch_related("cookbook_recipes__recipe__ingredients__ingredient",
-                              "cookbook_recipes__recipe__instructions")
+            .select_related("owner")
+            .annotate(annotated_recipe_count=Count("cookbook_recipes"))
         )
+        if self.action in ("retrieve", "add_recipe"):
+            return base.prefetch_related(
+                "cookbook_recipes__recipe__ingredients__ingredient",
+                "cookbook_recipes__recipe__instructions",
+            )
+        return base
 
     def get_serializer_class(self) -> type[BaseSerializer]:
         """
@@ -317,8 +350,19 @@ class CookbookViewSet(viewsets.ModelViewSet):
         CookbookRecipe.objects.create(
             cookbook=cookbook, recipe=recipe)  # type: ignore
 
-        # Re-fetch the cookbook instance to reflect the new recipe in the response.
-        cookbook.refresh_from_db()
+        # Re-fetch with all relations so the detail serializer does not fire
+        # N+1 queries.  refresh_from_db() cannot restore prefetched caches,
+        # so we do a fresh queryset lookup instead.
+        cookbook = (
+            Cookbook.objects  # type: ignore
+            .select_related("owner")
+            .annotate(annotated_recipe_count=Count("cookbook_recipes"))
+            .prefetch_related(
+                "cookbook_recipes__recipe__ingredients__ingredient",
+                "cookbook_recipes__recipe__instructions",
+            )
+            .get(pk=cookbook.pk)
+        )
         response_serializer = CookbookDetailSerializer(
             cookbook, context={"request": request}
         )

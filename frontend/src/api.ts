@@ -369,8 +369,9 @@ export type ApiRecipe = {
   measure_type?: string;
   date_created: string;
   creator: string;
-  ingredients: { ingredient: { id: number; name: string }; quantity: number; unit: string }[];
-  instructions: { step_number: number; text: string; estimated_cooktime: number | null }[];
+  // Present on detail responses; absent on lightweight list responses.
+  ingredients?: { ingredient: { id: number; name: string }; quantity: number; unit: string }[];
+  instructions?: { step_number: number; text: string; estimated_cooktime: number | null }[];
   image_1: string;
   image_2: string;
   image_3: string;
@@ -389,10 +390,10 @@ export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
     image_1: r.image_1 || undefined,
     image_2: r.image_2 || undefined,
     image_3: r.image_3 || undefined,
-    ingredients: r.ingredients.map(
+    ingredients: (r.ingredients ?? []).map(
       (i) => `${i.quantity} ${i.unit} ${i.ingredient.name}`
     ),
-    instructions: r.instructions.map((i) => i.text),
+    instructions: (r.instructions ?? []).map((i) => i.text),
   };
 }
 

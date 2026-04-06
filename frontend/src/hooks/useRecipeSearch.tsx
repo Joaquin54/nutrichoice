@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useRecipes } from './useRecipes';
+import { useQuery } from '@tanstack/react-query';
+import { useRecipes, RECIPES_QUERY_KEY } from './useRecipes';
 import { getRecipes } from '../api';
 import type { Recipe } from '../types/recipe';
 
@@ -22,29 +23,15 @@ interface UseRecipeSearchResult {
 
 export function useRecipeSearch(query: string): UseRecipeSearchResult {
   const { recipes: allRecipes, isLoading: isInitialLoading } = useRecipes();
-  const [searchResults, setSearchResults] = useState<Recipe[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
   const debouncedQuery = useDebounce(query.trim(), DEBOUNCE_MS);
 
-  useEffect(() => {
-    if (!debouncedQuery) {
-      setSearchResults([]);
-      return;
-    }
-
-    // cancelled flag prevents a slow in-flight response from overwriting
-    // the result of a newer query (stale-closure / race condition guard).
-    let cancelled = false;
-    setIsSearching(true);
-
-    getRecipes({ search: debouncedQuery })
-      .then((results) => { if (!cancelled) setSearchResults(results); })
-      .catch(() => { if (!cancelled) setSearchResults([]); })
-      .finally(() => { if (!cancelled) setIsSearching(false); });
-
-    return () => { cancelled = true; };
-  }, [debouncedQuery]);
+  // TanStack Query handles deduplication, caching, and race-condition prevention
+  // automatically. The query is only enabled when a non-empty debounced query exists.
+  const { data: searchResults = [], isFetching: isSearching } = useQuery({
+    queryKey: [...RECIPES_QUERY_KEY, { search: debouncedQuery }],
+    queryFn: () => getRecipes({ search: debouncedQuery }),
+    enabled: debouncedQuery.length > 0,
+  });
 
   return {
     recipes: debouncedQuery ? searchResults : allRecipes,

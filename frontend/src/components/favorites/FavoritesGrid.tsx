@@ -4,9 +4,16 @@ import type { Recipe } from '../../types/recipe';
 interface FavoritesGridProps {
   favorites: Recipe[];
   onViewRecipe: (recipe: Recipe) => void;
+  isFavorite: (recipeId: string) => boolean;
+  onToggleFavorite: (recipeId: string) => void;
 }
 
-export function FavoritesGrid({ favorites, onViewRecipe }: FavoritesGridProps) {
+export function FavoritesGrid({
+  favorites,
+  onViewRecipe,
+  isFavorite,
+  onToggleFavorite,
+}: FavoritesGridProps) {
   if (favorites.length === 0) {
     return null;
   }
@@ -18,6 +25,8 @@ export function FavoritesGrid({ favorites, onViewRecipe }: FavoritesGridProps) {
           key={recipe.id}
           recipe={recipe}
           onViewRecipe={onViewRecipe}
+          isFavorite={isFavorite(recipe.id)}
+          onToggleFavorite={onToggleFavorite}
         />
       ))}
     </div>

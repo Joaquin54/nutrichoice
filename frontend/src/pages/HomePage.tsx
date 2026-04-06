@@ -6,10 +6,12 @@ import { RecipeModal } from "../components/recipe/RecipeModal";
 import { HeroSection } from "../components/common/HeroSection";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { useRecipeSearch } from "../hooks/useRecipeSearch";
+import { useRecipeActions } from "../hooks/useRecipeActions";
 import type { Recipe, DietaryFilter } from "../types/recipe";
 
 export function HomePage() {
   const { dietaryPreferences } = useUserPreferences();
+  const { isFavorite, toggleFavorite } = useRecipeActions();
   const [filters, setFilters] = useState<DietaryFilter>(dietaryPreferences);
 
   // Sync filters with user preferences when they change
@@ -110,6 +112,8 @@ export function HomePage() {
               key={recipe.id}
               recipe={recipe}
               onViewRecipe={handleViewRecipe}
+              isFavorite={isFavorite(recipe.id)}
+              onToggleFavorite={toggleFavorite}
             />
           ))}
         </div>

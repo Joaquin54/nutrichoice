@@ -3,7 +3,7 @@
 // myRecipes localStorage logic has been removed; recipe creation now goes through
 // the backend via CreateRecipeModal + useRecipes.addRecipe().
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import {
   getRecipeLikes,
@@ -144,10 +144,13 @@ export function RecipeActionsProvider({ children }: { children: ReactNode }) {
     [triedRecipes]
   );
 
+  const value = useMemo(
+    () => ({ favoriteRecipes, triedRecipes, toggleFavorite, toggleTried, isFavorite, isTried }),
+    [favoriteRecipes, triedRecipes, toggleFavorite, toggleTried, isFavorite, isTried]
+  );
+
   return (
-    <RecipeActionsContext.Provider
-      value={{ favoriteRecipes, triedRecipes, toggleFavorite, toggleTried, isFavorite, isTried }}
-    >
+    <RecipeActionsContext.Provider value={value}>
       {children}
     </RecipeActionsContext.Provider>
   );
