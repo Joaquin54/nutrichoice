@@ -1,3 +1,10 @@
-export * from './WeeklyCalendar';
-export * from './RecipeSelector';
-
+export { WeekNavigator } from './WeekNavigator';
+export { DayHeader } from './DayHeader';
+export { MealRowLabel } from './MealRowLabel';
+export { MealCell } from './MealCell';
+export { MealGrid } from './MealGrid';
+export { MacroCard } from './MacroCard';
+export { MacroStrip } from './MacroStrip';
+export { RecipeSelector } from './RecipeSelector';
+export { MEAL_TYPES, MEAL_TYPE_CONFIG } from './mealPlanConstants';
+export type { MealType, MealTypeConfig } from './mealPlanConstants';
