@@ -16,6 +16,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "user",
             "daily_calorie_goal",
             "daily_protein_goal",
+            "daily_carbs_goal",
+            "daily_fat_goal",
             "date_created",
             "date_updated",
             "bio",
@@ -79,5 +81,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if value < 20 or value > 500:
             raise serializers.ValidationError(
                 "Daily protein goal must be between 20 and 500 grams"
+            )
+        return value
+
+    def validate_daily_carbs_goal(self, value):
+        if value is None:
+            return value
+        if value < 50 or value > 800:
+            raise serializers.ValidationError(
+                "Daily carbohydrate goal must be between 50 and 800 grams"
+            )
+        return value
+
+    def validate_daily_fat_goal(self, value):
+        if value is None:
+            return value
+        if value < 20 or value > 300:
+            raise serializers.ValidationError(
+                "Daily fat goal must be between 20 and 300 grams"
             )
         return value

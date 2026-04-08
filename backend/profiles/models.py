@@ -16,6 +16,8 @@ class UserProfile(models.Model):
     )
     daily_calorie_goal = models.SmallIntegerField(null=True)
     daily_protein_goal = models.SmallIntegerField(null=True)
+    daily_carbs_goal = models.SmallIntegerField(null=True, blank=True)
+    daily_fat_goal = models.SmallIntegerField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     # Changed to auto_now for automatic updates
     date_updated = models.DateTimeField(auto_now=True)
