@@ -2,6 +2,12 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from api.views.feed import RecipeFeedView
+from api.views.meal_planning import (
+    WeekPlanView,
+    DailyMacrosView,
+    MealPlanEntryCreateView,
+    MealPlanEntryDeleteView,
+)
 from api.views.health import HealthView
 from api.views.storage import SaveUrlView, SignedUrlView
 from api.views.ingredients import IngredientsViewSet
@@ -42,6 +48,10 @@ urlpatterns = [
     path('recipe-feed/', RecipeFeedView.as_view(), name='recipe-feed'),
     path('recipes/create/', RecipeCreateView.as_view(), name='recipe-create'),
     path('recipes/<int:recipe_id>/nutrition/', RecipeNutritionView.as_view(), name='recipe-nutrition'),
+    path('meal-plan/week/', WeekPlanView.as_view(), name='meal-plan-week'),
+    path('meal-plan/macros/', DailyMacrosView.as_view(), name='meal-plan-macros'),
+    path('meal-plan/entry/', MealPlanEntryCreateView.as_view(), name='meal-plan-entry-create'),
+    path('meal-plan/entry/<int:pk>/', MealPlanEntryDeleteView.as_view(), name='meal-plan-entry-delete'),
 
     # Authentication endpoints
     path('auth/register/', UserRegistrationView.as_view(), name='user-register'),

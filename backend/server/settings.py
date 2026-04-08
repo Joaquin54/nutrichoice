@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "recipes",
     "social",
     "nutrition",
+    "meal_planning",
 ]
 
 MIDDLEWARE = [
