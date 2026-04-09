@@ -97,11 +97,14 @@ DATABASES = {
         "USER": os.environ.get("SUPABASE_DB_USER"),
         "PASSWORD": os.environ.get("SUPABASE_DB_PASSWORD"),
         "HOST": os.environ.get("SUPABASE_DB_HOST"),
-        "PORT": os.environ.get("SUPABASE_DB_PORT"),
+        "PORT": os.environ.get("SUPABASE_DB_PORT", "6543"),
         "OPTIONS": {
             "sslmode": "require",
         },
-        "CONN_MAX_AGE": 600,
+        # Transaction-mode pooler (pgBouncer) manages connection reuse — CONN_MAX_AGE
+        # is intentionally 0 to avoid Django holding session-scoped connections.
+        "CONN_MAX_AGE": 0,
+        "DISABLE_SERVER_SIDE_CURSORS": True,
     }
 }
 

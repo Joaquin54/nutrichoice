@@ -38,6 +38,7 @@ def _calculate_totals(recipe_ingredients) -> dict[str, Decimal]:
         qty_grams = convert_to_grams(
             quantity=Decimal(str(ri.quantity)),
             unit=ri.unit,
+            ingredient_name=ri.ingredient.name,
         )
         scale = qty_grams / Decimal("100")
 

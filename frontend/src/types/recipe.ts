@@ -23,6 +23,7 @@ export interface Recipe {
   cuisine_type?: string;
   creator?: string;   // username of the recipe author (from backend)
   rating?: number;    // frontend/mock only — not stored in backend
+  servings?: number;  // number of servings this recipe yields (default 1)
 }
 
 // Dietary filter interface

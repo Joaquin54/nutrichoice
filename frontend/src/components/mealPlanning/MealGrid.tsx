@@ -16,6 +16,8 @@ interface MealGridProps {
   onAddMeal: (dateString: string, mealType: MealType) => void;
   /** Called when the user removes a planned meal from a slot. */
   onRemoveMeal: (dateString: string, mealType: MealType) => void;
+  /** When true, dims the grid to indicate a background fetch is in progress. */
+  isLoading?: boolean;
 }
 
 const todayString = new Date().toDateString();
@@ -36,14 +38,14 @@ function checkIsToday(date: Date): boolean {
  *   at the top lets the user switch between days; the selected day's 5 meal slots
  *   are shown as a vertical stack below.
  */
-export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal }: MealGridProps) {
+export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoading = false }: MealGridProps) {
   const [selectedDayIndex, setSelectedDayIndex] = useState(() => {
     const todayIdx = weekDays.findIndex(checkIsToday);
     return todayIdx >= 0 ? todayIdx : 0;
   });
 
   return (
-    <>
+    <div className={cn('transition-opacity duration-200', isLoading && 'opacity-50 pointer-events-none')}>
       {/* ── Desktop / Tablet grid ───────────────────────────────────────── */}
       <div className="hidden md:block overflow-x-auto rounded-xl border border-border">
         {/* bg-border shows through gap-px to create hairline grid lines */}
@@ -136,7 +138,7 @@ export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal }: MealG
         {/* Selected day meal slots */}
         {renderMobileDaySlots()}
       </div>
-    </>
+    </div>
   );
 
   /** Renders the vertical meal slot list for the currently selected day on mobile. */

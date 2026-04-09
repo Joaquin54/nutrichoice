@@ -183,9 +183,12 @@ class NutritionViewTestCase(TestCase):
         response = self.client.get(f"/api/recipes/{self.recipe.pk}/nutrition/")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        # 200g spaghetti: 158 cal/100g -> 316 cal
-        self.assertEqual(data["calories"], "316.00")
-        self.assertEqual(data["protein"], "12.00")
+        # 200g spaghetti: 158 cal/100g -> 316 cal (1 serving)
+        self.assertEqual(data["total"]["calories"], "316.00")
+        self.assertEqual(data["total"]["protein"], "12.00")
+        self.assertEqual(data["per_serving"]["calories"], "316.00")
+        self.assertEqual(data["per_serving"]["protein"], "12.00")
+        self.assertEqual(data["servings"], 1)
         self.assertIn("calculated_at", data)
 
     def test_recipe_not_found(self) -> None:

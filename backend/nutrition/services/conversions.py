@@ -31,9 +31,24 @@ UNIT_TO_GRAMS: dict[str, Decimal] = {
 }
 
 
-def convert_to_grams(*, quantity: Decimal, unit: str) -> Decimal:
+_VOLUMETRIC_UNITS: frozenset[str] = frozenset({
+    "ml", "milliliter", "l", "liter",
+    "tsp", "teaspoon", "tbsp", "tablespoon",
+    "cup", "fl_oz",
+})
+
+
+def convert_to_grams(
+    *,
+    quantity: Decimal,
+    unit: str,
+    ingredient_name: str = "",
+) -> Decimal:
     """
     Convert a quantity in the given unit to grams.
+
+    For volumetric units, uses ingredient-specific density when available
+    (via INGREDIENT_DENSITY), falling back to water-density approximation.
 
     Raises ValueError if the unit is not recognized.
     """
@@ -44,6 +59,18 @@ def convert_to_grams(*, quantity: Decimal, unit: str) -> Decimal:
             f"Unsupported unit '{unit}'. "
             f"Supported units: {', '.join(sorted(UNIT_TO_GRAMS.keys()))}"
         )
+
+    # For volumetric units, apply ingredient-specific density when available.
+    if normalized in _VOLUMETRIC_UNITS and ingredient_name:
+        density = _get_density(ingredient_name)
+        if density is not _WATER_DENSITY:
+            if normalized in ("cup",):
+                return quantity * density["grams_per_cup"]
+            if normalized in ("tbsp", "tablespoon"):
+                return quantity * density["grams_per_tbsp"]
+            if normalized in ("tsp", "teaspoon"):
+                return quantity * (density["grams_per_tbsp"] / Decimal("3"))
+
     return quantity * factor
 
 

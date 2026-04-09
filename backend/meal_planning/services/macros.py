@@ -2,7 +2,8 @@ import datetime
 from decimal import Decimal
 from typing import Any
 
-from django.db.models import Sum
+from django.db.models import DecimalField, F, Sum
+from django.db.models.functions import Coalesce
 
 from meal_planning.models import MealPlanEntry
 from profiles.models import UserProfile
@@ -33,21 +34,23 @@ def compute_daily_macros(user: Any, date: datetime.date) -> dict[str, Decimal]:
   Returns:
     Dict with keys 'calories', 'protein', 'carbs', 'fat' as Decimal values.
   """
+  servings = Coalesce(F("recipe__servings"), 1, output_field=DecimalField())
+  _out = DecimalField(max_digits=10, decimal_places=2)
   result = (
     MealPlanEntry.objects
     .filter(user=user, date=date)
     .aggregate(
-      calories=Sum("recipe__nutrition__calories"),
-      protein=Sum("recipe__nutrition__protein"),
-      carbs=Sum("recipe__nutrition__carbs"),
-      fat=Sum("recipe__nutrition__fat"),
+      calories=Sum(F("recipe__nutrition__calories") / servings, output_field=_out),
+      protein=Sum(F("recipe__nutrition__protein") / servings, output_field=_out),
+      carbs=Sum(F("recipe__nutrition__carbs") / servings, output_field=_out),
+      fat=Sum(F("recipe__nutrition__fat") / servings, output_field=_out),
     )
   )
   return {
-    "calories": result["calories"] or _ZERO,
-    "protein": result["protein"] or _ZERO,
-    "carbs": result["carbs"] or _ZERO,
-    "fat": result["fat"] or _ZERO,
+    "calories": (result["calories"] or _ZERO).quantize(_ZERO),
+    "protein": (result["protein"] or _ZERO).quantize(_ZERO),
+    "carbs": (result["carbs"] or _ZERO).quantize(_ZERO),
+    "fat": (result["fat"] or _ZERO).quantize(_ZERO),
   }
 
 
