@@ -367,6 +367,7 @@ export type ApiRecipe = {
   cuisine_type: string;
   dietary_tags: string[];
   measure_type?: string;
+  servings?: number;
   date_created: string;
   creator: string;
   // Present on detail responses; absent on lightweight list responses.
@@ -387,6 +388,7 @@ export function apiRecipeToRecipe(r: ApiRecipe): Recipe {
     cuisine_type: r.cuisine_type,
     dietary_tags: r.dietary_tags,
     creator: r.creator,
+    servings: r.servings,
     image_1: r.image_1 || undefined,
     image_2: r.image_2 || undefined,
     image_3: r.image_3 || undefined,
@@ -771,5 +773,94 @@ export async function searchIngredients(query: string): Promise<IngredientSearch
     ? data
     : (data.results ?? []);
   return results;
+}
+
+// ---------------------------------------------------------------------------
+// Meal Planning types + API
+// ---------------------------------------------------------------------------
+
+/** Lightweight recipe shape returned inside meal plan entry responses. */
+export type MealPlanRecipe = {
+  id: number;
+  name: string;
+  image_1: string;
+  dietary_tags: string[];
+  cuisine_type: string;
+  /** Number of servings this recipe yields. */
+  servings: number;
+  /** Per-serving calorie count as a decimal string (e.g. "340.00"), or null when no nutrition data exists. */
+  calories: string | null;
+  /** Per-serving protein in grams as a decimal string, or null when no nutrition data exists. */
+  protein: string | null;
+  /** Per-serving carbohydrates in grams as a decimal string, or null when no nutrition data exists. */
+  carbs: string | null;
+  /** Per-serving fat in grams as a decimal string, or null when no nutrition data exists. */
+  fat: string | null;
+};
+
+/** A single persisted meal plan entry from the backend. */
+export type MealPlanEntryResponse = {
+  id: number;
+  date: string;
+  meal_slot: string;
+  recipe: MealPlanRecipe;
+  created_at: string;
+};
+
+/** One day in the week plan grid — meals keyed by slot name (null = empty). */
+export type WeekPlanDay = {
+  date: string;
+  meals: Record<string, MealPlanEntryResponse | null>;
+};
+
+export type WeekPlanResponse = {
+  week_start: string;
+  days: WeekPlanDay[];
+};
+
+/** Aggregated macro totals (decimal strings) and integer targets for a day. */
+export type DailyMacrosResponse = {
+  date: string;
+  totals: { calories: string; protein: string; carbs: string; fat: string };
+  targets: { calories: number; protein: number; carbs: number; fat: number };
+};
+
+export async function fetchWeekPlan(weekStart: string): Promise<WeekPlanResponse> {
+  const url = new URL(`${API_BASE}/api/meal-plan/week/`);
+  url.searchParams.set('week_start', weekStart);
+  const r = await authenticatedFetch(url.toString());
+  if (!r.ok) throw new Error('Failed to load week plan');
+  return r.json();
+}
+
+export async function fetchDailyMacros(date: string): Promise<DailyMacrosResponse> {
+  const url = new URL(`${API_BASE}/api/meal-plan/macros/`);
+  url.searchParams.set('date', date);
+  const r = await authenticatedFetch(url.toString());
+  if (!r.ok) throw new Error('Failed to load daily macros');
+  return r.json();
+}
+
+export async function createMealPlanEntry(
+  date: string,
+  mealSlot: string,
+  recipeId: number,
+): Promise<MealPlanEntryResponse> {
+  const r = await authenticatedFetch(`${API_BASE}/api/meal-plan/entry/`, {
+    method: 'POST',
+    body: JSON.stringify({ date, meal_slot: mealSlot, recipe_id: recipeId }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(formatApiError(err) || `Failed to save meal plan entry (${r.status})`);
+  }
+  return r.json();
+}
+
+export async function deleteMealPlanEntry(id: number): Promise<void> {
+  const r = await authenticatedFetch(`${API_BASE}/api/meal-plan/entry/${id}/`, {
+    method: 'DELETE',
+  });
+  if (!r.ok) throw new Error('Failed to delete meal plan entry');
 }
 

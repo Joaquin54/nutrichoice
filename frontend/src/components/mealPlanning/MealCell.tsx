@@ -48,6 +48,11 @@ export const MealCell = memo(function MealCell({
         <p className="text-[10px] font-medium leading-tight line-clamp-2 pr-4">
           {mealPlan.recipe.name}
         </p>
+        {mealPlan.calories != null && (
+          <span className="text-[9px] font-mono opacity-60 mt-0.5 block">
+            {Math.round(parseFloat(mealPlan.calories))} kcal
+          </span>
+        )}
         <button
           onClick={() => onRemoveMeal(dateString, mealType)}
           className="absolute top-1 right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity rounded p-0.5 hover:bg-black/10 dark:hover:bg-white/10"

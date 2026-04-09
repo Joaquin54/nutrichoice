@@ -71,11 +71,11 @@ class WeekPlanView(APIView):
     week_start = _snap_to_sunday(week_start)
     week_end = week_start + datetime.timedelta(days=6)
 
-    # Single query: joins to recipe via select_related
+    # Single query: joins to recipe and nutrition via select_related
     entries = (
       MealPlanEntry.objects
       .filter(user=request.user, date__range=(week_start, week_end))
-      .select_related("recipe")
+      .select_related("recipe", "recipe__nutrition")
     )
 
     # Index entries by (date, slot) for O(1) lookup during assembly
@@ -173,6 +173,13 @@ class MealPlanEntryCreateView(APIView):
       date=data["date"],
       meal_slot=data["meal_slot"],
       defaults={"recipe": recipe},
+    )
+
+    # Re-fetch with nutrition joined so the serializer response includes calories.
+    entry = (
+      MealPlanEntry.objects
+      .select_related("recipe", "recipe__nutrition")
+      .get(pk=entry.pk)
     )
 
     response_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK

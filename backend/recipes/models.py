@@ -37,6 +37,7 @@ class Recipe(models.Model):
         choices=MeasureType.choices,
         default=MeasureType.GRAMS,
     )
+    servings = models.PositiveSmallIntegerField(default=1)
     image_1 = models.URLField(max_length=500, blank=True, default='')
     image_2 = models.URLField(max_length=500, blank=True, default='')
     image_3 = models.URLField(max_length=500, blank=True, default='')
