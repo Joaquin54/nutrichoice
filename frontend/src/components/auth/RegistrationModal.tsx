@@ -6,14 +6,16 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card } from '../ui/card';
 import { ImageWithFallback } from '../ui/ImageWithFallback';
-import { ChevronLeft, ChevronRight, ChefHat, Moon, Sun } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChefHat, Moon, Sun, Loader2 } from 'lucide-react';
 import { mockRecipes } from '../../data/mockRecipes';
 import { useTheme } from '../../contexts/ThemeContext';
+import { completeOnboarding } from '../../api';
+import type { User } from '../../api';
 import type { DietaryFilter } from '../../types/recipe';
 
 interface RegistrationModalProps {
   isOpen: boolean;
-  onComplete: () => void;
+  onComplete: (user: User) => void;
 }
 
 const COMMON_ALLERGIES = [
@@ -65,6 +67,8 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   const [customAllergy, setCustomAllergy] = useState('');
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const dietaryOptions = [
     { key: 'vegetarian' as keyof DietaryFilter, label: 'Vegetarian' },
@@ -123,14 +127,21 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
     }
   };
 
-  const handleComplete = () => {
-    // Store registration data in localStorage for now
-    localStorage.setItem('registration_complete', 'true');
-    localStorage.setItem('dietary_restrictions', JSON.stringify(dietaryRestrictions));
-    localStorage.setItem('allergies', JSON.stringify(selectedAllergies));
-    localStorage.setItem('selected_recipes', JSON.stringify(selectedRecipes));
-    
-    onComplete();
+  const handleComplete = async () => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const updatedUser = await completeOnboarding({
+        diet_type: dietaryRestrictions,
+        allergies: selectedAllergies,
+      });
+      onComplete(updatedUser);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save preferences. Please try again.';
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -363,12 +374,17 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
 
         <div className="flex-1 overflow-y-auto py-4 sm:py-6 min-h-0">{renderStep()}</div>
 
+        {submitError && (
+          <div className="px-1 pb-2">
+            <p className="text-xs text-red-600 dark:text-red-400">{submitError}</p>
+          </div>
+        )}
         <div className="flex justify-between gap-2 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             type="button"
             variant="outline"
             onClick={handlePrevious}
-            disabled={currentStep === 1}
+            disabled={currentStep === 1 || isSubmitting}
             className="text-xs sm:text-sm"
           >
             <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
@@ -381,8 +397,20 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
               <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
             </Button>
           ) : (
-            <Button type="button" onClick={handleComplete} className="text-xs sm:text-sm">
-              Finish
+            <Button
+              type="button"
+              onClick={handleComplete}
+              disabled={isSubmitting}
+              className="text-xs sm:text-sm"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                'Finish'
+              )}
             </Button>
           )}
         </div>

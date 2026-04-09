@@ -25,7 +25,7 @@ from api.views.users import (
     UserRegistrationView, UserLoginView, UserLogoutView,
     UserPasswordChangeRequestView, UserPasswordChangeView,
     UserPasswordChangeConfirmView, UserTokenRefreshView,
-    CurrentUserView, UserViewSet,
+    CurrentUserView, UserViewSet, CompleteOnboardingView,
 )
 
 router = DefaultRouter()
@@ -62,6 +62,7 @@ urlpatterns = [
     path('auth/password-reset-confirm/', UserPasswordChangeConfirmView.as_view(), name='password-reset-confirm'),
     path('auth/token-refresh/', UserTokenRefreshView.as_view(), name='token-refresh'),
     path('auth/me/', CurrentUserView.as_view(), name='current-user'),
+    path('auth/complete-onboarding/', CompleteOnboardingView.as_view(), name='complete-onboarding'),
 
     # Router-generated endpoints (always last)
     path('', include(router.urls)),
