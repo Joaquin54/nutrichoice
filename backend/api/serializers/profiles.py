@@ -57,7 +57,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_diet_type(self, value: dict) -> dict:
+    def validate_diet_type(self, value: dict | None) -> dict | None:
+        """
+        Validate the diet_type field.
+
+        Accepts:
+          - None: canonical "skipped" state — persists as SQL NULL
+          - {}: preferences explicitly cleared
+          - populated dict: active dietary preferences (keys validated against ALLOWED_DIET_KEYS)
+        """
+        if value is None:
+            return None
         if not isinstance(value, dict):
             raise serializers.ValidationError("diet_type must be a JSON object.")
 

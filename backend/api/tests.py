@@ -534,3 +534,148 @@ class MeasureTypeIntegrationTestCase(TestCase):
         }
         response = self.client.post("/api/recipes/create/", payload, format="json")
         self.assertEqual(response.status_code, 400)
+
+
+# ---------------------------------------------------------------------------
+# diet_type nullable — serializer + view integration tests
+# ---------------------------------------------------------------------------
+
+from profiles.models import UserProfile  # noqa: E402 — appended after existing imports
+from rest_framework.authtoken.models import Token  # noqa: E402
+
+
+class UserProfileDietTypeSerializerTests(TestCase):
+  """
+  Unit / integration tests for nullable diet_type across serializers and views.
+
+  Covers:
+    - UserProfileSerializer.validate_diet_type accepts None / rejects invalid input
+    - CompleteOnboardingSerializer accepts null and defaults to null when omitted
+    - POST /api/auth/complete-onboarding/ with null persists NULL to the DB
+    - PATCH /api/user-profiles/me/ with null clears diet_type; {} stores empty
+  """
+
+  def setUp(self) -> None:
+    self.user = User.objects.create_user(
+      username='dietserial_user', password='testpass123'
+    )
+    self.client = APIClient()
+    self.client.force_authenticate(user=self.user)
+
+    # Ensure the profile exists (created automatically on registration in prod,
+    # but tests bypass registration — create explicitly).
+    self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
+
+  # -- UserProfileSerializer --------------------------------------------------
+
+  def test_user_profile_serializer_accepts_null_diet_type(self) -> None:
+    """PATCH /api/user-profiles/me/ with diet_type: null should return 200."""
+    response = self.client.patch(
+      '/api/user-profiles/me/',
+      {'diet_type': None},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+    self.profile.refresh_from_db()
+    self.assertIsNone(self.profile.diet_type)
+
+  def test_user_profile_serializer_rejects_non_dict_diet_type(self) -> None:
+    """PATCH with a non-dict diet_type (e.g. a string) should return 400."""
+    response = self.client.patch(
+      '/api/user-profiles/me/',
+      {'diet_type': 'vegetarian'},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 400)
+
+  def test_user_profile_serializer_rejects_unknown_diet_keys(self) -> None:
+    """PATCH with unknown diet_type keys should return 400."""
+    response = self.client.patch(
+      '/api/user-profiles/me/',
+      {'diet_type': {'glutenFree': True}},  # camelCase is unknown
+      format='json',
+    )
+    self.assertEqual(response.status_code, 400)
+
+  # -- CompleteOnboardingSerializer -------------------------------------------
+
+  def test_complete_onboarding_serializer_accepts_null_diet_type(self) -> None:
+    """POST /api/auth/complete-onboarding/ with explicit null diet_type should succeed."""
+    response = self.client.post(
+      '/api/auth/complete-onboarding/',
+      {'diet_type': None, 'allergies': []},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+
+  def test_complete_onboarding_serializer_defaults_to_null_when_omitted(self) -> None:
+    """POST /api/auth/complete-onboarding/ without diet_type should default to null."""
+    response = self.client.post(
+      '/api/auth/complete-onboarding/',
+      {'allergies': []},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+    self.profile.refresh_from_db()
+    self.assertIsNone(self.profile.diet_type)
+
+  def test_complete_onboarding_with_null_diet_type_sets_profile_null(self) -> None:
+    """Sending null diet_type must persist NULL to the UserProfile row."""
+    # Set a value first so we can verify it gets overwritten with NULL
+    self.profile.diet_type = {'vegetarian': True}
+    self.profile.save(update_fields=['diet_type'])
+
+    response = self.client.post(
+      '/api/auth/complete-onboarding/',
+      {'diet_type': None, 'allergies': []},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+    self.profile.refresh_from_db()
+    self.assertIsNone(self.profile.diet_type)
+
+  def test_complete_onboarding_with_populated_dict_persists(self) -> None:
+    """Sending a valid populated dict should be stored correctly."""
+    payload = {
+      'diet_type': {'vegetarian': True, 'vegan': False},
+      'allergies': [],
+    }
+    response = self.client.post(
+      '/api/auth/complete-onboarding/',
+      payload,
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+    self.profile.refresh_from_db()
+    self.assertEqual(self.profile.diet_type, {'vegetarian': True, 'vegan': False})
+
+  # -- PATCH /api/user-profiles/me/ -------------------------------------------
+
+  def test_patch_profile_me_with_null_clears_diet_type(self) -> None:
+    """PATCHing diet_type: null should set the DB column to NULL."""
+    # Pre-populate so we know the column changes
+    self.profile.diet_type = {'keto': True}
+    self.profile.save(update_fields=['diet_type'])
+
+    response = self.client.patch(
+      '/api/user-profiles/me/',
+      {'diet_type': None},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+    self.profile.refresh_from_db()
+    self.assertIsNone(self.profile.diet_type)
+
+  def test_patch_profile_me_with_empty_dict_stores_empty(self) -> None:
+    """PATCHing diet_type: {} should store an empty JSON object (not NULL)."""
+    self.profile.diet_type = {'keto': True}
+    self.profile.save(update_fields=['diet_type'])
+
+    response = self.client.patch(
+      '/api/user-profiles/me/',
+      {'diet_type': {}},
+      format='json',
+    )
+    self.assertEqual(response.status_code, 200, response.data)
+    self.profile.refresh_from_db()
+    self.assertEqual(self.profile.diet_type, {})

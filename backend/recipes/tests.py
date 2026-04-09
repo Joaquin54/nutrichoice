@@ -387,3 +387,87 @@ class RecipeIngredientCSVMatchTestCase(TestCase):
   def test_recipe_count_matches_csv(self) -> None:
     """The number of recipes in the DB should match the CSV row count."""
     self.assertEqual(Recipe.objects.count(), len(self.csv_rows))
+
+
+# ---------------------------------------------------------------------------
+# RecipeFeedService — diet_type nullable behaviour
+# ---------------------------------------------------------------------------
+
+from profiles.models import UserProfile  # noqa: E402
+from recipes.services.feed import RecipeFeedService  # noqa: E402
+
+
+class RecipeFeedDietTypeTests(TestCase):
+  """
+  Tests for RecipeFeedService._get_active_diet_prefs and build_feed when
+  diet_type is None or {}.
+  """
+
+  @classmethod
+  def setUpTestData(cls) -> None:
+    cls.user = User.objects.create_user(
+      username='feedtest_user', password='testpass123'
+    )
+    cls.profile = UserProfile.objects.create(user=cls.user, diet_type=None)
+
+    # A vegetarian recipe — has the 'vegetarian' tag
+    cls.vegetarian_recipe = Recipe.objects.create(
+      name='Veggie Salad',
+      description='A fresh salad',
+      cuisine_type='American',
+      dietary_tags=['vegetarian'],
+      creator=cls.user,
+    )
+    # A non-vegetarian recipe
+    cls.regular_recipe = Recipe.objects.create(
+      name='Beef Burger',
+      description='A beef burger',
+      cuisine_type='American',
+      dietary_tags=['Regular'],
+      creator=cls.user,
+    )
+
+  def _get_service(self) -> RecipeFeedService:
+    return RecipeFeedService()
+
+  def _reload_user(self) -> Any:
+    """Return a fresh user instance with profile pre-fetched."""
+    from django.contrib.auth import get_user_model
+    User_ = get_user_model()
+    return User_.objects.select_related('profile').get(pk=self.user.pk)
+
+  def test_get_active_diet_prefs_returns_empty_for_none(self) -> None:
+    """_get_active_diet_prefs returns [] when diet_type is None."""
+    self.profile.diet_type = None
+    self.profile.save(update_fields=['diet_type'])
+    user = self._reload_user()
+    result = self._get_service()._get_active_diet_prefs(user)
+    self.assertEqual(result, [])
+
+  def test_get_active_diet_prefs_returns_empty_for_empty_dict(self) -> None:
+    """_get_active_diet_prefs returns [] when diet_type is {}."""
+    self.profile.diet_type = {}
+    self.profile.save(update_fields=['diet_type'])
+    user = self._reload_user()
+    result = self._get_service()._get_active_diet_prefs(user)
+    self.assertEqual(result, [])
+
+  def test_build_feed_with_null_diet_type_returns_unfiltered(self) -> None:
+    """build_feed with diet_type=None applies no dietary filter — both recipes appear."""
+    self.profile.diet_type = None
+    self.profile.save(update_fields=['diet_type'])
+    user = self._reload_user()
+    qs = self._get_service().build_feed(user)
+    recipe_ids = set(qs.values_list('id', flat=True))
+    self.assertIn(self.vegetarian_recipe.id, recipe_ids)
+    self.assertIn(self.regular_recipe.id, recipe_ids)
+
+  def test_build_feed_with_single_active_pref_filters_correctly(self) -> None:
+    """build_feed with vegetarian=True only returns recipes tagged 'vegetarian'."""
+    self.profile.diet_type = {'vegetarian': True, 'vegan': False}
+    self.profile.save(update_fields=['diet_type'])
+    user = self._reload_user()
+    qs = self._get_service().build_feed(user)
+    recipe_ids = set(qs.values_list('id', flat=True))
+    self.assertIn(self.vegetarian_recipe.id, recipe_ids)
+    self.assertNotIn(self.regular_recipe.id, recipe_ids)

@@ -121,11 +121,15 @@ class RecipeFeedService:
     def _get_active_diet_prefs(self, user: User) -> list[str]:
         """
         Return the list of diet keys the user has set to True.
+
         Safely falls back to an empty list if the profile is missing.
+        diet_type may be None (skipped onboarding) or {} (cleared) — both yield no active prefs.
         """
         try:
-            diet_type: dict = user.profile.diet_type or {}  # type: ignore[attr-defined]
+            # diet_type may be None (skipped onboarding) or {} (cleared) — both yield no active prefs
+            diet_type: dict | None = user.profile.diet_type  # type: ignore[attr-defined]
+            items = (diet_type or {}).items()
         except AttributeError:
             return []
 
-        return [k for k, v in diet_type.items() if v is True]
+        return [k for k, v in items if v is True]

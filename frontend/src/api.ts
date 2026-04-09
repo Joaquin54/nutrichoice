@@ -50,7 +50,7 @@ export type UserProfile = {
   id?: number;
   bio: string;
   profile_picture: string;
-  diet_type: Record<string, boolean>;
+  diet_type: Record<string, boolean> | null;
   daily_calorie_goal?: number;
   daily_protein_goal?: number;
   date_created?: string;
@@ -194,7 +194,7 @@ export async function logout(): Promise<void> {
 }
 
 export type CompleteOnboardingPayload = {
-  diet_type: Record<string, boolean>;
+  diet_type: Record<string, boolean> | null;
   allergies: string[];
 };
 
@@ -262,7 +262,8 @@ export async function updateUser(publicId: string, data: UpdateUserData): Promis
 export type UpdateProfileData = {
   bio?: string;
   profile_picture?: string;
-  diet_type?: Record<string, boolean>;
+  /** undefined = don't touch; null = clear preference (persists as SQL NULL); populated = active prefs */
+  diet_type?: Record<string, boolean> | null;
   daily_calorie_goal?: number;
   daily_protein_goal?: number;
 };

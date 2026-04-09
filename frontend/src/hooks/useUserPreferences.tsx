@@ -13,18 +13,35 @@ const UserPreferencesContext = createContext<UserPreferencesContextType | undefi
 const DEFAULT_PREFERENCES: DietaryFilter = {
   vegetarian: false,
   vegan: false,
-  glutenFree: false,
-  dairyFree: false,
-  eggFree: false,
-  pescatarian: false,
-  lowCarb: false,
+  gluten_free: false,
+  dairy_free: false,
+  nut_free: false,
   keto: false,
+  paleo: false,
+  low_carb: false,
 };
 
 function loadLocalPreferences(): DietaryFilter {
   try {
     const saved = localStorage.getItem('dietaryPreferences');
-    return saved ? JSON.parse(saved) : DEFAULT_PREFERENCES;
+    if (!saved) return DEFAULT_PREFERENCES;
+
+    const parsed: unknown = JSON.parse(saved);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return DEFAULT_PREFERENCES;
+    }
+
+    // Sanitize: drop unknown keys (handles stale camelCase values from prior versions)
+    // and fill any missing canonical keys with false.
+    const raw = parsed as Record<string, unknown>;
+    const sanitized: DietaryFilter = { ...DEFAULT_PREFERENCES };
+    for (const key of Object.keys(DEFAULT_PREFERENCES) as Array<keyof DietaryFilter>) {
+      if (typeof raw[key] === 'boolean') {
+        sanitized[key] = raw[key] as boolean;
+      }
+      // Unknown or non-boolean values fall back to the DEFAULT_PREFERENCES value (false)
+    }
+    return sanitized;
   } catch {
     return DEFAULT_PREFERENCES;
   }
@@ -44,20 +61,29 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     getMyProfile()
       .then((profile) => {
-        if (profile.diet_type && typeof profile.diet_type === 'object') {
+        if (profile.diet_type === null) {
+          // diet_type is null: user skipped onboarding — keep default state and
+          // write DEFAULT_PREFERENCES to localStorage so the UI is stable.
+          setDietaryPreferences(DEFAULT_PREFERENCES);
+          localStorage.setItem('dietaryPreferences', JSON.stringify(DEFAULT_PREFERENCES));
+        } else if (typeof profile.diet_type === 'object') {
+          // diet_type is a populated or empty dict — map each canonical key.
           const dt = profile.diet_type as Record<string, boolean>;
           const prefs: DietaryFilter = {
             vegetarian: dt.vegetarian ?? false,
             vegan: dt.vegan ?? false,
-            glutenFree: dt.glutenFree ?? false,
-            dairyFree: dt.dairyFree ?? false,
-            eggFree: dt.eggFree ?? false,
-            pescatarian: dt.pescatarian ?? false,
-            lowCarb: dt.lowCarb ?? false,
+            gluten_free: dt.gluten_free ?? false,
+            dairy_free: dt.dairy_free ?? false,
+            nut_free: dt.nut_free ?? false,
             keto: dt.keto ?? false,
+            paleo: dt.paleo ?? false,
+            low_carb: dt.low_carb ?? false,
           };
           setDietaryPreferences(prefs);
           localStorage.setItem('dietaryPreferences', JSON.stringify(prefs));
+        } else {
+          // Unexpected shape — fall back to defaults and do not overwrite localStorage.
+          setDietaryPreferences(DEFAULT_PREFERENCES);
         }
       })
       .catch(() => {
@@ -68,12 +94,17 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
 
   // Persist to both localStorage and backend.
   const updateDietaryPreferences = useCallback(async (preferences: DietaryFilter) => {
+    // Local state and localStorage always store the full DietaryFilter object
+    // (even when all-false) so the UI remains stable and checkbox state is preserved.
     setDietaryPreferences(preferences);
     localStorage.setItem('dietaryPreferences', JSON.stringify(preferences));
 
     if (getAuthToken()) {
       try {
-        await updateUserProfile({ diet_type: preferences });
+        // When all boxes are unchecked, send null to the API (signals "no preference")
+        // rather than {}, while keeping local state as all-false dict for UI stability.
+        const allFalse = Object.values(preferences).every((v) => v === false);
+        await updateUserProfile({ diet_type: allFalse ? null : preferences });
       } catch {
         // Non-fatal — localStorage remains the local source of truth
       }
