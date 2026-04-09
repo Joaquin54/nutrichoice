@@ -42,6 +42,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             profile = UserProfile.objects.create(
                 user=request.user)  # type: ignore
 
+        # PATCH {"diet_type": null} clears the preference to NULL via the serializer's validate_diet_type
         if request.method == 'PATCH':
             serializer = UserProfileSerializer(
                 profile, data=request.data, partial=True)

@@ -11,27 +11,17 @@ interface DietaryPreferencesProps {
   onFiltersChange: (filters: DietaryFilter) => void;
 }
 
+// Canonical snake_case keys matching backend ALLOWED_DIET_KEYS.
+// Icons are selected from already-imported lucide-react and CookingIcons sets.
 const dietaryOptions = [
-  {
-    key: "vegetarian" as keyof DietaryFilter,
-    label: "Vegetarian",
-    icon: HerbIcon,
-  },
+  { key: "vegetarian" as keyof DietaryFilter, label: "Vegetarian", icon: HerbIcon },
   { key: "vegan" as keyof DietaryFilter, label: "Vegan", icon: Heart },
-  {
-    key: "glutenFree" as keyof DietaryFilter,
-    label: "Gluten-Free",
-    icon: Wheat,
-  },
-  { key: "dairyFree" as keyof DietaryFilter, label: "Dairy-Free", icon: Milk },
-  { key: "eggFree" as keyof DietaryFilter, label: "Egg-Free", icon: Egg },
-  {
-    key: "pescatarian" as keyof DietaryFilter,
-    label: "Pescatarian",
-    icon: Fish,
-  },
-  { key: "lowCarb" as keyof DietaryFilter, label: "Low Carb", icon: FlameIcon },
+  { key: "gluten_free" as keyof DietaryFilter, label: "Gluten-Free", icon: Wheat },
+  { key: "dairy_free" as keyof DietaryFilter, label: "Dairy-Free", icon: Milk },
+  { key: "nut_free" as keyof DietaryFilter, label: "Nut-Free", icon: Egg },
   { key: "keto" as keyof DietaryFilter, label: "Keto", icon: FlameIcon },
+  { key: "paleo" as keyof DietaryFilter, label: "Paleo", icon: Fish },
+  { key: "low_carb" as keyof DietaryFilter, label: "Low Carb", icon: FlameIcon },
 ];
 
 export const DietaryPreferences = memo(function DietaryPreferences({

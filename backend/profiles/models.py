@@ -6,6 +6,11 @@ class UserProfile(models.Model):
     """
     User profile with nutrition goals and preferences.
     Note: Renamed from User_Profile to follow Python naming conventions.
+
+    diet_type semantic states:
+      - None  : user skipped onboarding — no dietary preference has been expressed
+      - {}    : preferences were explicitly cleared by the user
+      - dict  : populated dict of active dietary preference booleans
     """
     id = models.BigAutoField(primary_key=True)
     user = models.OneToOneField(
@@ -23,7 +28,8 @@ class UserProfile(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
     bio = models.CharField(max_length=500, blank=True,
                            default='')  # Added blank/default
-    diet_type = models.JSONField(default=dict, blank=True)  # Added default
+    # diet_type semantic states: None = skipped onboarding (no preference expressed); {} = preferences explicitly cleared; populated dict = active dietary preferences
+    diet_type = models.JSONField(null=True, blank=True, default=None)
     # Fixed typo: profil -> profile
     profile_picture = models.URLField(max_length=500, blank=True, default='')
     is_onboarded = models.BooleanField(default=False, db_index=True)

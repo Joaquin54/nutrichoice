@@ -26,16 +26,16 @@ export interface Recipe {
   servings?: number;  // number of servings this recipe yields (default 1)
 }
 
-// Dietary filter interface
+// Dietary filter interface — canonical snake_case keys matching backend ALLOWED_DIET_KEYS
 export interface DietaryFilter {
   vegetarian: boolean;
   vegan: boolean;
-  glutenFree: boolean;
-  dairyFree: boolean;
-  eggFree: boolean;
-  pescatarian: boolean;
-  lowCarb: boolean;
+  gluten_free: boolean;
+  dairy_free: boolean;
+  nut_free: boolean;
   keto: boolean;
+  paleo: boolean;
+  low_carb: boolean;
 }
 
 // Cuisine filter interface

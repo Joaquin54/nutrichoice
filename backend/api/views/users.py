@@ -217,14 +217,14 @@ class CompleteOnboardingView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        diet_type: dict = serializer.validated_data['diet_type']
+        diet_type: dict | None = serializer.validated_data['diet_type']
         allergies: list = serializer.validated_data['allergies']
 
         with transaction.atomic():
             profile, _ = UserProfile.objects.select_for_update().get_or_create(
                 user=request.user  # type: ignore[misc]
             )
-            profile.diet_type = diet_type
+            profile.diet_type = diet_type  # None persists as SQL NULL (skipped); {} persists as empty JSON object (cleared)
             profile.allergies = allergies
             profile.is_onboarded = True
             profile.save(update_fields=['diet_type', 'allergies', 'is_onboarded', 'date_updated'])

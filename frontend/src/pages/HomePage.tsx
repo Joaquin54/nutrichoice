@@ -49,20 +49,25 @@ export function HomePage() {
     if (activeDietaryFilters.length === 0) return recipes;
 
     return recipes.filter((recipe) => {
-      const filterMap: Record<string, string[]> = {
-        vegetarian: ["Vegetarian", "Vegan"],
-        vegan: ["Vegan"],
-        glutenFree: ["Gluten-Free"],
-        dairyFree: ["Dairy-Free"],
-        eggFree: ["Egg-Free"],
-        pescatarian: ["Pescatarian"],
-        lowCarb: ["Low Carb"],
-        keto: ["Keto"],
+      // Maps each snake_case preference key to the substring that must appear in
+      // at least one of the recipe's dietary_tags entries.
+      // Tags in seed data may be compound e.g. "Vegetarian, Lunch" or "Keto, Dinner",
+      // so we use includes() (substring) rather than exact equality.
+      const filterMap: Record<string, string> = {
+        vegetarian: 'Vegetarian',
+        vegan: 'Vegan',
+        gluten_free: 'Gluten-Free',
+        dairy_free: 'Dairy-Free',
+        nut_free: 'Nut-Free',
+        keto: 'Keto',
+        paleo: 'Paleo',
+        low_carb: 'Low Carb',
       };
 
       return activeDietaryFilters.every(([filterKey]) => {
-        const requiredTags = filterMap[filterKey] || [];
-        return requiredTags.some((tag) => recipe.dietary_tags.includes(tag));
+        const requiredSubstring = filterMap[filterKey];
+        if (!requiredSubstring) return true;
+        return recipe.dietary_tags.some((tag) => tag.includes(requiredSubstring));
       });
     });
   }, [recipes, filters]);

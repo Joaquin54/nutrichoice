@@ -80,19 +80,26 @@ export function AccountPage() {
           profile_picture: userData.profile?.profile_picture || ''
         });
 
-        // Update dietary preferences from profile diet_type if available
-        if (userData.profile?.diet_type && typeof userData.profile.diet_type === 'object') {
+        // Update dietary preferences from profile diet_type if available.
+        // The useUserPreferences hook already hydrates from the backend on mount,
+        // but we re-sync here after a fresh getCurrentUser() call to stay consistent.
+        if (userData.profile?.diet_type === null) {
+          // diet_type is null (user skipped onboarding) — leave context at default,
+          // do not overwrite with stale data
+        } else if (
+          typeof userData.profile?.diet_type === 'object' &&
+          userData.profile.diet_type !== null
+        ) {
           const profileDietType = userData.profile.diet_type as Record<string, boolean>;
-          // Convert backend diet_type to DietaryFilter format
           const dietaryPrefs: DietaryFilter = {
-            vegetarian: profileDietType.vegetarian || false,
-            vegan: profileDietType.vegan || false,
-            glutenFree: profileDietType.glutenFree || false,
-            dairyFree: profileDietType.dairyFree || false,
-            eggFree: profileDietType.eggFree || false,
-            pescatarian: profileDietType.pescatarian || false,
-            lowCarb: profileDietType.lowCarb || false,
-            keto: profileDietType.keto || false,
+            vegetarian: profileDietType.vegetarian ?? false,
+            vegan: profileDietType.vegan ?? false,
+            gluten_free: profileDietType.gluten_free ?? false,
+            dairy_free: profileDietType.dairy_free ?? false,
+            nut_free: profileDietType.nut_free ?? false,
+            keto: profileDietType.keto ?? false,
+            paleo: profileDietType.paleo ?? false,
+            low_carb: profileDietType.low_carb ?? false,
           };
           updateDietaryPreferences(dietaryPrefs);
         }

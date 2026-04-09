@@ -41,12 +41,12 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
   const dietaryOptions = [
     { key: 'vegetarian' as keyof DietaryFilter, label: 'Vegetarian' },
     { key: 'vegan' as keyof DietaryFilter, label: 'Vegan' },
-    { key: 'glutenFree' as keyof DietaryFilter, label: 'Gluten-Free' },
-    { key: 'dairyFree' as keyof DietaryFilter, label: 'Dairy-Free' },
-    { key: 'eggFree' as keyof DietaryFilter, label: 'Egg-Free' },
-    { key: 'pescatarian' as keyof DietaryFilter, label: 'Pescatarian' },
-    { key: 'lowCarb' as keyof DietaryFilter, label: 'Low Carb' },
+    { key: 'gluten_free' as keyof DietaryFilter, label: 'Gluten-Free' },
+    { key: 'dairy_free' as keyof DietaryFilter, label: 'Dairy-Free' },
+    { key: 'nut_free' as keyof DietaryFilter, label: 'Nut-Free' },
     { key: 'keto' as keyof DietaryFilter, label: 'Keto' },
+    { key: 'paleo' as keyof DietaryFilter, label: 'Paleo' },
+    { key: 'low_carb' as keyof DietaryFilter, label: 'Low Carb' },
   ];
 
   return (

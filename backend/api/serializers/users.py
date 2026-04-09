@@ -145,15 +145,19 @@ class CompleteOnboardingSerializer(serializers.Serializer):
 
     diet_type keys are validated against the same allowed set enforced by
     UserProfileSerializer so both paths remain consistent.
+
+    Accepts diet_type: null to signal "no dietary preference provided" — this
+    is the canonical skipped-onboarding state and persists as SQL NULL on the
+    UserProfile row.
     """
-    diet_type = serializers.JSONField(default=dict)
+    diet_type = serializers.JSONField(default=None, allow_null=True)
     allergies = serializers.ListField(
         child=serializers.CharField(max_length=64),
         max_length=50,
         default=list,
     )
 
-    def validate_diet_type(self, value: dict) -> dict:
+    def validate_diet_type(self, value: dict | None) -> dict | None:
         # Delegate to the profile serializer's validator for consistency
         return UserProfileSerializer().validate_diet_type(value)
 

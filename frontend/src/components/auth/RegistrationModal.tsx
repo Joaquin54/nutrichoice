@@ -57,13 +57,14 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
   const [dietaryRestrictions, setDietaryRestrictions] = useState<DietaryFilter>({
     vegetarian: false,
     vegan: false,
-    glutenFree: false,
-    dairyFree: false,
-    eggFree: false,
-    pescatarian: false,
-    lowCarb: false,
+    gluten_free: false,
+    dairy_free: false,
+    nut_free: false,
     keto: false,
+    paleo: false,
+    low_carb: false,
   });
+  const [dietarySkipped, setDietarySkipped] = useState<boolean>(false);
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   const [customAllergy, setCustomAllergy] = useState('');
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
@@ -73,15 +74,17 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
   const dietaryOptions = [
     { key: 'vegetarian' as keyof DietaryFilter, label: 'Vegetarian' },
     { key: 'vegan' as keyof DietaryFilter, label: 'Vegan' },
-    { key: 'glutenFree' as keyof DietaryFilter, label: 'Gluten-Free' },
-    { key: 'dairyFree' as keyof DietaryFilter, label: 'Dairy-Free' },
-    { key: 'eggFree' as keyof DietaryFilter, label: 'Egg-Free' },
-    { key: 'pescatarian' as keyof DietaryFilter, label: 'Pescatarian' },
-    { key: 'lowCarb' as keyof DietaryFilter, label: 'Low Carb' },
+    { key: 'gluten_free' as keyof DietaryFilter, label: 'Gluten-Free' },
+    { key: 'dairy_free' as keyof DietaryFilter, label: 'Dairy-Free' },
+    { key: 'nut_free' as keyof DietaryFilter, label: 'Nut-Free' },
     { key: 'keto' as keyof DietaryFilter, label: 'Keto' },
+    { key: 'paleo' as keyof DietaryFilter, label: 'Paleo' },
+    { key: 'low_carb' as keyof DietaryFilter, label: 'Low Carb' },
   ];
 
   const handleDietaryChange = (key: keyof DietaryFilter, checked: boolean) => {
+    // Toggling any checkbox cancels a prior "skip" action
+    setDietarySkipped(false);
     setDietaryRestrictions({
       ...dietaryRestrictions,
       [key]: checked,
@@ -127,12 +130,29 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
     }
   };
 
+  const handleSkipDietary = () => {
+    // Reset all checkboxes and mark as skipped — persists as NULL on the backend
+    setDietaryRestrictions({
+      vegetarian: false,
+      vegan: false,
+      gluten_free: false,
+      dairy_free: false,
+      nut_free: false,
+      keto: false,
+      paleo: false,
+      low_carb: false,
+    });
+    setDietarySkipped(true);
+    handleNext();
+  };
+
   const handleComplete = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
       const updatedUser = await completeOnboarding({
-        diet_type: dietaryRestrictions,
+        // null signals "no preference provided" (skipped); otherwise send the selections
+        diet_type: dietarySkipped ? null : dietaryRestrictions,
         allergies: selectedAllergies,
       });
       onComplete(updatedUser);
@@ -173,6 +193,21 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
                   </Label>
                 </div>
               ))}
+            </div>
+            <div className="mt-4 flex flex-col items-start gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleSkipDietary}
+                className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 px-0 hover:bg-transparent hover:underline"
+              >
+                Skip / No Preference
+              </Button>
+              {dietarySkipped && (
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Skipped — you can set this later in Account.
+                </p>
+              )}
             </div>
           </div>
         );
