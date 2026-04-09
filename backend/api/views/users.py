@@ -13,12 +13,14 @@ from rest_framework.authtoken.models import Token
 from users.models import User
 from typing import Optional
 
+from django.db import transaction
 from social.models import TriedRecipe
+from profiles.models import UserProfile
 from api.serializers.users import (
     UserRegistrationSerializer,
     UserLoginSerializer, PasswordChangeConfirmSerializer,
     PasswordChangeSerializer, PasswordChangeRequestSerializer,
-    CurrentUserSerializer, UserSerializer
+    CurrentUserSerializer, UserSerializer, CompleteOnboardingSerializer,
 )
 from api.serializers.recipes import TriedRecipeSerializer
 
@@ -197,6 +199,37 @@ class CurrentUserView(APIView):
     def get(self, request: Request) -> Response:
         serializer = CurrentUserSerializer(request.user)
         return Response(serializer.data)
+
+
+class CompleteOnboardingView(APIView):
+    """
+    POST /api/auth/complete-onboarding/
+
+    Persists the user's onboarding preferences (diet_type, allergies) and
+    marks their profile as onboarded. Idempotent — calling again updates
+    preferences without error. Returns a fresh CurrentUser snapshot so the
+    frontend can replace its stored user object in a single round-trip.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = CompleteOnboardingSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        diet_type: dict = serializer.validated_data['diet_type']
+        allergies: list = serializer.validated_data['allergies']
+
+        with transaction.atomic():
+            profile, _ = UserProfile.objects.select_for_update().get_or_create(
+                user=request.user  # type: ignore[misc]
+            )
+            profile.diet_type = diet_type
+            profile.allergies = allergies
+            profile.is_onboarded = True
+            profile.save(update_fields=['diet_type', 'allergies', 'is_onboarded', 'date_updated'])
+
+        return Response(CurrentUserSerializer(request.user).data)
 
 
 class UserViewSet(viewsets.ModelViewSet):

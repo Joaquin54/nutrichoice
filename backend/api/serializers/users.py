@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from users.models import User
 from profiles.models import UserProfile
 from api.serializers.profiles import UserProfileSerializer
@@ -33,7 +33,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Passwords don't match")
         return attrs
 
-    def create(self, validated_data):
+    @transaction.atomic
+    def create(self, validated_data: dict) -> User:
         validated_data.pop('password_confirm', None)
         user = User.objects.create_user(
             username=validated_data['username'],
@@ -42,7 +43,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', '')
         )
-        # Auto-create UserProfile
+        # Auto-create UserProfile — runs inside the same transaction as create_user
         UserProfile.objects.create(user=user)
         return user
 
@@ -136,6 +137,29 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return UserProfileSerializer(profile).data
         except UserProfile.DoesNotExist:
             return None
+
+
+class CompleteOnboardingSerializer(serializers.Serializer):
+    """
+    Validates the payload for POST /api/auth/complete-onboarding/.
+
+    diet_type keys are validated against the same allowed set enforced by
+    UserProfileSerializer so both paths remain consistent.
+    """
+    diet_type = serializers.JSONField(default=dict)
+    allergies = serializers.ListField(
+        child=serializers.CharField(max_length=64),
+        max_length=50,
+        default=list,
+    )
+
+    def validate_diet_type(self, value: dict) -> dict:
+        # Delegate to the profile serializer's validator for consistency
+        return UserProfileSerializer().validate_diet_type(value)
+
+    def validate_allergies(self, value: list) -> list:
+        # Delegate to the profile serializer's validator for consistency
+        return UserProfileSerializer().validate_allergies(value)
 
 
 class UserSerializer(serializers.ModelSerializer):

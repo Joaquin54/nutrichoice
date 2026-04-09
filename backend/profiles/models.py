@@ -26,6 +26,8 @@ class UserProfile(models.Model):
     diet_type = models.JSONField(default=dict, blank=True)  # Added default
     # Fixed typo: profil -> profile
     profile_picture = models.URLField(max_length=500, blank=True, default='')
+    is_onboarded = models.BooleanField(default=False, db_index=True)
+    allergies = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"Profile for {self.user.username}" # type: ignore

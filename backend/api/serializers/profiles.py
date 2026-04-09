@@ -24,9 +24,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "diet_type",
             # FIXED: profil_picture -> profile_picture (typo fixed in model)
             "profile_picture",
+            "is_onboarded",
+            "allergies",
         ]
-        # Added date_updated as read_only
-        read_only_fields = ["id", "date_created", "date_updated"]
+        # is_onboarded is only writable via POST /auth/complete-onboarding/
+        read_only_fields = ["id", "date_created", "date_updated", "is_onboarded"]
 
     # REMOVED: validate_id method
     # The id field is auto-generated and read-only, so this validation is unnecessary
@@ -100,4 +102,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Daily fat goal must be between 20 and 300 grams"
             )
+        return value
+
+    def validate_allergies(self, value: list) -> list:
+        if not isinstance(value, list):
+            raise serializers.ValidationError("allergies must be a JSON array.")
+        if len(value) > 50:
+            raise serializers.ValidationError(
+                "A maximum of 50 allergy entries are allowed."
+            )
+        for entry in value:
+            if not isinstance(entry, str):
+                raise serializers.ValidationError(
+                    "Each allergy entry must be a string."
+                )
+            if not (1 <= len(entry) <= 64):
+                raise serializers.ValidationError(
+                    "Each allergy entry must be between 1 and 64 characters."
+                )
         return value

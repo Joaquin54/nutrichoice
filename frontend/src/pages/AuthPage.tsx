@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { SkipForward, UserCircle, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { login, register } from '../api';
+import type { User } from '../api';
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -19,15 +20,11 @@ export function AuthPage() {
     setError(null);
     try {
       const response = await login(username, password);
-      // Login successful, token is stored automatically
-      // Check if user has completed registration
-      const registrationComplete = localStorage.getItem('registration_complete') === 'true';
-      if (!registrationComplete) {
-        // Show registration modal
-        setShowRegistrationModal(true);
-      } else {
-        // Navigate directly to home if registration is complete
+      // Derive registration status from the backend-authoritative profile flag
+      if (response.user.profile?.is_onboarded) {
         navigate('/home');
+      } else {
+        setShowRegistrationModal(true);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
@@ -50,17 +47,13 @@ export function AuthPage() {
         password,
         password_confirm: confirmPassword,
       });
-      
-      // After successful registration, automatically log in
+
+      // After successful registration, log in and open the onboarding modal
       const response = await login(username, password);
-      // Check if user has completed registration
-      const registrationComplete = localStorage.getItem('registration_complete') === 'true';
-      if (!registrationComplete) {
-        // Show registration modal
-        setShowRegistrationModal(true);
-      } else {
-        // Navigate directly to home if registration is complete
+      if (response.user.profile?.is_onboarded) {
         navigate('/home');
+      } else {
+        setShowRegistrationModal(true);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
@@ -72,21 +65,16 @@ export function AuthPage() {
   };
 
   const handleBypass = () => {
-    // Mark registration as complete when bypassing
-    localStorage.setItem('registration_complete', 'true');
     navigate('/home');
   };
 
   const handleSkipToRegistration = () => {
-    // Simulate login without backend - set a mock token
+    // Simulate login without backend - set a mock token for local dev only
     localStorage.setItem('auth_token', 'mock_token_for_testing');
-    // Clear registration complete flag so we can see the modal
-    localStorage.removeItem('registration_complete');
-    // Show registration modal
     setShowRegistrationModal(true);
   };
 
-  const handleRegistrationComplete = () => {
+  const handleRegistrationComplete = (_user: User) => {
     setShowRegistrationModal(false);
     navigate('/home');
   };
@@ -127,27 +115,29 @@ export function AuthPage() {
           setError(null);
         }} />
 
-        {/* Development bypass buttons */}
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleSkipToRegistration}
-            className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-          >
-            <UserCircle className="mr-2 h-4 w-4" />
-            Skip to Registration Modal (Test)
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleBypass}
-            className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-          >
-            <SkipForward className="mr-2 h-4 w-4" />
-            Skip Authentication (Dev)
-          </Button>
-        </div>
+        {/* Development bypass buttons — stripped from production builds */}
+        {import.meta.env.DEV && (
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSkipToRegistration}
+              className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            >
+              <UserCircle className="mr-2 h-4 w-4" />
+              Skip to Registration Modal (Test)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBypass}
+              className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            >
+              <SkipForward className="mr-2 h-4 w-4" />
+              Skip Authentication (Dev)
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Registration Modal */}

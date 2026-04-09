@@ -55,6 +55,8 @@ export type UserProfile = {
   daily_protein_goal?: number;
   date_created?: string;
   date_updated?: string;
+  is_onboarded: boolean;
+  allergies: string[];
 };
 
 export type User = {
@@ -184,6 +186,35 @@ export async function logout(): Promise<void> {
   }
 
   setAuthToken(null);
+  // Clean up legacy onboarding keys written by prior versions of this app
+  localStorage.removeItem('registration_complete');
+  localStorage.removeItem('dietary_restrictions');
+  localStorage.removeItem('allergies');
+  localStorage.removeItem('selected_recipes');
+}
+
+export type CompleteOnboardingPayload = {
+  diet_type: Record<string, boolean>;
+  allergies: string[];
+};
+
+export async function completeOnboarding(data: CompleteOnboardingPayload): Promise<User> {
+  const response = await authenticatedFetch(`${API_BASE}/api/auth/complete-onboarding/`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let error;
+    try {
+      error = await response.json();
+    } catch (e) {
+      throw new Error(`Failed to complete onboarding: ${response.status} ${response.statusText}`);
+    }
+    throw new Error(formatApiError(error));
+  }
+
+  return response.json();
 }
 
 export async function getCurrentUser(): Promise<User> {
