@@ -41,7 +41,7 @@ function UploadSlot({
   };
 
   const baseClass =
-    'relative h-32 w-full rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors';
+    'relative h-28 w-full rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors sm:h-32';
 
   if (url) {
     return (
@@ -83,7 +83,7 @@ function UploadSlot({
       />
       <div className="flex flex-col items-center gap-1 text-muted-foreground">
         <ImagePlus className="h-5 w-5" />
-        <span className="text-xs">{sizeError ?? `Photo ${index + 1}`}</span>
+        <span className="text-sm">{sizeError ?? `Photo ${index + 1}`}</span>
       </div>
     </div>
   );
@@ -109,8 +109,8 @@ export function ImageUploadGrid({
   const slots = [0, 1, 2] as const;
 
   return (
-    <div className="space-y-1.5">
-      <div className="grid grid-cols-3 gap-3">
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-3 sm:gap-4">
         {slots.map((i) => (
           <UploadSlot
             key={i}

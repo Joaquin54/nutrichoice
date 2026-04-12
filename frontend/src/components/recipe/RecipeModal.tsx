@@ -19,6 +19,7 @@ import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { useRecipeActions } from "../../hooks/useRecipeActions";
 import { useCookbooks } from "../../hooks/useCookbooks";
 import type { Recipe } from "../../types/recipe";
+import { IngredientListItem } from "./IngredientListItem";
 
 // Cultural cuisine tags to filter out from dietary tags
 const CULTURAL_CUISINE_TAGS = [
@@ -186,12 +187,11 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
             <AccordionItem value="ingredients">
               <AccordionTrigger>Ingredients</AccordionTrigger>
               <AccordionContent>
-                <ul className="space-y-2">
+                <ul className="list-none space-y-2.5">
                   {recipe.ingredients.map((ingredient, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-[#6ec257] mt-1">•</span>
-                      <span>{ingredient}</span>
-                    </li>
+                    <IngredientListItem key={index} variant="default">
+                      {ingredient}
+                    </IngredientListItem>
                   ))}
                 </ul>
               </AccordionContent>

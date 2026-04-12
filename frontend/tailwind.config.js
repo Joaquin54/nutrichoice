@@ -7,6 +7,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        carattere: ['"Carattere"', 'cursive'],
+      },
       // Page chrome max-width: default Tailwind `container` tops out at 768px until the lg
       // breakpoint (1024px), which wastes space on tablets. Use these with `mx-auto w-full`
       // so 640–767px can grow to 768px and 768–1023px to 1024px before xl/2xl widen further.
