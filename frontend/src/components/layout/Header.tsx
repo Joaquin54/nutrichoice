@@ -1,15 +1,17 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
+import { Leaf } from 'lucide-react';
 
 export const Header = memo(function Header() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#6ec257]/30 bg-gradient-to-br from-[#6ec257]/70 to-[#6ec257]/40 shadow-sm dark:border-[#6ec257]/20 dark:from-[#6ec257]/50 dark:to-[#6ec257]/30">
-      <div className="mx-auto flex w-full max-w-full items-center justify-center px-4 py-[9px] sm:max-w-page-sm sm:py-[9px] md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
+    <header className="relative flex w-full items-center bg-[color-mix(in_srgb,#6ec257_15%,white)] dark:bg-gray-900">
+      <div className="mx-auto flex w-full max-w-full items-center justify-center px-4 py-2.5 sm:max-w-page-sm sm:py-2.5 md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
         <Link
           to="/home"
-          className="text-center transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#6ec257]/50 rounded-sm"
+          className="flex w-fit max-w-full min-h-[2.5rem] items-center justify-center gap-2 rounded-sm text-center transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6ec257]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color-mix(in_srgb,#6ec257_15%,white)] dark:focus-visible:ring-[#6ec257]/40 dark:focus-visible:ring-offset-gray-900 sm:min-h-0"
         >
-          <h1 className="text-sm font-bold text-gray-900 sm:text-lg dark:text-white">
+          <Leaf className="h-5 w-5 shrink-0 text-[#6ec257] dark:text-[#6ec257]/80" />
+          <h1 className="translate-y-0.5 font-carattere text-[2rem] font-normal leading-none text-gray-900 dark:text-white">
             NutriChoice
           </h1>
         </Link>

@@ -10,6 +10,7 @@ import { useCookbooks } from "../hooks/useCookbooks";
 import { useRecipeFeed } from "../hooks/useRecipeFeed";
 import { getReviewsForRecipe, getAverageRating } from "../data/mockReviews";
 import { RecipeReviewsModal } from "../components/recipe/RecipeReviewsModal";
+import { IngredientListItem } from "../components/recipe/IngredientListItem";
 import type { RecipeReview } from "../types/recipe";
 
 // Cultural cuisine tags to filter out from dietary tags
@@ -383,10 +384,10 @@ export function RecipeFeedPage() {
                       <ol className="space-y-2">
                         {recipe.instructions.map((instruction, index) => (
                           <li key={index} className="flex items-start gap-2">
-                            <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-[10px] font-semibold">
+                            <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-[10px] font-semibold shadow-sm">
                               {index + 1}
                             </span>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed pt-0.5">
+                            <span className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
                               {instruction}
                             </span>
                           </li>
@@ -401,17 +402,11 @@ export function RecipeFeedPage() {
                       Ingredients
                     </h3>
                     <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
-                      <ul className="space-y-1.5">
+                      <ul className="list-none space-y-2">
                         {recipe.ingredients.map((ingredient, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span
-                              className="flex-shrink-0 w-2 h-2 rounded-full bg-[#6ec257] mt-[5px]"
-                              aria-hidden
-                            />
-                            <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                              {ingredient}
-                            </span>
-                          </li>
+                          <IngredientListItem key={index} variant="feed">
+                            {ingredient}
+                          </IngredientListItem>
                         ))}
                       </ul>
                     </div>
@@ -425,13 +420,13 @@ export function RecipeFeedPage() {
                         Instructions
                       </h3>
                       <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 overflow-y-auto">
-                        <ol className="space-y-2 sm:space-y-3">
+                        <ol className="space-y-2 sm:space-y-2.5">
                           {recipe.instructions.map((instruction, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-[10px] sm:text-xs font-semibold">
+                            <li key={index} className="flex items-start gap-2 sm:gap-2.5">
+                              <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-[10px] sm:text-xs font-semibold shadow-sm">
                                 {index + 1}
                               </span>
-                              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed pt-0.5">
+                              <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
                                 {instruction}
                               </span>
                             </li>
@@ -446,17 +441,11 @@ export function RecipeFeedPage() {
                         Ingredients
                       </h3>
                       <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 overflow-y-auto">
-                        <ul className="space-y-1.5 sm:space-y-2">
+                        <ul className="list-none space-y-1.5 sm:space-y-2">
                           {recipe.ingredients.map((ingredient, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span
-                                className="flex-shrink-0 w-1.5 h-1.5 sm:w-1.5 sm:h-1.5 rounded-full bg-[#6ec257] mt-[5px] sm:mt-1.5"
-                                aria-hidden
-                              />
-                              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                {ingredient}
-                              </span>
-                            </li>
+                            <IngredientListItem key={index} variant="feed">
+                              {ingredient}
+                            </IngredientListItem>
                           ))}
                         </ul>
                       </div>
