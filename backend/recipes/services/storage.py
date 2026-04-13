@@ -34,6 +34,20 @@ def generate_signed_upload_url(bucket: str, path: str) -> dict[str, str]:
     return result
 
 
+def upload_file(
+    bucket: str,
+    path: str,
+    content: bytes,
+    content_type: str = "image/webp",
+) -> None:
+    """Upload raw bytes to Supabase Storage, overwriting any existing object at ``path``."""
+    _get_client().storage.from_(bucket).upload(
+        path,
+        content,
+        {"content-type": content_type, "upsert": "true"},
+    )
+
+
 def get_public_url(bucket: str, path: str) -> str:
     """Construct the public object URL without a network call."""
     base = settings.SUPABASE_URL.rstrip("/")
