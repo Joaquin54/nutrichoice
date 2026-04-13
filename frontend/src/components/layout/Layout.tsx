@@ -29,8 +29,11 @@ export function Layout() {
                     : 'flex min-h-[100dvh] flex-col bg-[#6ec257]/15 dark:bg-gray-900'
                 }
               >
-                <Header />
-                <Navigation />
+                {/* Single sticky stack: avoids nav sliding under/over header; header is opaque */}
+                <div className="sticky top-0 z-40 shrink-0">
+                  <Header />
+                  <Navigation />
+                </div>
                 <main
                   className={
                     isCookbookView

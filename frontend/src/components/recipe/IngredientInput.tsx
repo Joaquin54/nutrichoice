@@ -29,7 +29,9 @@ interface IngredientInputProps {
   onRemove: (index: number) => void;
 }
 
-export const IngredientInput = React.memo(function IngredientInput({ row, index, canRemove, onChange, onRemove }: IngredientInputProps) {
+export const IngredientInput = React.memo(function IngredientInput({
+  row, index, canRemove, onChange, onRemove,
+}: IngredientInputProps) {
   const [query, setQuery] = useState(row.ingredientName);
   const [results, setResults] = useState<IngredientSearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -67,9 +69,9 @@ export const IngredientInput = React.memo(function IngredientInput({ row, index,
   };
 
   return (
-    <div className="flex gap-2 items-start pb-3" ref={containerRef}>
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-start sm:gap-2" ref={containerRef}>
       {/* Ingredient search */}
-      <div className="relative flex-1 min-w-0">
+      <div className="relative min-h-0 w-full flex-1 sm:min-w-0">
         <Input
           placeholder="Search ingredient…"
           value={query}
@@ -77,7 +79,7 @@ export const IngredientInput = React.memo(function IngredientInput({ row, index,
             setQuery(e.target.value);
             onChange(index, { ...row, ingredientId: null, ingredientName: e.target.value });
           }}
-          className="text-sm"
+          className="mb-0 w-full text-sm"
           autoComplete="off"
         />
         {showDropdown && results.length > 0 && (
@@ -97,41 +99,43 @@ export const IngredientInput = React.memo(function IngredientInput({ row, index,
         )}
       </div>
 
-      {/* Quantity */}
-      <Input
-        type="number"
-        min="0"
-        step="any"
-        placeholder="Qty"
-        value={row.quantity}
-        onChange={(e) => onChange(index, { ...row, quantity: e.target.value })}
-        className="w-16 text-sm shrink-0"
-      />
+      <div className="flex w-full min-w-0 items-stretch gap-2 sm:w-auto sm:shrink-0 sm:items-start">
+        {/* Quantity */}
+        <Input
+          type="number"
+          min="0"
+          step="any"
+          placeholder="Qty"
+          value={row.quantity}
+          onChange={(e) => onChange(index, { ...row, quantity: e.target.value })}
+          className="mb-0 min-h-11 min-w-0 flex-1 text-sm sm:h-9 sm:min-h-0 sm:w-16 sm:flex-none"
+        />
 
-      {/* Unit select */}
-      <div className="relative shrink-0">
-        <select
-          value={row.unit}
-          onChange={(e) => onChange(index, { ...row, unit: e.target.value as IngredientUnit })}
-          className={cn(
-            'h-9 appearance-none rounded-md border border-input bg-background pl-2 pr-6 text-sm focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50'
-          )}
+        {/* Unit select */}
+        <div className="relative min-w-0 shrink-0 sm:min-w-0">
+          <select
+            value={row.unit}
+            onChange={(e) => onChange(index, { ...row, unit: e.target.value as IngredientUnit })}
+            className={cn(
+              'mb-0 h-11 w-full min-w-[5.5rem] appearance-none rounded-md border border-input bg-background pl-2 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50 sm:h-9 sm:min-w-0 sm:pr-6',
+            )}
+          >
+            {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+        </div>
+
+        {/* Remove */}
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          disabled={!canRemove}
+          className="min-h-11 min-w-11 shrink-0 touch-manipulation rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 sm:mt-1 sm:min-h-0 sm:min-w-0 sm:p-1.5 dark:hover:bg-red-950/20"
+          aria-label="Remove ingredient"
         >
-          {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+          <Trash2 className="mx-auto h-4 w-4 sm:mx-0" />
+        </button>
       </div>
-
-      {/* Remove */}
-      <button
-        type="button"
-        onClick={() => onRemove(index)}
-        disabled={!canRemove}
-        className="mt-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-950/20"
-        aria-label="Remove ingredient"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
     </div>
   );
 });

@@ -1,7 +1,7 @@
 // components/recipe/CreateRecipeModal.tsx
 // Recipe creation modal — submits to backend, uploads images via Supabase post-create.
 
-import { useReducer, useRef, useCallback, type ReactNode } from 'react';
+import { useReducer, useRef, useCallback, useState, Fragment, type ReactNode } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '../ui/dialog';
@@ -9,7 +9,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
-import { Plus, Trash2, ChefHat, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, ChefHat, ChevronDown, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { createRecipe, apiRecipeToRecipe, type CreateRecipePayload } from '../../api';
 import { useRecipes } from '../../hooks/useRecipes';
@@ -31,31 +31,75 @@ const CUISINE_OPTIONS = [
   'Chinese', 'Indian', 'Thai', 'Mediterranean', 'Korean',
 ];
 
-type MeasureType = 'grams' | 'cups' | 'tablespoons';
-
+/** All fields, helpers, errors, timeline add-row — one size with muted placeholders */
 const MODAL_FIELD_CLASS =
   'text-sm font-normal leading-normal text-foreground placeholder:text-muted-foreground';
 
+/** Dialog title + field labels — one size */
+const MODAL_SECTION_TITLE = 'text-base font-semibold';
+
+/** Step name row under circles */
+const MODAL_STEPPER = 'text-sm font-medium';
+/** Numbers inside step circles */
+const MODAL_STEPPER_NUM = 'text-sm font-semibold tabular-nums';
+
+/** Vertical rhythm — tighter on small screens for mobile */
+const WIZARD_STEP = 'flex flex-col gap-4 sm:gap-6';
+/** Label, control, helper, or error — same on all steps */
+const WIZARD_FIELD = 'space-y-2';
+/** ~10% under Tailwind max-w-4xl (56rem) */
+const DIALOG_MAX_WIDTH = 'max-w-[50.4rem] sm:max-w-[50.4rem]';
+
+/** Tight vertical rhythm; Add row is pulled up with -mt-1 on TimelineAddRow. */
+const TIMELINE_STACK = 'flex flex-col gap-1';
+
 const TIMELINE_CIRCLE =
-  'z-[1] flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/25 bg-background text-sm font-semibold tabular-nums text-foreground';
+  'z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/25 bg-background text-sm font-semibold tabular-nums text-foreground sm:h-9 sm:w-9';
 
 // ---------------------------------------------------------------------------
 // Shared timeline sub-components
 // ---------------------------------------------------------------------------
 
 function TimelineRow({
-  circle, showConnectorBelow, children, alignField = 'center',
+  circle, showConnectorBelow, children, alignField = 'center', contentClassName,
+  /**
+   * Last row before “Add …”: short fixed connector + rail doesn’t stretch to textarea height,
+   * so ingredients and instructions match visually.
+   */
+  stubConnectorBeforeAdd = false,
 }: {
   circle: ReactNode; showConnectorBelow: boolean;
   children: ReactNode; alignField?: 'center' | 'start';
+  contentClassName?: string;
+  stubConnectorBeforeAdd?: boolean;
 }) {
   return (
-    <div className="flex gap-3">
-      <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
+    <div className="flex gap-2 sm:gap-3">
+      <div
+        className={cn(
+          'flex w-8 shrink-0 flex-col items-center sm:w-9',
+          stubConnectorBeforeAdd ? 'self-start' : 'self-stretch',
+        )}
+      >
         <div className={TIMELINE_CIRCLE}>{circle}</div>
-        {showConnectorBelow && <div className="mt-1 w-px flex-1 min-h-3 bg-border" aria-hidden />}
+        {showConnectorBelow && (
+          stubConnectorBeforeAdd ? (
+            <div
+              className="mt-1 h-4 w-0.5 shrink-0 rounded-full bg-muted-foreground/40 dark:bg-muted-foreground/50"
+              aria-hidden
+            />
+          ) : (
+            <div className="mt-1 w-0.5 flex-1 min-h-3 rounded-full bg-muted-foreground/35 dark:bg-muted-foreground/45" aria-hidden />
+          )
+        )}
       </div>
-      <div className={cn('min-w-0 flex-1 flex gap-2 pb-4', alignField === 'center' ? 'items-center' : 'items-start')}>
+      <div
+        className={cn(
+          'min-w-0 flex-1 flex gap-2',
+          alignField === 'center' ? 'items-center' : 'items-start',
+          contentClassName,
+        )}
+      >
         {children}
       </div>
     </div>
@@ -65,13 +109,13 @@ function TimelineRow({
 function TimelineAddRow({ addLabel, onAdd }: { addLabel: string; onAdd: () => void }) {
   return (
     <button type="button" onClick={onAdd}
-      className="group flex w-full gap-3 rounded-md py-1 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#6ec257]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-      <span className="flex w-9 shrink-0 flex-col items-center">
+      className="group -mt-1 flex min-h-11 w-full touch-manipulation gap-2 rounded-md py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#6ec257]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-0 sm:gap-3 sm:py-1">
+      <span className="flex w-8 shrink-0 flex-col items-center justify-center sm:w-9">
         <span className={cn(TIMELINE_CIRCLE, 'border-dashed border-muted-foreground/35 bg-muted/40 font-normal text-muted-foreground transition-colors group-hover:border-[#6ec257]/40 group-hover:text-[#6ec257]')} aria-hidden>
           <Plus className="h-4 w-4" strokeWidth={2.5} />
         </span>
       </span>
-      <span className="flex min-w-0 flex-1 items-center py-2 text-sm font-normal text-muted-foreground transition-colors group-hover:text-[#6ec257]">
+      <span className="flex min-w-0 flex-1 items-center text-sm font-normal text-muted-foreground transition-colors group-hover:text-[#6ec257]">
         {addLabel}
       </span>
     </button>
@@ -86,7 +130,6 @@ interface FormState {
   title: string;
   description: string;
   cuisineType: string;
-  measureType: MeasureType;
   selectedTags: string[];
   ingredients: IngredientRow[];
   instructions: string[];
@@ -99,7 +142,6 @@ interface FormState {
 
 type FormAction =
   | { type: 'SET_FIELD'; field: keyof Pick<FormState, 'title' | 'description' | 'cuisineType'>; value: string }
-  | { type: 'SET_MEASURE_TYPE'; value: MeasureType }
   | { type: 'TOGGLE_TAG'; tag: string }
   | { type: 'SET_INGREDIENT'; index: number; row: IngredientRow }
   | { type: 'ADD_INGREDIENT' }
@@ -119,7 +161,7 @@ const DEFAULT_INGREDIENT: IngredientRow = {
 };
 
 const INITIAL_STATE: FormState = {
-  title: '', description: '', cuisineType: '', measureType: 'grams',
+  title: '', description: '', cuisineType: '',
   selectedTags: [], ingredients: [{ ...DEFAULT_INGREDIENT }],
   instructions: [''], imagePreviews: [null, null, null],
   uploadingIndex: null, errors: {}, isSubmitting: false,
@@ -128,7 +170,6 @@ const INITIAL_STATE: FormState = {
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case 'SET_FIELD': return { ...state, [action.field]: action.value };
-    case 'SET_MEASURE_TYPE': return { ...state, measureType: action.value };
     case 'TOGGLE_TAG': return {
       ...state,
       selectedTags: state.selectedTags.includes(action.tag)
@@ -175,15 +216,33 @@ function formReducer(state: FormState, action: FormAction): FormState {
 // Validation
 // ---------------------------------------------------------------------------
 
-function validate(state: FormState): Record<string, string> {
+function validateBasics(state: FormState): Record<string, string> {
   const errs: Record<string, string> = {};
   if (!state.title.trim()) errs.title = 'Title is required';
   if (!state.description.trim()) errs.description = 'Description is required';
+  return errs;
+}
+
+function validateIngredientsOnly(state: FormState): Record<string, string> {
+  const errs: Record<string, string> = {};
   const validIngredients = state.ingredients.filter((i) => i.ingredientId !== null && i.quantity.trim());
   if (validIngredients.length === 0) errs.ingredients = 'Add at least one ingredient with a quantity';
+  return errs;
+}
+
+function validateInstructionsOnly(state: FormState): Record<string, string> {
+  const errs: Record<string, string> = {};
   const validInstructions = state.instructions.filter((s) => s.trim());
   if (validInstructions.length === 0) errs.instructions = 'Add at least one instruction';
   return errs;
+}
+
+function validateForSubmit(state: FormState): Record<string, string> {
+  return {
+    ...validateBasics(state),
+    ...validateIngredientsOnly(state),
+    ...validateInstructionsOnly(state),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -195,8 +254,18 @@ interface CreateRecipeModalProps {
   onClose: () => void;
 }
 
+const STEPS = [
+  { id: 1 as const, label: 'Basics' },
+  { id: 2 as const, label: 'Ingredients' },
+  { id: 3 as const, label: 'Instructions' },
+  { id: 4 as const, label: 'Photos' },
+] as const;
+
+const STEP_LABEL_COL = ['col-start-1', 'col-start-3', 'col-start-5', 'col-start-7'] as const;
+
 export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
   const [state, dispatch] = useReducer(formReducer, INITIAL_STATE);
+  const [step, setStep] = useState(1);
   const { addRecipe } = useRecipes();
   const { uploadRecipeImage, state: uploadState } = useSupabaseUpload();
 
@@ -214,6 +283,7 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
     revokeObjectUrls();
     stagedFiles.current = [null, null, null];
     dispatch({ type: 'RESET' });
+    setStep(1);
     onClose();
   }, [onClose, revokeObjectUrls]);
 
@@ -238,10 +308,49 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
     dispatch({ type: 'REMOVE_IMAGE', index });
   }, []);
 
+  const goNext = () => {
+    if (step === 1) {
+      const errs = validateBasics(state);
+      if (Object.keys(errs).length > 0) {
+        dispatch({ type: 'SET_ERRORS', errors: errs });
+        return;
+      }
+      dispatch({ type: 'SET_ERRORS', errors: {} });
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      const errs = validateIngredientsOnly(state);
+      if (Object.keys(errs).length > 0) {
+        dispatch({ type: 'SET_ERRORS', errors: errs });
+        return;
+      }
+      dispatch({ type: 'SET_ERRORS', errors: {} });
+      setStep(3);
+      return;
+    }
+    if (step === 3) {
+      const errs = validateInstructionsOnly(state);
+      if (Object.keys(errs).length > 0) {
+        dispatch({ type: 'SET_ERRORS', errors: errs });
+        return;
+      }
+      dispatch({ type: 'SET_ERRORS', errors: {} });
+      setStep(4);
+    }
+  };
+
+  const goBack = () => {
+    if (step > 1) setStep((s) => s - 1);
+  };
+
   const handleSubmit = async () => {
-    const errs = validate(state);
+    const errs = validateForSubmit(state);
     if (Object.keys(errs).length > 0) {
       dispatch({ type: 'SET_ERRORS', errors: errs });
+      if (errs.title || errs.description) setStep(1);
+      else if (errs.ingredients) setStep(2);
+      else if (errs.instructions) setStep(3);
       return;
     }
     dispatch({ type: 'SET_SUBMITTING', value: true });
@@ -253,7 +362,7 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
         description: state.description.trim(),
         cuisine_type: state.cuisineType,
         dietary_tags: state.selectedTags,
-        measure_type: state.measureType,
+        measure_type: 'grams',
         ingredients: state.ingredients
           .filter((i) => i.ingredientId !== null && i.quantity.trim())
           .map((i) => ({ ingredient: i.ingredientId as number, quantity: parseFloat(i.quantity), unit: i.unit as string })),
@@ -287,150 +396,247 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <ChefHat className="h-5 w-5 text-[#6ec257]" />
+      <DialogContent
+        className={cn(
+          DIALOG_MAX_WIDTH,
+          'flex max-h-[min(92dvh,92vh)] w-[calc(100vw-1rem)] max-w-[min(calc(100vw-1rem),50.4rem)] flex-col overflow-hidden rounded-xl border p-0 shadow-lg',
+          'gap-0 sm:max-h-[90vh] sm:gap-5 sm:rounded-lg sm:p-6',
+        )}
+      >
+        <DialogHeader className="shrink-0 space-y-2 border-b border-border/60 px-4 pb-3 pr-12 pt-4 text-center sm:border-0 sm:px-0 sm:pb-0 sm:pr-10 sm:pt-0 sm:text-center">
+          <DialogTitle className={cn('flex items-center justify-center gap-2', MODAL_SECTION_TITLE)}>
+            <ChefHat className="h-5 w-5 shrink-0 text-[#6ec257]" />
             Create a Recipe
           </DialogTitle>
+          <div className="-mx-1 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] sm:mx-0 sm:overflow-visible">
+            <nav
+              aria-label="Recipe creation steps"
+              className="mx-auto grid w-max min-w-[min(100%,18.75rem)] grid-cols-[2rem_minmax(0.35rem,1fr)_2rem_minmax(0.35rem,1fr)_2rem_minmax(0.35rem,1fr)_2rem] items-center gap-x-0.5 gap-y-0.5 px-1 sm:w-full sm:min-w-0 sm:max-w-xl sm:grid-cols-[2.25rem_minmax(0.5rem,1fr)_2.25rem_minmax(0.5rem,1fr)_2.25rem_minmax(0.5rem,1fr)_2.25rem] sm:gap-x-1 sm:gap-y-1 sm:px-0"
+            >
+            {STEPS.map((s, i) => {
+              const done = step > s.id;
+              const active = step === s.id;
+              return (
+                <Fragment key={s.id}>
+                  <div className="flex justify-center">
+                    <div
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 tabular-nums transition-colors sm:h-7 sm:w-7',
+                        MODAL_STEPPER_NUM,
+                        done && 'border-[#6ec257] bg-[#6ec257] text-white',
+                        active && !done && 'border-[#6ec257] bg-background text-[#6ec257]',
+                        !active && !done && 'border-muted-foreground/25 bg-background text-muted-foreground',
+                      )}
+                    >
+                      {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden /> : s.id}
+                    </div>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className="flex min-h-7 items-center" aria-hidden>
+                      <div
+                        className={cn(
+                          'h-0.5 w-full rounded-full transition-colors',
+                          step > i + 1
+                            ? 'bg-[#6ec257]'
+                            : 'bg-muted-foreground/45 dark:bg-muted-foreground/55',
+                        )}
+                      />
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
+            {STEPS.map((s, i) => {
+              const active = step === s.id;
+              return (
+                <span
+                  key={`label-${s.id}`}
+                  className={cn(
+                    'row-start-2 max-w-[5.5rem] justify-self-center text-center leading-tight sm:max-w-none',
+                    MODAL_STEPPER,
+                    STEP_LABEL_COL[i],
+                    active ? 'text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {s.label}
+                </span>
+              );
+            })}
+            </nav>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-5 py-1">
+        <div className={cn(WIZARD_STEP, 'min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-3 pb-8 sm:px-0 sm:py-0.5 sm:pb-0')}>
           {state.errors.submit && (
-            <p className="text-sm text-red-500 rounded-md bg-red-50 dark:bg-red-950/20 px-3 py-2">
+            <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
               {state.errors.submit}
             </p>
           )}
 
-          {/* Title */}
-          <div className="space-y-1.5">
-            <Label htmlFor="recipe-title">Recipe Title <span className="text-red-500">*</span></Label>
-            <Input id="recipe-title" placeholder="e.g. Creamy Garlic Pasta"
-              value={state.title}
-              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'title', value: e.target.value })}
-              className={cn(MODAL_FIELD_CLASS, state.errors.title && 'border-red-400')} />
-            {state.errors.title && <p className="text-sm text-red-500">{state.errors.title}</p>}
-          </div>
+          {step === 1 && (
+            <div className={WIZARD_STEP}>
+              <div className={WIZARD_FIELD}>
+                <Label htmlFor="recipe-title" className={MODAL_SECTION_TITLE}>Recipe Title <span className="text-red-500">*</span></Label>
+                <Input id="recipe-title" placeholder="e.g. Creamy Garlic Pasta"
+                  value={state.title}
+                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'title', value: e.target.value })}
+                  className={cn(MODAL_FIELD_CLASS, state.errors.title && 'border-red-400')} />
+                {state.errors.title && <p className="text-sm text-red-600 dark:text-red-400">{state.errors.title}</p>}
+              </div>
 
-          {/* Description */}
-          <div className="space-y-1.5">
-            <Label htmlFor="recipe-description">Description <span className="text-red-500">*</span></Label>
-            <textarea id="recipe-description" placeholder="A short description of your recipe…"
-              value={state.description}
-              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'description', value: e.target.value })}
-              rows={3}
-              className={cn(MODAL_FIELD_CLASS, 'w-full rounded-md border px-3 py-2 bg-background resize-none focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50 transition-colors', state.errors.description ? 'border-red-400' : 'border-input')} />
-            {state.errors.description && <p className="text-sm text-red-500">{state.errors.description}</p>}
-          </div>
+              <div className={WIZARD_FIELD}>
+                <Label htmlFor="recipe-description" className={MODAL_SECTION_TITLE}>Description <span className="text-red-500">*</span></Label>
+                <textarea id="recipe-description" placeholder="A short description of your recipe…"
+                  value={state.description}
+                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'description', value: e.target.value })}
+                  rows={3}
+                  className={cn(MODAL_FIELD_CLASS, 'w-full rounded-md border bg-background px-3 py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50 resize-none', state.errors.description ? 'border-red-400' : 'border-input')} />
+                {state.errors.description && <p className="text-sm text-red-600 dark:text-red-400">{state.errors.description}</p>}
+              </div>
 
-          {/* Cuisine + Measure type */}
-          <div className="flex gap-3">
-            <div className="flex-1 space-y-1.5">
-              <Label htmlFor="cuisine-type">Cuisine Type</Label>
-              <div className="relative">
-                <select id="cuisine-type" value={state.cuisineType}
-                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'cuisineType', value: e.target.value })}
-                  className="h-9 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50">
-                  <option value="">— Select —</option>
-                  {CUISINE_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <div className={WIZARD_FIELD}>
+                <Label htmlFor="cuisine-type" className={MODAL_SECTION_TITLE}>Cuisine Type</Label>
+                <div className="relative w-full max-w-md">
+                  <select id="cuisine-type" value={state.cuisineType}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'cuisineType', value: e.target.value })}
+                    className={cn(
+                      MODAL_FIELD_CLASS,
+                      'h-9 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50',
+                    )}
+                  >
+                    <option value="">— Select —</option>
+                    {CUISINE_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
+
+              <div className={WIZARD_FIELD}>
+                <Label className={MODAL_SECTION_TITLE}>Dietary Tags</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DIETARY_TAG_OPTIONS.map((tag) => {
+                    const active = state.selectedTags.includes(tag);
+                    return (
+                      <button key={tag} type="button" onClick={() => dispatch({ type: 'TOGGLE_TAG', tag })} className="focus:outline-none">
+                        <Badge variant={active ? 'default' : 'outline'}
+                          className={cn('cursor-pointer text-sm transition-all', active ? 'border-[#6ec257] bg-[#6ec257] text-white hover:bg-[#5aad44]' : 'hover:border-[#6ec257]/60 hover:text-[#6ec257]')}>
+                          {tag}
+                        </Badge>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-            <div className="flex-1 space-y-1.5">
-              <Label htmlFor="measure-type">Measure Type</Label>
-              <div className="relative">
-                <select id="measure-type" value={state.measureType}
-                  onChange={(e) => dispatch({ type: 'SET_MEASURE_TYPE', value: e.target.value as MeasureType })}
-                  className="h-9 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50">
-                  <option value="grams">Grams</option>
-                  <option value="cups">Cups</option>
-                  <option value="tablespoons">Tablespoons</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          )}
+
+          {step === 2 && (
+            <section className="flex flex-col gap-2">
+              <div className={WIZARD_FIELD}>
+                <Label className={MODAL_SECTION_TITLE}>Ingredients <span className="text-red-500">*</span></Label>
+                {state.errors.ingredients && <p className="text-sm text-red-600 dark:text-red-400">{state.errors.ingredients}</p>}
               </div>
-            </div>
-          </div>
+              <div className={cn(TIMELINE_STACK, '[&_input]:mb-0 [&_textarea]:mb-0 [&_select]:mb-0')}>
+                {state.ingredients.map((row, index) => (
+                  <TimelineRow
+                    key={index}
+                    circle={index + 1}
+                    showConnectorBelow
+                    alignField="start"
+                    stubConnectorBeforeAdd={index === state.ingredients.length - 1}
+                  >
+                    <IngredientInput row={row} index={index}
+                      canRemove={state.ingredients.length > 1}
+                      onChange={(i, r) => dispatch({ type: 'SET_INGREDIENT', index: i, row: r })}
+                      onRemove={(i) => dispatch({ type: 'REMOVE_INGREDIENT', index: i })} />
+                  </TimelineRow>
+                ))}
+                <TimelineAddRow addLabel="Add ingredient" onAdd={() => dispatch({ type: 'ADD_INGREDIENT' })} />
+              </div>
+            </section>
+          )}
 
-          {/* Dietary Tags */}
-          <div className="space-y-2">
-            <Label>Dietary Tags</Label>
-            <div className="flex flex-wrap gap-2">
-              {DIETARY_TAG_OPTIONS.map((tag) => {
-                const active = state.selectedTags.includes(tag);
-                return (
-                  <button key={tag} type="button" onClick={() => dispatch({ type: 'TOGGLE_TAG', tag })} className="focus:outline-none">
-                    <Badge variant={active ? 'default' : 'outline'}
-                      className={cn('cursor-pointer text-sm transition-all', active ? 'border-[#6ec257] bg-[#6ec257] text-white hover:bg-[#5aad44]' : 'hover:border-[#6ec257]/60 hover:text-[#6ec257]')}>
-                      {tag}
-                    </Badge>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {step === 3 && (
+            <section className="flex flex-col gap-2">
+              <div className={WIZARD_FIELD}>
+                <Label className={MODAL_SECTION_TITLE}>Instructions <span className="text-red-500">*</span></Label>
+                {state.errors.instructions && <p className="text-sm text-red-600 dark:text-red-400">{state.errors.instructions}</p>}
+              </div>
+              <div className={cn(TIMELINE_STACK, '[&_input]:mb-0 [&_textarea]:mb-0 [&_select]:mb-0')}>
+                {state.instructions.map((instructionStep, index) => (
+                  <TimelineRow
+                    key={index}
+                    circle={index + 1}
+                    showConnectorBelow
+                    alignField="start"
+                    stubConnectorBeforeAdd={index === state.instructions.length - 1}
+                  >
+                    <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
+                      <textarea placeholder={`Step ${index + 1}`} value={instructionStep}
+                        onChange={(e) => dispatch({ type: 'SET_INSTRUCTION', index, value: e.target.value })}
+                        rows={3}
+                        className={cn(
+                          MODAL_FIELD_CLASS,
+                          'mb-0 block min-h-[5.5rem] w-full min-w-0 flex-1 resize-y rounded-lg border border-input bg-background px-3 py-2 leading-snug transition-colors focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50 sm:min-h-[3.25rem]',
+                        )}
+                      />
+                      <button type="button" onClick={() => dispatch({ type: 'REMOVE_INSTRUCTION', index })}
+                        disabled={state.instructions.length === 1}
+                        className="min-h-11 shrink-0 touch-manipulation self-end rounded-md px-2 py-2 text-muted-foreground hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 sm:mt-1 sm:min-h-0 sm:self-start sm:p-1.5 dark:hover:bg-red-950/20"
+                        aria-label="Remove step">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </TimelineRow>
+                ))}
+                <TimelineAddRow addLabel="Add step" onAdd={() => dispatch({ type: 'ADD_INSTRUCTION' })} />
+              </div>
+            </section>
+          )}
 
-          {/* Images — staged locally, uploaded post-submit */}
-          <div className="space-y-1.5">
-            <Label>Photos <span className="text-sm font-normal text-muted-foreground">(optional, up to 3)</span></Label>
-            <ImageUploadGrid
-              images={state.imagePreviews}
-              onUpload={handleImageStage}
-              onRemove={handleRemoveImage}
-              uploadingIndex={state.uploadingIndex}
-              disabled={isBusy}
-              error={uploadState.error}
-            />
-          </div>
-
-          {/* Ingredients */}
-          <div className="space-y-2">
-            <Label>Ingredients <span className="text-red-500">*</span></Label>
-            {state.errors.ingredients && <p className="text-sm text-red-500">{state.errors.ingredients}</p>}
-            <div>
-              {state.ingredients.map((row, index) => (
-                <TimelineRow key={index} circle={index + 1} showConnectorBelow alignField="start">
-                  <IngredientInput row={row} index={index}
-                    canRemove={state.ingredients.length > 1}
-                    onChange={(i, r) => dispatch({ type: 'SET_INGREDIENT', index: i, row: r })}
-                    onRemove={(i) => dispatch({ type: 'REMOVE_INGREDIENT', index: i })} />
-                </TimelineRow>
-              ))}
-              <TimelineAddRow addLabel="Add ingredient" onAdd={() => dispatch({ type: 'ADD_INGREDIENT' })} />
+          {step === 4 && (
+            <div className={WIZARD_FIELD}>
+              <Label className={MODAL_SECTION_TITLE}>
+                Photos
+                <span className="ml-1.5 font-normal text-muted-foreground">(optional, up to 3)</span>
+              </Label>
+              <p className={cn(MODAL_FIELD_CLASS, 'leading-relaxed text-muted-foreground')}>
+                Add up to three images. You can finish without photos.
+              </p>
+              <ImageUploadGrid
+                images={state.imagePreviews}
+                onUpload={handleImageStage}
+                onRemove={handleRemoveImage}
+                uploadingIndex={state.uploadingIndex}
+                disabled={isBusy}
+                error={uploadState.error}
+              />
             </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="space-y-2">
-            <Label>Instructions <span className="text-red-500">*</span></Label>
-            {state.errors.instructions && <p className="text-sm text-red-500">{state.errors.instructions}</p>}
-            <div>
-              {state.instructions.map((step, index) => (
-                <TimelineRow key={index} circle={index + 1} showConnectorBelow alignField="start">
-                  <textarea placeholder={`Step ${index + 1}`} value={step}
-                    onChange={(e) => dispatch({ type: 'SET_INSTRUCTION', index, value: e.target.value })}
-                    rows={2}
-                    className={cn(MODAL_FIELD_CLASS, 'min-h-[72px] flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#6ec257]/50')} />
-                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_INSTRUCTION', index })}
-                    disabled={state.instructions.length === 1}
-                    className="mt-1 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-950/20"
-                    aria-label="Remove step">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </TimelineRow>
-              ))}
-              <TimelineAddRow addLabel="Add step" onAdd={() => dispatch({ type: 'ADD_INSTRUCTION' })} />
-            </div>
-          </div>
+          )}
         </div>
 
-        <DialogFooter className="mt-2">
-          <Button variant="outline" onClick={handleClose} disabled={isBusy}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={isBusy}
-            className="bg-[#6ec257] hover:bg-[#5aad44] text-white gap-2">
-            <ChefHat className="h-4 w-4" />
-            {state.isSubmitting ? 'Saving…' : 'Save Recipe'}
-          </Button>
+        <DialogFooter className="mt-0 w-full shrink-0 flex-col gap-2 border-t border-border bg-background px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-0 sm:pb-0 sm:pt-5">
+          {step > 1 && (
+            <div className="flex w-full sm:w-auto">
+              <Button type="button" variant="secondary" className="min-h-11 w-full touch-manipulation sm:min-h-9 sm:w-auto" onClick={goBack} disabled={isBusy}>
+                Back
+              </Button>
+            </div>
+          )}
+          <div className="flex w-full gap-2 sm:ml-auto sm:w-auto">
+            {step < 4 ? (
+              <Button type="button" onClick={goNext} disabled={isBusy}
+                className="min-h-11 w-full touch-manipulation bg-[#6ec257] hover:bg-[#5aad44] text-white sm:min-h-9 sm:w-auto">
+                Next
+              </Button>
+            ) : (
+              <Button type="button" onClick={handleSubmit} disabled={isBusy}
+                className="min-h-11 w-full touch-manipulation gap-2 bg-[#6ec257] hover:bg-[#5aad44] text-white sm:min-h-9 sm:w-auto">
+                <ChefHat className="h-4 w-4" />
+                {state.isSubmitting ? 'Saving…' : 'Save Recipe'}
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

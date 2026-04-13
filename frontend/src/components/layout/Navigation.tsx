@@ -32,8 +32,8 @@ export const Navigation = memo(function Navigation() {
   };
 
   return (
-    <nav className="sticky top-[26px] sm:top-[38px] z-30 bg-white/60 dark:bg-gray-900 backdrop-blur-sm border-b border-[#6ec257]/20 dark:border-gray-800 shadow-sm -mt-[1px]">
-      <div className="mx-auto w-full max-w-full px-4 py-0.5 sm:max-w-page-sm md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
+    <nav className="relative border-b border-[#6ec257]/20 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="mx-auto w-full max-w-full px-3 py-0 sm:max-w-page-sm sm:px-4 sm:py-1 md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center justify-between">
           <div className="flex space-x-1">
@@ -44,67 +44,67 @@ export const Navigation = memo(function Navigation() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    `flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors ${
                       isActive
                         ? 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 text-[#3b752b] dark:text-gray-200'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`
                   }
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </NavLink>
               );
             })}
           </div>
           
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="h-7 w-7"
+              className="h-8 w-8"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? (
-                <Moon className="h-3.5 w-3.5" />
+                <Moon className="h-4 w-4" />
               ) : (
-                <Sun className="h-3.5 w-3.5" />
+                <Sun className="h-4 w-4" />
               )}
             </Button>
             
             <NavLink
               to="/account"
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                `flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
                     ? 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 text-[#3b752b] dark:text-gray-200'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`
               }
             >
-              <User className="h-3.5 w-3.5" />
+              <User className="h-4 w-4" />
               Account
             </NavLink>
             
             <NavLink
               to="/"
               onClick={handleSignOut}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-4 w-4" />
               Sign Out
             </NavLink>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden flex items-center justify-between py-1">
+        <div className="flex items-center justify-between py-1 md:hidden">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="h-7 w-7"
+            className="h-7 w-7 shrink-0"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
@@ -113,13 +113,13 @@ export const Navigation = memo(function Navigation() {
               <Menu className="h-3.5 w-3.5" />
             )}
           </Button>
-          
-          <div className="flex items-center gap-1.5">
+
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="h-7 w-7"
+              className="h-7 w-7 shrink-0"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? (
@@ -128,13 +128,13 @@ export const Navigation = memo(function Navigation() {
                 <Sun className="h-3.5 w-3.5" />
               )}
             </Button>
-            
+
             <NavLink
               to="/account"
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                `flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 text-[#3b752b] dark:text-gray-200'
+                    ? 'bg-[#6ec257]/20 text-[#3b752b] dark:bg-[#6ec257]/30 dark:text-gray-200'
                     : 'text-gray-600 dark:text-gray-400'
                 }`
               }
@@ -146,7 +146,7 @@ export const Navigation = memo(function Navigation() {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden pb-2 space-y-1">
+          <div className="space-y-0.5 pb-2 md:hidden">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -155,14 +155,14 @@ export const Navigation = memo(function Navigation() {
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                       isActive
                         ? 'bg-[#6ec257]/20 dark:bg-[#6ec257]/30 text-[#3b752b] dark:text-gray-200'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`
                   }
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </NavLink>
               );
@@ -173,9 +173,9 @@ export const Navigation = memo(function Navigation() {
                 setIsMobileMenuOpen(false);
                 handleSignOut(e);
               }}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors mt-2"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors mt-2"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-4 w-4" />
               Sign Out
             </NavLink>
           </div>

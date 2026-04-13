@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/ui/ImageWithFallback';
 import { ChevronLeft, ChevronRight, BookOpen, GripVertical, Trash2, X, Loader2 } from 'lucide-react';
 import type { Recipe } from '../types/recipe';
+import { IngredientListItem } from '../components/recipe/IngredientListItem';
 import {
   useState,
   useMemo,
@@ -756,11 +757,11 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
           <p className="mb-1 text-xs font-semibold text-gray-800 dark:text-gray-200">
             Ingredients
           </p>
-          <ul className="list-inside list-disc columns-2 gap-x-3 space-y-0.5 text-xs text-muted-foreground">
+          <ul className="list-none columns-2 gap-x-3 space-y-1 text-muted-foreground">
             {recipe.ingredients.map((ing, i) => (
-              <li key={i} className="break-inside-avoid">
+              <IngredientListItem key={i} variant="compact">
                 {ing}
-              </li>
+              </IngredientListItem>
             ))}
           </ul>
         </div>
@@ -768,7 +769,7 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
           <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">
             Instructions
           </p>
-          <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+          <ol className="list-decimal list-inside space-y-1 text-[11px] leading-snug text-muted-foreground">
             {recipe.instructions.map((step, i) => (
               <li key={i}>{step}</li>
             ))}
