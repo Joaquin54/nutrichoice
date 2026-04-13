@@ -3,8 +3,6 @@ psycopg2-binary
 pyright
 djangorestframework
 django-stubs
-mongoengine
-django-rest-framework-mongoengine
 blinker
 django-cors-headers
 python-dotenv
