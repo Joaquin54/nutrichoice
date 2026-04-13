@@ -8,6 +8,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
+        mono: ['Roboto Mono', 'monospace'],
         carattere: ['"Carattere"', 'cursive'],
       },
       // Page chrome max-width: default Tailwind `container` tops out at 768px until the lg
