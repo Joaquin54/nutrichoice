@@ -18,7 +18,14 @@ from typing import Any
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db import transaction
 
+from recipes.management.commands.seed_official_data import RECIPE_DATA
 from recipes.models import Recipe, RecipeInstruction
+
+
+# Build a name → prep_time lookup from the canonical seed data.
+_PREP_TIME_BY_NAME: dict[str, int] = {
+    row["name"]: row["prep_time"] for row in RECIPE_DATA
+}
 
 
 STEP_RE = re.compile(r"^\s*(\d+)\.\s+(.+?)\s*$", re.MULTILINE)
@@ -144,12 +151,16 @@ class Command(BaseCommand):
                 else:
                     recipes_inserted += 1
 
+                prep_time: int | None = _PREP_TIME_BY_NAME.get(name)
                 RecipeInstruction.objects.bulk_create([
                     RecipeInstruction(
                         recipe=recipe,
                         step_number=step_number,
                         text=text,
-                        # estimated_cooktime intentionally left NULL
+                        # Set estimated_cooktime on step 1 only; all other steps remain NULL.
+                        estimated_cooktime=(
+                            prep_time if step_number == 1 else None
+                        ),
                     )
                     for step_number, text in steps
                 ])
