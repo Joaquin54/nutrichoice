@@ -63,17 +63,17 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
         </p>
         <div className="space-y-2">
           <label className="text-sm font-medium">Dietary Restrictions</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-4 grid-rows-2 gap-x-2 gap-y-2 sm:gap-x-3">
             {dietaryOptions.map(({ key, label }) => (
-              <label key={key} className={`flex items-center space-x-2 ${isReadOnly ? 'cursor-default opacity-75' : 'cursor-pointer'}`}>
+              <label key={key} className={`flex min-w-0 items-center gap-1.5 sm:gap-2 ${isReadOnly ? 'cursor-default opacity-75' : 'cursor-pointer'}`}>
                 <input 
                   type="checkbox" 
-                  className="rounded" 
+                  className="shrink-0 rounded" 
                   checked={localPreferences[key]}
                   onChange={(e) => handlePreferenceChange(key, e.target.checked)}
                   disabled={isReadOnly}
                 />
-                <span className="text-sm">{label}</span>
+                <span className="text-xs leading-tight sm:text-sm">{label}</span>
               </label>
             ))}
           </div>
