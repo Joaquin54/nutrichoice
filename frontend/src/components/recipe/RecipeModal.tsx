@@ -187,7 +187,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
             <AccordionItem value="ingredients">
               <AccordionTrigger>Ingredients</AccordionTrigger>
               <AccordionContent>
-                <ul className="list-none space-y-2.5">
+                <ul className="list-none grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2.5">
                   {recipe.ingredients.map((ingredient, index) => (
                     <IngredientListItem key={index} variant="default">
                       {ingredient}
@@ -206,7 +206,7 @@ export function RecipeModal({ recipe, isOpen, onClose }: RecipeModalProps) {
                       <span className="bg-[#6ec257] text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                         {index + 1}
                       </span>
-                      <span>{instruction}</span>
+                      <span className="text-sm leading-relaxed">{instruction}</span>
                     </li>
                   ))}
                 </ol>

@@ -10,7 +10,7 @@ const variants: Record<
   compact: {
     row: 'flex items-start gap-1.5 break-inside-avoid',
     leaf: 'mt-px h-3 w-3 shrink-0 text-[#6ec257] dark:text-[#6ec257]/90',
-    text: 'min-w-0 text-[13px] leading-snug text-muted-foreground',
+    text: 'min-w-0 text-[13px] xl:text-sm 2xl:text-base leading-snug text-muted-foreground',
   },
   default: {
     row: 'flex items-start gap-2.5',
