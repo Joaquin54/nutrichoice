@@ -706,6 +706,38 @@ export async function getRecipeFeed(page: number = 1): Promise<RecipeFeedPage> {
 }
 
 // ---------------------------------------------------------------------------
+// Recipe Lookup (infinite scroll with diet + allergy filtering)
+// ---------------------------------------------------------------------------
+
+export async function getRecipeLookup(params: {
+  page: number;
+  search: string;
+  seed: string;
+  dietOverride: import('./types/recipe').DietaryFilter | null;
+}): Promise<RecipeFeedPage> {
+  const url = new URL(`${API_BASE}/api/recipe-lookup/`);
+  url.searchParams.set('page', String(params.page));
+  url.searchParams.set('seed', params.seed);
+  if (params.search) url.searchParams.set('search', params.search);
+  if (params.dietOverride !== null) {
+    const activeTags = (
+      Object.entries(params.dietOverride) as [string, boolean][]
+    )
+      .filter(([, v]) => v)
+      .map(([k]) => k);
+    if (activeTags.length === 0) {
+      // Explicit "no filter" — presence of the key with empty value signals override
+      url.searchParams.set('diets', '');
+    } else {
+      activeTags.forEach((tag) => url.searchParams.append('diets', tag));
+    }
+  }
+  const r = await authenticatedFetch(url.toString());
+  if (!r.ok) throw new Error('Failed to load recipes');
+  return r.json() as Promise<RecipeFeedPage>;
+}
+
+// ---------------------------------------------------------------------------
 // Storage — signed URL + save URL
 // ---------------------------------------------------------------------------
 

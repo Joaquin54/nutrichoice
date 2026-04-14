@@ -1,39 +1,82 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ChefHat, Loader2 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { RecipeCard } from "../components/recipe/RecipeCard";
 import { RecipeModal } from "../components/recipe/RecipeModal";
 import { HeroSection } from "../components/common/HeroSection";
 import { useUserPreferences } from "../hooks/useUserPreferences";
-import { useRecipeSearch } from "../hooks/useRecipeSearch";
+import { useRecipeLookup } from "../hooks/useRecipeLookup";
 import { useRecipeActions } from "../hooks/useRecipeActions";
 import type { Recipe, DietaryFilter } from "../types/recipe";
 import { getRecipe } from "../api";
 
+/**
+ * Shallow-equality check for a DietaryFilter object (fixed set of boolean keys).
+ * Avoids adding a dependency on lodash for this narrow use case.
+ */
+function dietaryFilterEqual(a: DietaryFilter, b: DietaryFilter): boolean {
+  const keys = Object.keys(a) as Array<keyof DietaryFilter>;
+  return keys.every((k) => a[k] === b[k]);
+}
+
 export function HomePage() {
   const { dietaryPreferences } = useUserPreferences();
   const { isFavorite, toggleFavorite } = useRecipeActions();
+
+  // Local session-level filter state — seeded from the user's profile but
+  // NEVER written back to it (F2b). Changes here are override-only.
   const [filters, setFilters] = useState<DietaryFilter>(dietaryPreferences);
 
-  // Sync filters with user preferences when they change
+  // Track whether profilePrefs have been initialised so we sync only on first load.
+  const profileSyncedRef = useRef(false);
   useEffect(() => {
-    setFilters(dietaryPreferences);
+    if (!profileSyncedRef.current) {
+      setFilters(dietaryPreferences);
+      profileSyncedRef.current = true;
+    }
   }, [dietaryPreferences]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Text search is server-side via useRecipeSearch (debounced).
-  // On empty query the hook returns the full pre-loaded recipe list from context.
-  const { recipes, isLoading } = useRecipeSearch(searchQuery);
+  // Compute dietOverride:
+  //   - null  → use the user's profile prefs server-side (no ?diets= param)
+  //   - object → send as ?diets= params (session override, never persisted)
+  const isDirty = !dietaryFilterEqual(filters, dietaryPreferences);
+  const dietOverride: DietaryFilter | null = isDirty ? filters : null;
 
-  // Memoize the handleViewRecipe function to prevent unnecessary re-renders
+  const { recipes, isLoading, isLoadingMore, hasMore, loadMore, totalCount } =
+    useRecipeLookup({ search: searchQuery, dietOverride });
+
+  // IntersectionObserver sentinel for infinite scroll.
+  // Uses viewport as root (no `root:` option) since HomePage has no scroll container.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef(loadMore);
+  loadMoreRef.current = loadMore;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreRef.current();
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px 300px 0px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []); // observer is created once; loadMoreRef keeps the callback current
+
   const handleViewRecipe = useCallback(async (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
 
-    // Recipe list/search responses are lightweight and omit nested details.
+    // Recipe list responses are lightweight and omit nested details.
     // Fetch full detail so the modal can always render ingredients/instructions.
     const recipeId = Number(recipe.id);
     if (!Number.isFinite(recipeId)) return;
@@ -54,40 +97,10 @@ export function HomePage() {
   }, []);
 
   const handleFiltersChange = useCallback((newFilters: DietaryFilter) => {
+    // Update local state only — do NOT call updateDietaryPreferences (F2b).
     setFilters(newFilters);
   }, []);
 
-  // Dietary tag filtering remains client-side — the recipes endpoint has no
-  // dietary filter query param. Text search is already handled server-side.
-  const filteredRecipes = useMemo(() => {
-    const activeDietaryFilters = Object.entries(filters).filter(([, value]) => value);
-    if (activeDietaryFilters.length === 0) return recipes;
-
-    return recipes.filter((recipe) => {
-      // Maps each snake_case preference key to the substring that must appear in
-      // at least one of the recipe's dietary_tags entries.
-      // Tags in seed data may be compound e.g. "Vegetarian, Lunch" or "Keto, Dinner",
-      // so we use includes() (substring) rather than exact equality.
-      const filterMap: Record<string, string> = {
-        vegetarian: 'Vegetarian',
-        vegan: 'Vegan',
-        gluten_free: 'Gluten-Free',
-        dairy_free: 'Dairy-Free',
-        nut_free: 'Nut-Free',
-        keto: 'Keto',
-        paleo: 'Paleo',
-        low_carb: 'Low Carb',
-      };
-
-      return activeDietaryFilters.every(([filterKey]) => {
-        const requiredSubstring = filterMap[filterKey];
-        if (!requiredSubstring) return true;
-        return recipe.dietary_tags.some((tag) => tag.includes(requiredSubstring));
-      });
-    });
-  }, [recipes, filters]);
-
-  // Simple calculation - memo overhead > benefit
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   return (
@@ -108,14 +121,13 @@ export function HomePage() {
             {activeFilterCount > 0 && (
               <span className="hidden sm:inline text-gray-500 dark:text-gray-400 font-normal">
                 {" "}
-                • {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}{" "}
+                &bull; {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}{" "}
                 applied
               </span>
             )}
           </h3>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            {filteredRecipes.length} recipe
-            {filteredRecipes.length !== 1 ? "s" : ""} found
+            {totalCount} recipe{totalCount !== 1 ? "s" : ""} found
           </p>
         </div>
       </div>
@@ -125,18 +137,37 @@ export function HomePage() {
         <div className="flex justify-center items-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-[#6ec257]" />
         </div>
-      ) : filteredRecipes.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mt-4">
-          {filteredRecipes.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              onViewRecipe={handleViewRecipe}
-              isFavorite={isFavorite(recipe.id)}
-              onToggleFavorite={toggleFavorite}
-            />
-          ))}
-        </div>
+      ) : recipes.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mt-4">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                onViewRecipe={handleViewRecipe}
+                isFavorite={isFavorite(recipe.id)}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
+          </div>
+
+          {/* Incremental load indicator — shown while fetching the next page */}
+          {isLoadingMore && (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-[#6ec257]" />
+            </div>
+          )}
+
+          {/* End-of-feed message */}
+          {!hasMore && recipes.length > 0 && (
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-8">
+              You&apos;ve seen all matching recipes.
+            </p>
+          )}
+
+          {/* Sentinel div — IntersectionObserver target */}
+          <div ref={sentinelRef} className="h-24" aria-hidden="true" />
+        </>
       ) : (
         <Card className="text-center py-12">
           <CardContent>
