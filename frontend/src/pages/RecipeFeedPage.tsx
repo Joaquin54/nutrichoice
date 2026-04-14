@@ -387,7 +387,7 @@ export function RecipeFeedPage() {
                             <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-[10px] font-semibold shadow-sm">
                               {index + 1}
                             </span>
-                            <span className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
+                            <span className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
                               {instruction}
                             </span>
                           </li>
@@ -426,7 +426,7 @@ export function RecipeFeedPage() {
                               <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-[10px] sm:text-xs font-semibold shadow-sm">
                                 {index + 1}
                               </span>
-                              <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
+                              <span className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
                                 {instruction}
                               </span>
                             </li>

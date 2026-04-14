@@ -58,8 +58,8 @@ const PAGE_SHELL_SINGLE =
   'bg-[#fef9f0] dark:bg-[#1c1917] shadow-[inset_0_0_12px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.15)]';
 const PAGE_BACK_LIGHT = 'bg-[#e5dcc8]';
 const PAGE_BACK_DARK = 'dark:bg-[#292524]';
-const PAGE_PAD_LEFT = 'p-3 sm:p-5 md:p-6';
-const PAGE_PAD_RIGHT = 'p-4 sm:p-5 md:p-6';
+const PAGE_PAD_LEFT = 'p-3 sm:p-5 md:p-6 xl:p-8 2xl:p-10';
+const PAGE_PAD_RIGHT = 'p-4 sm:p-5 md:p-6 xl:p-8 2xl:p-10';
 
 /**
  * One opaque leaf on the spine. Front = current side; back can be parchment or real recipe
@@ -307,7 +307,7 @@ export function CookbookViewPage() {
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl min-w-0 flex-1 flex-col">
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
         <div className="mb-1 grid w-full shrink-0 grid-cols-[1fr_minmax(0,2fr)_1fr] items-center gap-x-1 sm:gap-x-2">
           <div className="flex min-w-0 justify-start">
             <Button
@@ -319,7 +319,7 @@ export function CookbookViewPage() {
               ← Cookbooks
             </Button>
           </div>
-          <h1 className="min-w-0 truncate text-center text-base font-semibold text-gray-900 dark:text-white md:text-lg">
+          <h1 className="min-w-0 truncate text-center text-base font-semibold text-gray-900 dark:text-white md:text-lg xl:text-xl 2xl:text-2xl">
             {cookbook.name}
           </h1>
           <div className="flex min-w-0 justify-end">
@@ -353,7 +353,7 @@ export function CookbookViewPage() {
         />
 
         {/* Opened book: fills remaining viewport; page bodies scroll inside fixed shells. */}
-        <div className="relative mt-2 flex min-h-0 w-full max-w-[1344px] min-w-0 flex-1 items-stretch gap-1 self-stretch">
+        <div className="relative mt-2 flex min-h-0 w-full min-w-0 flex-1 items-stretch gap-1 self-stretch">
           <button
             type="button"
             onClick={goPrev}
@@ -739,22 +739,22 @@ function EmptyPage() {
 function RecipePageContent({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-col break-words">
-      <div className="relative mb-3 h-36 w-full shrink-0 overflow-hidden rounded-lg bg-amber-100 dark:bg-stone-800">
+      <div className="relative mb-3 h-36 md:h-44 xl:h-56 2xl:h-64 w-full shrink-0 overflow-hidden rounded-lg bg-amber-100 dark:bg-stone-800">
         <ImageWithFallback
           src={recipe.image_1}
           alt={recipe.name}
           className="h-full w-full object-cover"
         />
       </div>
-      <h2 className="mb-1 font-serif text-base font-bold text-gray-900 dark:text-white">
+      <h2 className="mb-1 font-serif text-base font-bold text-gray-900 dark:text-white xl:text-xl 2xl:text-2xl">
         {recipe.name}
       </h2>
-      <p className="mb-3 line-clamp-3 text-xs text-muted-foreground">
+      <p className="mb-3 line-clamp-3 text-xs text-muted-foreground xl:text-sm 2xl:text-base">
         {recipe.description}
       </p>
       <div className="space-y-3">
         <div>
-          <p className="mb-1 text-xs font-semibold text-gray-800 dark:text-gray-200">
+          <p className="mb-1 text-xs font-semibold text-gray-800 dark:text-gray-200 xl:text-sm 2xl:text-base">
             Ingredients
           </p>
           <ul className="list-none columns-2 gap-x-3 space-y-1 text-muted-foreground">
@@ -766,10 +766,10 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
           </ul>
         </div>
         <div>
-          <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">
+          <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1 xl:text-sm 2xl:text-base">
             Instructions
           </p>
-          <ol className="list-decimal list-inside space-y-1 text-[11px] leading-snug text-muted-foreground">
+          <ol className="list-decimal list-inside space-y-1 text-[13px] leading-snug text-muted-foreground xl:text-sm 2xl:text-base">
             {recipe.instructions.map((step, i) => (
               <li key={i}>{step}</li>
             ))}

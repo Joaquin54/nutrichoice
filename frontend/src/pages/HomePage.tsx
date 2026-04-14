@@ -8,6 +8,7 @@ import { useUserPreferences } from "../hooks/useUserPreferences";
 import { useRecipeSearch } from "../hooks/useRecipeSearch";
 import { useRecipeActions } from "../hooks/useRecipeActions";
 import type { Recipe, DietaryFilter } from "../types/recipe";
+import { getRecipe } from "../api";
 
 export function HomePage() {
   const { dietaryPreferences } = useUserPreferences();
@@ -28,9 +29,23 @@ export function HomePage() {
   const { recipes, isLoading } = useRecipeSearch(searchQuery);
 
   // Memoize the handleViewRecipe function to prevent unnecessary re-renders
-  const handleViewRecipe = useCallback((recipe: Recipe) => {
+  const handleViewRecipe = useCallback(async (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
+
+    // Recipe list/search responses are lightweight and omit nested details.
+    // Fetch full detail so the modal can always render ingredients/instructions.
+    const recipeId = Number(recipe.id);
+    if (!Number.isFinite(recipeId)) return;
+
+    try {
+      const detailedRecipe = await getRecipe(recipeId);
+      setSelectedRecipe((current) =>
+        current?.id === recipe.id ? detailedRecipe : current
+      );
+    } catch (error) {
+      console.error("Failed to load full recipe details:", error);
+    }
   }, []);
 
   const handleCloseModal = useCallback(() => {
