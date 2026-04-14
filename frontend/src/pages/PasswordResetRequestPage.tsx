@@ -6,19 +6,14 @@ export function PasswordResetRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [resetLink, setResetLink] = useState<string | null>(null);
 
   const handleResetRequest = async (email: string) => {
     setIsLoading(true);
     setError(null);
     setSuccess(false);
     try {
-      const response = await requestPasswordReset(email);
+      await requestPasswordReset(email);
       setSuccess(true);
-      // In development, the backend returns the reset_link in the response
-      if (response.reset_link) {
-        setResetLink(response.reset_link);
-      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send reset link. Please try again.';
       setError(errorMessage);
@@ -38,14 +33,9 @@ export function PasswordResetRequestPage() {
         )}
         {success && (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <p className="text-sm text-green-600 dark:text-green-400 mb-2">
+            <p className="text-sm text-green-600 dark:text-green-400">
               Password reset email sent! Check your inbox for the reset link.
             </p>
-            {resetLink && (
-              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                <strong>Dev mode:</strong> <a href={resetLink} className="underline">{resetLink}</a>
-              </p>
-            )}
           </div>
         )}
         <PasswordResetRequestForm onSubmit={handleResetRequest} isLoading={isLoading} />
@@ -53,5 +43,3 @@ export function PasswordResetRequestPage() {
     </div>
   );
 }
-
-
