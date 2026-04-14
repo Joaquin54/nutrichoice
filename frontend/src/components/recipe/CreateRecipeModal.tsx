@@ -309,35 +309,32 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
   }, []);
 
   const goNext = () => {
-    if (step === 1) {
-      const errs = validateBasics(state);
-      if (Object.keys(errs).length > 0) {
-        dispatch({ type: 'SET_ERRORS', errors: errs });
+    let errs: Record<string, string>;
+    let nextStep: number;
+
+    switch (step) {
+      case 1:
+        errs = validateBasics(state);
+        nextStep = 2;
+        break;
+      case 2:
+        errs = validateIngredientsOnly(state);
+        nextStep = 3;
+        break;
+      case 3:
+        errs = validateInstructionsOnly(state);
+        nextStep = 4;
+        break;
+      default:
         return;
-      }
-      dispatch({ type: 'SET_ERRORS', errors: {} });
-      setStep(2);
+    }
+
+    if (Object.keys(errs).length > 0) {
+      dispatch({ type: 'SET_ERRORS', errors: errs });
       return;
     }
-    if (step === 2) {
-      const errs = validateIngredientsOnly(state);
-      if (Object.keys(errs).length > 0) {
-        dispatch({ type: 'SET_ERRORS', errors: errs });
-        return;
-      }
-      dispatch({ type: 'SET_ERRORS', errors: {} });
-      setStep(3);
-      return;
-    }
-    if (step === 3) {
-      const errs = validateInstructionsOnly(state);
-      if (Object.keys(errs).length > 0) {
-        dispatch({ type: 'SET_ERRORS', errors: errs });
-        return;
-      }
-      dispatch({ type: 'SET_ERRORS', errors: {} });
-      setStep(4);
-    }
+    dispatch({ type: 'SET_ERRORS', errors: {} });
+    setStep(nextStep);
   };
 
   const goBack = () => {
