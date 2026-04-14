@@ -30,7 +30,7 @@ const CULTURAL_CUISINE_TAGS = [
 function StarRating({ rating, max = 5, size = "sm" }: { rating: number; max?: number; size?: "sm" | "xs" }) {
   const full = Math.round(rating);
   const empty = max - full;
-  const iconClass = size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5";
+  const iconClass = size === "xs" ? "h-3.5 w-3.5" : "h-4 w-4";
   return (
     <span className="flex items-center gap-0.5 text-amber-500" aria-label={`${rating} out of ${max} stars`}>
       {Array.from({ length: full }, (_, i) => (
@@ -67,10 +67,10 @@ function RecipeReviewsSection({
       <button
         type="button"
         onClick={handleClick}
-        className="w-full text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-2 sm:p-2.5 mb-2 sm:mb-3 hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2"
+        className="w-full rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-left transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:bg-gray-900/70 sm:p-3"
       >
-        <h4 className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Reviews & ratings</h4>
-        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">No reviews yet. Be the first to rate this recipe!</p>
+        <h4 className="mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300 sm:text-base">Reviews & ratings</h4>
+        <p className="text-sm leading-snug text-gray-600 dark:text-gray-400 sm:text-base">No reviews yet. Be the first to rate this recipe!</p>
       </button>
     );
   }
@@ -79,36 +79,36 @@ function RecipeReviewsSection({
     <button
       type="button"
       onClick={handleClick}
-      className="w-full text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-2 sm:p-2.5 mb-2 sm:mb-3 min-h-0 flex flex-col hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2"
+      className="flex min-h-0 w-full cursor-pointer flex-col rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-left transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:bg-gray-900/70 sm:p-3"
     >
-      <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
-        <h4 className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300">Reviews & ratings</h4>
+      <div className="mb-2 flex flex-shrink-0 items-center justify-between gap-2">
+        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 sm:text-base">Reviews & ratings</h4>
         {average != null && (
-          <div className="flex items-center gap-1">
-            <StarRating rating={average} size="xs" />
-            <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-300">{average.toFixed(1)}</span>
-            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">({reviews.length})</span>
+          <div className="flex shrink-0 items-center gap-1">
+            <StarRating rating={average} size="sm" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:text-base">{average.toFixed(1)}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">({reviews.length})</span>
           </div>
         )}
       </div>
-      <div className="overflow-hidden min-h-0 space-y-1.5 pr-0.5">
+      <div className="min-h-0 space-y-2 overflow-hidden pr-0.5">
         {previewReviews.map((review: RecipeReview, index) => (
           <div
             key={review.id}
-            className={`text-[10px] sm:text-xs border-b border-gray-200/80 dark:border-gray-700/80 last:border-0 last:pb-0 pb-1.5 ${
+            className={`border-b border-gray-200/80 pb-2 text-sm last:border-0 last:pb-0 dark:border-gray-700/80 sm:text-base ${
               index === 1 ? "hidden sm:block" : ""
             }`}
           >
-            <div className="flex items-center gap-1.5 mb-0.5">
+            <div className="mb-0.5 flex items-center gap-2">
               <span className="font-medium text-gray-800 dark:text-gray-200">{review.username}</span>
-              <StarRating rating={review.rating} size="xs" />
+              <StarRating rating={review.rating} size="sm" />
             </div>
-            <p className="text-gray-600 dark:text-gray-400 leading-snug line-clamp-2">{review.comment}</p>
+            <p className="leading-snug text-gray-600 line-clamp-2 dark:text-gray-400">{review.comment}</p>
           </div>
         ))}
       </div>
       {reviews.length > PREVIEW_REVIEWS_MAX && (
-        <p className="text-[10px] sm:text-xs text-[#6ec257] font-medium mt-1">View all {reviews.length} reviews →</p>
+        <p className="mt-1.5 text-sm font-medium text-[#6ec257] sm:text-base">View all {reviews.length} reviews →</p>
       )}
     </button>
   );
@@ -227,7 +227,9 @@ export function RecipeFeedPage() {
 
           const pageIndex = getCardPageIndex(recipe.id);
           const totalPages = getCardTotalPages(recipe.id);
-          const isOnBack = pageIndex > 0;
+          const isOnFront = pageIndex === 0;
+          const canGoToPreviousPage = pageIndex > 0;
+          const canGoToNextPage = pageIndex < totalPages - 1;
 
           return (
             <div
@@ -254,7 +256,7 @@ export function RecipeFeedPage() {
                   className="flex overflow-x-auto snap-x snap-mandatory h-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                 >
                   {/* Front Side - Recipe Card */}
-                  <div className="flex flex-col sm:flex-row h-full w-full flex-shrink-0 snap-start">
+                  <div className="flex h-full min-h-0 w-full flex-shrink-0 flex-col snap-start sm:flex-row">
                     {/* Left Side: Recipe Image (60% width on desktop, full width on mobile) */}
                     <div className="w-full sm:w-[60%] h-64 sm:h-full relative bg-gray-100 dark:bg-gray-900 flex-shrink-0">
                       <ImageWithFallback
@@ -265,13 +267,13 @@ export function RecipeFeedPage() {
                     </div>
 
                     {/* Right Side: Recipe Information (40% width on desktop, full width on mobile) */}
-                    <div className="w-full sm:w-[40%] flex flex-col p-3 sm:p-4 lg:p-6 relative bg-white dark:bg-gray-800">
+                    <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white p-3 dark:bg-gray-800 sm:h-full sm:w-[40%] sm:p-4 lg:p-6">
                       {/* Favorites Button - Top Right inside info area */}
                       <Button
                         onClick={() => handleFavoriteClick(recipe.id)}
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 sm:h-10 sm:w-10 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 z-10"
+                        className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 sm:h-10 sm:w-10"
                         aria-label={isFavorite(recipe.id) ? "Unlike recipe" : "Like recipe"}
                       >
                         <Heart
@@ -283,46 +285,52 @@ export function RecipeFeedPage() {
                         />
                       </Button>
 
-                      {/* Recipe Title */}
-                      <div className="mt-1 sm:mt-0">
-                        <h2 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 pr-10">
-                          {recipe.name}
-                        </h2>
-                      </div>
+                      <div className="flex min-h-0 flex-1 flex-col">
+                        {/* Scrollable: title, tags, description — keeps reviews + CTA pinned to bottom */}
+                        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-0.5">
+                          {/* Recipe Title */}
+                          <div className="mt-1 sm:mt-0">
+                            <h2 className="mb-2 pr-10 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg lg:text-xl">
+                              {recipe.name}
+                            </h2>
+                          </div>
 
-                      {/* Recipe Tags */}
-                      <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-3">
-                        {dietaryTagsOnly.map((tag, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="bg-[#6ec257]/10 text-[#6ec257] border-[#6ec257]/20 text-[10px] sm:text-xs"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                          {/* Recipe Tags */}
+                          <div className="mb-2 flex flex-wrap gap-1 sm:mb-3 sm:gap-1.5">
+                            {dietaryTagsOnly.map((tag, index) => (
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="border-[#6ec257]/20 bg-[#6ec257]/10 px-2 py-0.5 text-xs text-[#6ec257] sm:text-sm"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
 
-                      {/* Recipe Description Box */}
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 sm:p-3 border border-gray-200 dark:border-gray-700 mb-2 sm:mb-3">
-                        <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {recipe.description}
-                        </p>
-                      </div>
+                          {/* Recipe Description Box */}
+                          <div className="mb-1 rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/50 sm:p-3">
+                            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 sm:text-base">
+                              {recipe.description}
+                            </p>
+                          </div>
+                        </div>
 
-                      {/* Reviews & Ratings */}
-                      <RecipeReviewsSection
-                        recipeId={recipe.id}
-                        recipeTitle={recipe.name}
-                        onOpenReviews={handleOpenReviews}
-                      />
+                        {/* Reviews & ratings — fixed below scroll area */}
+                        <div className="shrink-0 pt-2 sm:pt-3">
+                          <RecipeReviewsSection
+                            recipeId={recipe.id}
+                            recipeTitle={recipe.name}
+                            onOpenReviews={handleOpenReviews}
+                          />
+                        </div>
 
-                      {/* Add to Cookbook - anchored to bottom, popover to choose cookbook */}
-                      <div className="mt-auto">
-                        <Popover>
+                        {/* Add to Cookbook — card footer */}
+                        <div className="shrink-0 pt-3 sm:pt-7">
+                          <Popover>
                           <PopoverTrigger asChild>
                             <Button
-                              className="w-full bg-[#6ec257] hover:bg-[#5ba045] text-white font-semibold py-2 sm:py-3 text-xs sm:text-sm rounded-lg transition-colors"
+                              className="w-full rounded-lg bg-[#6ec257] py-2 text-xs font-semibold text-white transition-colors hover:bg-[#5ba045] sm:py-3 sm:text-sm"
                             >
                               Add to Cookbook
                             </Button>
@@ -371,23 +379,24 @@ export function RecipeFeedPage() {
                             )}
                           </PopoverContent>
                         </Popover>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Mobile Page 2 - Instructions */}
-                  <div className="flex flex-col h-full w-full flex-shrink-0 snap-start p-4 sm:hidden">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+                  <div className="flex h-full w-full flex-shrink-0 snap-start flex-col p-4 sm:hidden">
+                    <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:text-lg">
                       Instructions
                     </h3>
-                    <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
-                      <ol className="space-y-2">
+                    <div className="flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
+                      <ol className="space-y-2.5">
                         {recipe.instructions.map((instruction, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-[10px] font-semibold shadow-sm">
+                          <li key={index} className="flex items-start gap-2.5">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6ec257] text-xs font-semibold text-white shadow-sm">
                               {index + 1}
                             </span>
-                            <span className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
+                            <span className="min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200 sm:text-base">
                               {instruction}
                             </span>
                           </li>
@@ -397,8 +406,8 @@ export function RecipeFeedPage() {
                   </div>
 
                   {/* Mobile Page 3 - Ingredients */}
-                  <div className="flex flex-col h-full w-full flex-shrink-0 snap-start p-4 sm:hidden">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+                  <div className="flex h-full w-full flex-shrink-0 snap-start flex-col p-4 sm:hidden">
+                    <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:text-lg">
                       Ingredients
                     </h3>
                     <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
@@ -415,18 +424,18 @@ export function RecipeFeedPage() {
                   {/* Desktop / Tablet Back Side - Instructions and Ingredients */}
                   <div className="hidden sm:flex flex-col sm:flex-row h-full w-full flex-shrink-0 snap-start p-4 sm:p-6">
                     {/* Left Half: Instructions */}
-                    <div className="w-full sm:w-1/2 flex flex-col pr-0 sm:pr-3 mb-4 sm:mb-0">
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
+                    <div className="mb-4 flex w-full flex-col pr-0 sm:mb-0 sm:w-1/2 sm:pr-3">
+                      <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg">
                         Instructions
                       </h3>
-                      <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 overflow-y-auto">
-                        <ol className="space-y-2 sm:space-y-2.5">
+                      <div className="flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50 sm:p-4">
+                        <ol className="space-y-2.5 sm:space-y-3">
                           {recipe.instructions.map((instruction, index) => (
-                            <li key={index} className="flex items-start gap-2 sm:gap-2.5">
-                              <span className="bg-[#6ec257] text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 text-[10px] sm:text-xs font-semibold shadow-sm">
+                            <li key={index} className="flex items-start gap-2.5 sm:gap-3">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6ec257] text-xs font-semibold text-white shadow-sm sm:h-7 sm:w-7 sm:text-sm">
                                 {index + 1}
                               </span>
-                              <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5 min-w-0">
+                              <span className="min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200 sm:text-base">
                                 {instruction}
                               </span>
                             </li>
@@ -436,8 +445,8 @@ export function RecipeFeedPage() {
                     </div>
 
                     {/* Right Half: Ingredients */}
-                    <div className="w-full sm:w-1/2 flex flex-col pl-0 sm:pl-3">
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
+                    <div className="flex w-full flex-col pl-0 sm:w-1/2 sm:pl-3">
+                      <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg">
                         Ingredients
                       </h3>
                       <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 overflow-y-auto">
@@ -454,7 +463,7 @@ export function RecipeFeedPage() {
                 </div>
 
                 {/* User Profile Card - Top Left - Only show on front side */}
-                {!isOnBack && (
+                {isOnFront && (
                   <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-30">
                     <div className="flex items-center gap-1.5 sm:gap-2 bg-white dark:bg-gray-800 rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-md border border-gray-200 dark:border-gray-700 w-fit">
                       <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-[#6ec257] to-[#5ba045] flex items-center justify-center overflow-hidden">
@@ -482,27 +491,27 @@ export function RecipeFeedPage() {
                 </div>
               </div>
 
-              {/* Left Arrow - Only show when back side is visible */}
-              {isOnBack && (
+              {/* Left — previous page (mobile: e.g. instructions → overview; desktop: back → overview) */}
+              {canGoToPreviousPage && (
                 <Button
                   onClick={() => handleScrollToFront(recipe.id)}
                   variant="ghost"
                   size="icon"
                   className="absolute top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm z-20 rotate-180 left-[calc(5%-40px)] sm:left-[calc(5%-53px)]"
-                  aria-label="Back to recipe"
+                  aria-label="Previous page"
                 >
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-gray-300" />
                 </Button>
               )}
 
-              {/* Right Arrow - Only show when front side is visible */}
-              {!isOnBack && (
+              {/* Right — next page (mobile: overview → instructions → ingredients) */}
+              {canGoToNextPage && (
                 <Button
                   onClick={() => handleScrollToBack(recipe.id)}
                   variant="ghost"
                   size="icon"
                   className="absolute top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 backdrop-blur-sm z-20 right-[calc(5%-40px)] sm:right-[calc(5%-53px)]"
-                  aria-label="View recipe details"
+                  aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-gray-300" />
                 </Button>

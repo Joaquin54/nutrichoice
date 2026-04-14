@@ -49,15 +49,15 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-/** Fully opaque paper (no alpha) — avoids ghosting during 3D flips. */
+/** Fully opaque paper (no alpha) — avoids ghosting during 3D flips. Cool teal paper, not warm brown. */
 const PAGE_SHELL_LEFT =
-  'bg-[#fef9f0] dark:bg-[#1c1917] border-r border-amber-200/80 dark:border-slate-700/80 shadow-[inset_4px_0_8px_rgba(0,0,0,0.06)] dark:shadow-[inset_4px_0_8px_rgba(0,0,0,0.2)]';
+  'bg-[#eef6f4] dark:bg-[#0f1c1e] border-r border-teal-200/75 dark:border-teal-800/55 shadow-[inset_4px_0_10px_rgba(15,118,110,0.06)] dark:shadow-[inset_4px_0_12px_rgba(0,0,0,0.35)]';
 const PAGE_SHELL_RIGHT =
-  'bg-[#fef9f0] dark:bg-[#1c1917] border-l border-amber-200/80 dark:border-slate-700/80 shadow-[inset_-4px_0_8px_rgba(0,0,0,0.06)] dark:shadow-[inset_-4px_0_8px_rgba(0,0,0,0.2)]';
+  'bg-[#eef6f4] dark:bg-[#0f1c1e] border-l border-teal-200/75 dark:border-teal-800/55 shadow-[inset_-4px_0_10px_rgba(15,118,110,0.06)] dark:shadow-[inset_-4px_0_12px_rgba(0,0,0,0.35)]';
 const PAGE_SHELL_SINGLE =
-  'bg-[#fef9f0] dark:bg-[#1c1917] shadow-[inset_0_0_12px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.15)]';
-const PAGE_BACK_LIGHT = 'bg-[#e5dcc8]';
-const PAGE_BACK_DARK = 'dark:bg-[#292524]';
+  'bg-[#eef6f4] dark:bg-[#0f1c1e] shadow-[inset_0_0_14px_rgba(15,118,110,0.07)] dark:shadow-[inset_0_0_16px_rgba(0,0,0,0.28)]';
+const PAGE_BACK_LIGHT = 'bg-[#c5ddd8]';
+const PAGE_BACK_DARK = 'dark:bg-[#152a2e]';
 const PAGE_PAD_LEFT = 'p-3 sm:p-5 md:p-6';
 const PAGE_PAD_RIGHT = 'p-4 sm:p-5 md:p-6';
 
@@ -74,18 +74,30 @@ const FlippingPageLeaf = forwardRef<
     recipe: Recipe | null;
     /** Omitted / 'parchment' = blank paper back. Otherwise recipe (or EmptyPage if null). */
     backRecipe?: Recipe | null | 'parchment';
+    /**
+     * Desktop two-page spread: hinge must sit at the spine center (middle of the gutter strip),
+     * not the inner page edge — otherwise the fold looks wrong and the layout “jumps” when idle.
+     */
+    spineOffset?: boolean;
   }
 >(function FlippingPageLeaf(
-  { hinge, pageShell, scrollPad, recipe, backRecipe = 'parchment' },
+  { hinge, pageShell, scrollPad, recipe, backRecipe = 'parchment', spineOffset = false },
   ref
 ) {
-  const origin = hinge === 'left' ? ('left center' as const) : ('right center' as const);
+  const transformOrigin =
+    spineOffset && hinge === 'left'
+      ? 'calc(-1 * var(--cookbook-spine-half, 0.375rem)) center'
+      : spineOffset && hinge === 'right'
+        ? 'calc(100% + var(--cookbook-spine-half, 0.375rem)) center'
+        : hinge === 'left'
+          ? 'left center'
+          : 'right center';
   const showPaperBack = backRecipe === 'parchment';
   return (
     <div
       ref={ref}
       className="pointer-events-auto absolute inset-0 z-20 h-full w-full min-h-0 [transform-style:preserve-3d]"
-      style={{ transformOrigin: origin }}
+      style={{ transformOrigin }}
     >
       <div
         className={`absolute inset-0 flex h-full w-full min-h-0 flex-col overflow-hidden ${pageShell}`}
@@ -162,24 +174,25 @@ export function CookbookViewPage() {
 
   const goPrev = useCallback(() => {
     if (!canGoPrev || flipBusy) return;
-    if (reduceMotion) {
+    // Page flip animation is md+ only; mobile advances the spread instantly.
+    if (reduceMotion || !isMdUp) {
       setSpreadIndex((i) => i - 1);
       return;
     }
     setFlipMode('prev');
-  }, [canGoPrev, flipBusy, reduceMotion]);
+  }, [canGoPrev, flipBusy, reduceMotion, isMdUp]);
 
   const goNext = useCallback(() => {
     if (!canGoNext || flipBusy) return;
-    if (reduceMotion) {
+    if (reduceMotion || !isMdUp) {
       setSpreadIndex((i) => i + 1);
       return;
     }
     setFlipMode('next');
-  }, [canGoNext, flipBusy, reduceMotion]);
+  }, [canGoNext, flipBusy, reduceMotion, isMdUp]);
 
   useLayoutEffect(() => {
-    if (flipMode === 'idle' || reduceMotion) return;
+    if (flipMode === 'idle' || reduceMotion || !isMdUp) return;
     const el = pageFlipRef.current;
     if (!el) return;
 
@@ -219,7 +232,14 @@ export function CookbookViewPage() {
       window.clearTimeout(fallback);
       el.removeEventListener('transitionend', onEnd);
     };
-  }, [flipMode, reduceMotion]);
+  }, [flipMode, reduceMotion, isMdUp]);
+
+  // If viewport shrinks below md during a flip, drop animation state (flip UI is desktop-only).
+  useEffect(() => {
+    if (!isMdUp && flipMode !== 'idle') {
+      setFlipMode('idle');
+    }
+  }, [isMdUp, flipMode]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -248,10 +268,6 @@ export function CookbookViewPage() {
     spreadIndex < totalSpreads - 1 ? recipes[nextSpreadBase] ?? null : null;
   const nextRightRecipe =
     spreadIndex < totalSpreads - 1 && isMdUp ? recipes[nextSpreadBase + 1] ?? null : null;
-  const nextMobileRecipe =
-    spreadIndex < totalSpreads - 1 && !isMdUp ? recipes[nextSpreadBase] ?? null : null;
-  const prevMobileRecipe =
-    spreadIndex > 0 && !isMdUp ? recipes[prevSpreadBase] ?? null : null;
   const desktopRightStaticRecipe = flipMode === 'prev' ? prevRightRecipe : rightRecipe;
 
   useEffect(() => {
@@ -358,14 +374,14 @@ export function CookbookViewPage() {
             type="button"
             onClick={goPrev}
             disabled={!canGoPrev || flipBusy}
-            className="z-10 mr-0.5 shrink-0 self-center rounded-full bg-amber-800/90 p-1.5 text-amber-100 shadow-md transition-all hover:bg-amber-700 disabled:pointer-events-none disabled:opacity-40 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 sm:mr-2 sm:p-2 md:mr-4 md:p-3 md:shadow-lg"
+            className="z-10 mr-0.5 shrink-0 self-center rounded-full bg-teal-800/90 p-1.5 text-teal-50 shadow-md transition-all hover:bg-teal-700 disabled:pointer-events-none disabled:opacity-40 dark:bg-teal-900/90 dark:text-teal-100 dark:hover:bg-teal-800 sm:mr-2 sm:p-2 md:mr-4 md:p-3 md:shadow-lg"
             aria-label={isMdUp ? 'Previous spread' : 'Previous recipe'}
           >
             <ChevronLeft className="h-4 w-4 xl:h-8 xl:w-8" />
           </button>
 
           <div
-            className={`flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch rounded-lg border border-amber-800/30 bg-amber-900/20 shadow-2xl dark:border-slate-600/60 dark:bg-slate-800/40 ${
+            className={`flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch rounded-lg border border-teal-900/25 bg-teal-950/[0.11] shadow-2xl dark:border-teal-950/45 dark:bg-[#050f12]/85 ${
               flipBusy ? 'overflow-visible' : 'overflow-hidden'
             }`}
             onTouchStart={(e) => {
@@ -387,67 +403,21 @@ export function CookbookViewPage() {
             }}
           >
             {!isMdUp ? (
-              flipMode === 'next' ? (
-                <div
-                  className="relative flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch [perspective:1600px]"
-                  style={{ perspectiveOrigin: 'left center' }}
-                >
-                  <div
-                    className="pointer-events-none min-h-0 w-full min-w-0 flex-1 shrink-0"
-                    aria-hidden
-                  />
-                  <div
-                    className={`absolute inset-0 z-0 flex min-h-0 w-full flex-col overflow-hidden ${PAGE_SHELL_SINGLE}`}
-                  >
-                    <div className="min-h-0 flex-1" aria-hidden />
-                  </div>
-                  <FlippingPageLeaf
-                    ref={pageFlipRef}
-                    hinge="left"
-                    pageShell={PAGE_SHELL_SINGLE}
-                    scrollPad={PAGE_PAD_LEFT}
-                    recipe={leftRecipe}
-                    backRecipe={nextMobileRecipe}
-                  />
+              <div
+                className={`flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch overflow-hidden ${PAGE_SHELL_SINGLE}`}
+              >
+                <div className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${PAGE_PAD_LEFT}`}>
+                  {leftRecipe ? <RecipePageContent recipe={leftRecipe} /> : <EmptyPage />}
                 </div>
-              ) : flipMode === 'prev' ? (
-                <div
-                  className="relative flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch [perspective:1600px]"
-                  style={{ perspectiveOrigin: 'right center' }}
-                >
-                  <div
-                    className="pointer-events-none min-h-0 w-full min-w-0 flex-1 shrink-0"
-                    aria-hidden
-                  />
-                  <div
-                    className={`absolute inset-0 z-0 flex min-h-0 w-full flex-col overflow-hidden ${PAGE_SHELL_SINGLE}`}
-                  >
-                    <div className="min-h-0 flex-1" aria-hidden />
-                  </div>
-                  <FlippingPageLeaf
-                    ref={pageFlipRef}
-                    hinge="right"
-                    pageShell={PAGE_SHELL_SINGLE}
-                    scrollPad={PAGE_PAD_LEFT}
-                    recipe={leftRecipe}
-                    backRecipe={prevMobileRecipe}
-                  />
-                </div>
-              ) : (
-                <div
-                  className={`flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch overflow-hidden ${PAGE_SHELL_SINGLE}`}
-                >
-                  <div className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${PAGE_PAD_LEFT}`}>
-                    {leftRecipe ? <RecipePageContent recipe={leftRecipe} /> : <EmptyPage />}
-                  </div>
-                </div>
-              )
+              </div>
             ) : (
-              <div className="grid h-full min-h-0 min-w-0 w-full flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] items-stretch">
+              <div
+                className="grid h-full min-h-0 min-w-0 w-full flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] items-stretch [--cookbook-spine-half:0.375rem] sm:[--cookbook-spine-half:0.5rem]"
+              >
                 {flipMode === 'prev' ? (
                   <div
                     className="relative flex min-h-0 min-w-0 w-full flex-col self-stretch [perspective:1800px]"
-                    style={{ perspectiveOrigin: 'right center' }}
+                    style={{ perspectiveOrigin: 'calc(100% + var(--cookbook-spine-half, 0.375rem)) center' }}
                   >
                     <div
                       className="pointer-events-none min-h-0 w-full min-w-0 flex-1 shrink-0"
@@ -471,6 +441,7 @@ export function CookbookViewPage() {
                       scrollPad={PAGE_PAD_LEFT}
                       recipe={leftRecipe}
                       backRecipe={prevRightRecipe}
+                      spineOffset
                     />
                   </div>
                 ) : (
@@ -483,12 +454,12 @@ export function CookbookViewPage() {
                   </div>
                 )}
 
-                <div className="w-3 min-h-0 shrink-0 self-stretch bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 dark:from-slate-700 dark:via-slate-800 dark:to-slate-900 shadow-[inset_0_0_12px_rgba(0,0,0,0.3)] sm:w-4" />
+                <div className="w-3 min-h-0 shrink-0 self-stretch bg-gradient-to-b from-teal-800 via-teal-900 to-[#0a2629] shadow-[inset_0_0_14px_rgba(0,0,0,0.35)] dark:from-teal-950 dark:via-slate-950 dark:to-[#020617] sm:w-4" />
 
                 {flipMode === 'next' ? (
                   <div
                     className="relative flex h-full min-h-0 min-w-0 flex-col self-stretch [perspective:1800px]"
-                    style={{ perspectiveOrigin: 'left center' }}
+                    style={{ perspectiveOrigin: 'calc(-1 * var(--cookbook-spine-half, 0.375rem)) center' }}
                   >
                     <div
                       className={`absolute inset-0 z-0 flex min-h-0 w-full flex-col overflow-hidden ${PAGE_SHELL_RIGHT}`}
@@ -508,6 +479,7 @@ export function CookbookViewPage() {
                       scrollPad={PAGE_PAD_RIGHT}
                       recipe={rightRecipe}
                       backRecipe={nextLeftRecipe}
+                      spineOffset
                     />
                   </div>
                 ) : (
@@ -533,7 +505,7 @@ export function CookbookViewPage() {
             type="button"
             onClick={goNext}
             disabled={!canGoNext || flipBusy}
-            className="z-10 ml-0.5 shrink-0 self-center rounded-full bg-amber-800/90 p-1.5 text-amber-100 shadow-md transition-all hover:bg-amber-700 disabled:pointer-events-none disabled:opacity-40 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 sm:ml-2 sm:p-2 md:ml-4 md:p-3 md:shadow-lg"
+            className="z-10 ml-0.5 shrink-0 self-center rounded-full bg-teal-800/90 p-1.5 text-teal-50 shadow-md transition-all hover:bg-teal-700 disabled:pointer-events-none disabled:opacity-40 dark:bg-teal-900/90 dark:text-teal-100 dark:hover:bg-teal-800 sm:ml-2 sm:p-2 md:ml-4 md:p-3 md:shadow-lg"
             aria-label={isMdUp ? 'Next spread' : 'Next recipe'}
           >
             <ChevronRight className="h-4 w-4 xl:h-8 xl:w-8" />
@@ -739,7 +711,7 @@ function EmptyPage() {
 function RecipePageContent({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-col break-words">
-      <div className="relative mb-3 h-36 w-full shrink-0 overflow-hidden rounded-lg bg-amber-100 dark:bg-stone-800">
+      <div className="relative mb-3 h-36 w-full shrink-0 overflow-hidden rounded-lg bg-teal-100/90 dark:bg-teal-950/45">
         <ImageWithFallback
           src={recipe.image_1}
           alt={recipe.name}

@@ -78,7 +78,11 @@ class RecipeListSerializer(serializers.ModelSerializer):
     field to minimise payload size and avoid expensive per-row serialization work.
     """
 
-    creator = serializers.StringRelatedField(read_only=True)
+    creator = serializers.SerializerMethodField()
+
+    def get_creator(self, obj: Recipe) -> str | None:
+        """Username for display; avoid User.__str__ (public UUID) from StringRelatedField."""
+        return obj.creator.username if obj.creator_id is not None else None
 
     class Meta:
         model = Recipe
@@ -100,8 +104,11 @@ class RecipeIngredientDetailSerializer(serializers.ModelSerializer):
 class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientDetailSerializer(many=True, read_only=True)
     instructions = RecipeInstructionSerializer(many=True, read_only=True)
-    creator = serializers.StringRelatedField(read_only=True)
+    creator = serializers.SerializerMethodField()
     display_quantities = serializers.SerializerMethodField()
+
+    def get_creator(self, obj: Recipe) -> str | None:
+        return obj.creator.username if obj.creator_id is not None else None
 
     class Meta:
         model = Recipe
