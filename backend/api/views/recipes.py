@@ -67,7 +67,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
         return RecipeDetailSerializer
 
     def get_queryset(self) -> QuerySet[Recipe]:
-        # List views only need the creator for StringRelatedField — no nested
+        # List views only need the creator username — no nested
         # ingredient or instruction data is serialised, so skip the heavy prefetch.
         if self.action == "list":
             queryset = Recipe.objects.select_related("creator").all()  # type: ignore

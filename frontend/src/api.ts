@@ -191,6 +191,7 @@ export async function logout(): Promise<void> {
   localStorage.removeItem('dietary_restrictions');
   localStorage.removeItem('allergies');
   localStorage.removeItem('selected_recipes');
+  localStorage.removeItem('nutrichoice_taste_profile');
 }
 
 export type CompleteOnboardingPayload = {

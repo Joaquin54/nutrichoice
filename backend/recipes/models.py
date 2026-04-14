@@ -18,6 +18,11 @@ class Recipe(models.Model):
         CUPS = "cups", "Cups"
         TABLESPOONS = "tablespoons", "Tablespoons"
 
+    class MealType(models.TextChoices):
+        BREAKFAST = "Breakfast", "Breakfast"
+        LUNCH = "Lunch", "Lunch"
+        DINNER = "Dinner", "Dinner"
+
     id = models.BigAutoField(primary_key=True)
     # public_id = modles. Maybe?
     name = models.CharField(max_length=30, unique=True)
@@ -31,6 +36,10 @@ class Recipe(models.Model):
         null=True,
         blank=True,
         related_name="recipe_creator"
+    )
+    meal_type = models.CharField(
+        max_length=9,
+        choices=MealType.choices,
     )
     measure_type = models.CharField(
         max_length=12,

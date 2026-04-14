@@ -42,7 +42,7 @@ class User(AbstractUser):
     # REQUIRED_FIELDS = ['username']  # Fields required when creating superuser
 
     def __str__(self):
-        return str(self.public_id)
+        return self.username
 
     class Meta: # type: ignore[assignment]
         db_table = 'users'

@@ -43,12 +43,12 @@ export const DietaryPreferences = memo(function DietaryPreferences({
           Dietary Preferences
         </CardTitle>
       </CardHeader>
-      <CardContent className="pl-8">
-        <div className="grid grid-cols-3 gap-1">
+      <CardContent className="pl-6 sm:pl-8">
+        <div className="grid grid-cols-4 grid-rows-2 gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-1.5">
           {dietaryOptions.map(({ key, label, icon: Icon }) => (
             <div
               key={key}
-              className="flex items-center space-x-1 p-1 rounded hover:bg-primary/5 transition-colors"
+              className="flex min-w-0 items-center gap-1 rounded p-0.5 transition-colors hover:bg-primary/5 sm:p-1"
             >
               <Checkbox
                 id={key}
@@ -60,10 +60,10 @@ export const DietaryPreferences = memo(function DietaryPreferences({
               />
               <Label
                 htmlFor={key}
-                className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors flex-1"
+                className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 transition-colors hover:text-primary sm:gap-2"
               >
-                <Icon className="h-4 w-4 text-primary/70" />
-                <span className="text-sm">{label}</span>
+                <Icon className="hidden h-3.5 w-3.5 shrink-0 text-primary/70 sm:block sm:h-4 sm:w-4" />
+                <span className="text-[11px] leading-tight sm:text-sm">{label}</span>
               </Label>
             </div>
           ))}

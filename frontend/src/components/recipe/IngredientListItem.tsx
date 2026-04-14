@@ -15,12 +15,12 @@ const variants: Record<
   default: {
     row: 'flex items-start gap-2.5',
     leaf: 'mt-1 h-[18px] w-[18px] shrink-0 text-[#6ec257] dark:text-[#6ec257]/90 sm:h-5 sm:w-5',
-    text: 'min-w-0 text-sm text-foreground leading-relaxed',
+    text: 'min-w-0 text-sm sm:text-base text-foreground leading-relaxed',
   },
   feed: {
     row: 'flex items-start gap-2 sm:gap-2.5',
-    leaf: 'mt-0.5 h-4 w-4 shrink-0 text-[#6ec257] dark:text-[#6ec257] sm:h-4 sm:w-4',
-    text: 'min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-100',
+    leaf: 'mt-0.5 h-4 w-4 shrink-0 text-[#6ec257] dark:text-[#6ec257] sm:h-5 sm:w-5',
+    text: 'min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-100 sm:text-base',
   },
 };
 

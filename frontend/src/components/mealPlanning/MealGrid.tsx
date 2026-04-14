@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { cn } from '../../lib/utils';
+import { Columns3 } from 'lucide-react';
+import { cn, toLocalISODate } from '../../lib/utils';
 import { MEAL_TYPES, MEAL_TYPE_CONFIG } from './mealPlanConstants';
 import type { MealType } from './mealPlanConstants';
 import { DayHeader } from './DayHeader';
@@ -18,13 +18,23 @@ interface MealGridProps {
   onRemoveMeal: (dateString: string, mealType: MealType) => void;
   /** When true, dims the grid to indicate a background fetch is in progress. */
   isLoading?: boolean;
+  /**
+   * ISO date string of the currently selected day whose macros are displayed in
+   * the MacroStrip. Drives both the desktop header underline and the mobile pill highlight.
+   * Single source of truth — owned by `MealPlanningPage`.
+   */
+  selectedDate: string;
+  /** Called when the user selects a different day (desktop header click or mobile pill tap). */
+  onSelectDate: (iso: string) => void;
+  /** Whether the macro strip is in "show all days" week-view mode. */
+  isWeekView: boolean;
+  /** Called when the user clicks the select-all-days toggle button. */
+  onToggleWeekView: () => void;
 }
 
-const todayString = new Date().toDateString();
-
-/** Returns true if the given date is today. */
+/** Returns true if the given date is today (evaluated at call time, not module load). */
 function checkIsToday(date: Date): boolean {
-  return date.toDateString() === todayString;
+  return date.toDateString() === new Date().toDateString();
 }
 
 /**
@@ -33,16 +43,32 @@ function checkIsToday(date: Date): boolean {
  * Renders differently by breakpoint:
  * - **Desktop (md+)**: Full 8-column CSS Grid (60px label col + 7 equal day cols).
  *   The `bg-border` container shows through the `gap-px` to create hairline grid lines.
- *   Horizontally scrollable at tablet widths.
+ *   Horizontally scrollable at tablet widths. Clicking a day-column header updates
+ *   `selectedDate` (lifted to `MealPlanningPage`) to drive the `MacroStrip` forecast.
  * - **Mobile (<md)**: Single-day card view. A horizontal scrollable pill selector
  *   at the top lets the user switch between days; the selected day's 5 meal slots
  *   are shown as a vertical stack below.
+ *
+ * Selection state is owned by the parent — `selectedDate` / `onSelectDate` are required
+ * props (no internal copy).
  */
-export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoading = false }: MealGridProps) {
-  const [selectedDayIndex, setSelectedDayIndex] = useState(() => {
-    const todayIdx = weekDays.findIndex(checkIsToday);
-    return todayIdx >= 0 ? todayIdx : 0;
-  });
+export function MealGrid({
+  weekDays,
+  weekPlans,
+  onAddMeal,
+  onRemoveMeal,
+  isLoading = false,
+  selectedDate,
+  onSelectDate,
+  isWeekView,
+  onToggleWeekView,
+}: MealGridProps) {
+  // Derive the mobile pill index from the lifted selectedDate. Falls back to 0 if the
+  // selectedDate is somehow not in the current week (clamped by MealPlanningPage).
+  const selectedDayIndex = Math.max(
+    0,
+    weekDays.findIndex((d) => toLocalISODate(d) === selectedDate),
+  );
 
   return (
     <div className={cn('transition-opacity duration-200', isLoading && 'opacity-50 pointer-events-none')}>
@@ -53,13 +79,35 @@ export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoadi
           className="grid gap-px bg-border"
           style={{ gridTemplateColumns: '60px repeat(7, minmax(0, 1fr))' }}
         >
-          {/* Corner cell */}
-          <div className="bg-card" />
+          {/* Corner cell — select-all-days toggle */}
+          <button
+            type="button"
+            onClick={onToggleWeekView}
+            aria-pressed={isWeekView}
+            aria-label="Show weekly totals"
+            className={cn(
+              'bg-card flex items-center justify-center transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6ec257]/60',
+              isWeekView
+                ? 'bg-[#6ec257]/15 dark:bg-[#6ec257]/20 text-[#6ec257]'
+                : 'text-muted-foreground hover:bg-muted',
+            )}
+          >
+            <Columns3 className="h-4 w-4" aria-hidden="true" />
+          </button>
 
-          {/* Day header row */}
+          {/* Day header row — each header is a button that selects the forecast day */}
           {weekDays.map((date) => {
-            const ds = date.toISOString().split('T')[0];
-            return <DayHeader key={ds} date={date} isToday={checkIsToday(date)} />;
+            const ds = toLocalISODate(date);
+            return (
+              <DayHeader
+                key={ds}
+                date={date}
+                isToday={checkIsToday(date)}
+                isSelected={isWeekView || ds === selectedDate}
+                onSelect={() => onSelectDate(ds)}
+              />
+            );
           })}
 
           {/* Meal rows — flattened so each cell is a direct grid child */}
@@ -68,7 +116,7 @@ export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoadi
               <MealRowLabel key={`label-${mealType}`} mealType={mealType} />
             );
             const dayCells = weekDays.map((date) => {
-              const ds = date.toISOString().split('T')[0];
+              const ds = toLocalISODate(date);
               const dayPlans = weekPlans.get(ds) ?? [];
               const mealPlan = dayPlans.find((p) => p.mealType === mealType);
               return (
@@ -102,8 +150,25 @@ export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoadi
           role="tablist"
           aria-label="Select day"
         >
+          {/* Select-all-days toggle — first pill in the horizontal scroll strip */}
+          <button
+            type="button"
+            onClick={onToggleWeekView}
+            aria-pressed={isWeekView}
+            aria-label="Show weekly totals"
+            className={cn(
+              'flex-shrink-0 flex items-center justify-center px-3 py-1.5 rounded-lg border transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6ec257]/60',
+              isWeekView
+                ? 'bg-[#6ec257]/15 dark:bg-[#6ec257]/20 border-[#6ec257]/40 text-[#6ec257]'
+                : 'border-border text-muted-foreground hover:bg-muted',
+            )}
+          >
+            <Columns3 className="h-4 w-4" aria-hidden="true" />
+          </button>
+
           {weekDays.map((date, idx) => {
-            const selected = idx === selectedDayIndex;
+            const selected = isWeekView || idx === selectedDayIndex;
             const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
             const dayNum = date.getDate();
             return (
@@ -111,7 +176,7 @@ export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoadi
                 key={date.toISOString()}
                 role="tab"
                 aria-selected={selected}
-                onClick={() => setSelectedDayIndex(idx)}
+                onClick={() => onSelectDate(toLocalISODate(date))}
                 className={cn(
                   'flex-shrink-0 flex flex-col items-center px-3 py-1.5 rounded-lg text-center transition-colors',
                   selected
@@ -143,8 +208,8 @@ export function MealGrid({ weekDays, weekPlans, onAddMeal, onRemoveMeal, isLoadi
 
   /** Renders the vertical meal slot list for the currently selected day on mobile. */
   function renderMobileDaySlots() {
-    const selectedDate = weekDays[selectedDayIndex];
-    const ds = selectedDate.toISOString().split('T')[0];
+    const activeDayDate = weekDays[selectedDayIndex];
+    const ds = toLocalISODate(activeDayDate);
     const dayPlans = weekPlans.get(ds) ?? [];
 
     return (

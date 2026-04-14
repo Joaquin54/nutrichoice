@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useMealPlanning } from '../hooks/useMealPlanning';
+import { useMealPlanning, aggregateMacrosForDate, aggregateMacrosForWeek } from '../hooks/useMealPlanning';
 import type { DailyMacros } from '../hooks/useMealPlanning';
 import { WeekNavigator } from '../components/mealPlanning/WeekNavigator';
 import { MacroStrip } from '../components/mealPlanning/MacroStrip';
@@ -7,6 +7,7 @@ import { MealGrid } from '../components/mealPlanning/MealGrid';
 import { RecipeSelector } from '../components/mealPlanning/RecipeSelector';
 import { fetchDailyMacros } from '../api';
 import type { MealType } from '../components/mealPlanning/mealPlanConstants';
+import { toLocalISODate } from '../lib/utils';
 
 /** Returns the Sunday that starts the week containing the given date. */
 function getWeekStart(date: Date): Date {
@@ -21,8 +22,13 @@ const DEFAULT_TARGETS: DailyMacros = { calories: 2000, protein: 120, carbs: 250,
 /**
  * Meal Planning page — orchestrates the weekly meal planning experience.
  *
- * Owns top-level state (current week, selected recipe slot, today's macros) and
- * composes all feature components: WeekNavigator, MacroStrip, MealGrid, RecipeSelector.
+ * Owns top-level state (current week, selected recipe slot, selected forecast date, macro
+ * targets) and composes all feature components: WeekNavigator, MacroStrip, MealGrid,
+ * RecipeSelector.
+ *
+ * `selectedDate` is the single source of truth for which day's macros are displayed in
+ * the MacroStrip. It is lifted here so both `MacroStrip` and `MealGrid` stay in sync
+ * without any duplicated state.
  */
 export function MealPlanningPage() {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() =>
@@ -34,6 +40,15 @@ export function MealPlanningPage() {
   } | null>(null);
   const [todayTargets, setTodayTargets] = useState<DailyMacros>(DEFAULT_TARGETS);
 
+  // The day whose macros are shown in MacroStrip. Defaults to today. Single source of
+  // truth — passed down to MealGrid and MacroStrip; never duplicated.
+  const [selectedDate, setSelectedDate] = useState<string>(() =>
+    toLocalISODate(new Date()),
+  );
+
+  // When true, MacroStrip shows the 7-day weekly aggregate instead of a single day.
+  const [isWeekView, setIsWeekView] = useState(false);
+
   const { mealPlans, isLoading, loadWeek, getMealPlansForWeek, removeMealPlan } =
     useMealPlanning();
 
@@ -42,39 +57,7 @@ export function MealPlanningPage() {
     loadWeek(currentWeekStart);
   }, [currentWeekStart, loadWeek]);
 
-  // Fetch user macro targets once on mount. Targets rarely change so a single
-  // fetch is sufficient; we only use data.targets (not data.totals) from this response.
-  useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    fetchDailyMacros(todayStr)
-      .then((data) => {
-        setTodayTargets(data.targets);
-      })
-      .catch((err) => {
-        console.error('[MealPlanning] Failed to fetch macro targets:', err);
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Compute today's macro totals client-side from the loaded meal plans.
-  // Uses the same UTC-based date string format that is stored in mealPlans[].date.
-  // This is synchronous and always reflects the current mealPlans state without
-  // an extra network round-trip.
-  const todayMacros = useMemo<DailyMacros>(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    return mealPlans
-      .filter((p) => p.date === todayStr)
-      .reduce(
-        (acc, p) => ({
-          calories: acc.calories + (p.calories != null ? parseFloat(p.calories) : 0),
-          protein: acc.protein + (p.protein != null ? parseFloat(p.protein) : 0),
-          carbs: acc.carbs + (p.carbs != null ? parseFloat(p.carbs) : 0),
-          fat: acc.fat + (p.fat != null ? parseFloat(p.fat) : 0),
-        }),
-        { calories: 0, protein: 0, carbs: 0, fat: 0 } as DailyMacros,
-      );
-  }, [mealPlans]);
-
+  // Compute the 7 days for the current week (used for clamping and rendering).
   const weekDays = useMemo<Date[]>(() => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(currentWeekStart);
@@ -82,6 +65,70 @@ export function MealPlanningPage() {
       return d;
     });
   }, [currentWeekStart]);
+
+  // Clamp selectedDate when the displayed week changes: keep today if it falls in the
+  // new week, otherwise reset to the week's first day (Sunday).
+  useEffect(() => {
+    const weekIsoSet = new Set(weekDays.map(toLocalISODate));
+    if (!weekIsoSet.has(selectedDate)) {
+      const todayIso = toLocalISODate(new Date());
+      setSelectedDate(weekIsoSet.has(todayIso) ? todayIso : toLocalISODate(weekDays[0]));
+    }
+  // weekDays identity changes whenever currentWeekStart changes — that's the trigger.
+  // selectedDate intentionally excluded: we only clamp when the week changes, not when
+  // the user selects a different day within the same week.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekDays]);
+
+  // Fetch user macro targets once on mount. Targets rarely change so a single fetch is
+  // sufficient; only data.targets (not data.totals) is consumed from this response.
+  useEffect(() => {
+    const todayStr = toLocalISODate(new Date());
+    fetchDailyMacros(todayStr)
+      .then((data) => {
+        setTodayTargets(data.targets);
+      })
+      .catch((err) => {
+        console.error('[MealPlanning] Failed to fetch macro targets:', err);
+      });
+  }, []);
+
+  // ISO strings for the 7 days of the current week — stable reference tied to weekDays.
+  const weekDayIsos = useMemo<string[]>(
+    () => weekDays.map(toLocalISODate),
+    [weekDays],
+  );
+
+  // Aggregate macros: weekly sum when isWeekView is active, otherwise single-day.
+  // Pure client-side O(n) computation — no network request on toggle or day selection.
+  const displayedMacros = useMemo<DailyMacros>(
+    () =>
+      isWeekView
+        ? aggregateMacrosForWeek(mealPlans, weekDayIsos)
+        : aggregateMacrosForDate(mealPlans, selectedDate),
+    [isWeekView, mealPlans, weekDayIsos, selectedDate],
+  );
+
+  // Weekly targets: multiply each daily target ×7 so progress bars stay proportional.
+  const displayedTargets = useMemo(
+    () =>
+      isWeekView
+        ? {
+            calories: todayTargets.calories * 7,
+            protein: todayTargets.protein * 7,
+            carbs: todayTargets.carbs * 7,
+            fat: todayTargets.fat * 7,
+          }
+        : todayTargets,
+    [isWeekView, todayTargets],
+  );
+
+  // Resolve the selected Date object for MacroStrip's displayDate prop.
+  const selectedDateObj = useMemo<Date>(() => {
+    const found = weekDays.find((d) => toLocalISODate(d) === selectedDate);
+    // Fallback: parse from the ISO string directly (always valid).
+    return found ?? new Date(`${selectedDate}T00:00:00`);
+  }, [weekDays, selectedDate]);
 
   const weekPlans = useMemo(
     () => getMealPlansForWeek(currentWeekStart),
@@ -123,6 +170,15 @@ export function MealPlanningPage() {
     setSelectedSlot(null);
   }, []);
 
+  const handleSelectDate = useCallback((iso: string) => {
+    setSelectedDate(iso);
+    setIsWeekView(false);
+  }, []);
+
+  const handleToggleWeekView = useCallback(() => {
+    setIsWeekView((v) => !v);
+  }, []);
+
   return (
     <div className="space-y-4 sm:space-y-5">
       <div className="text-center">
@@ -141,7 +197,14 @@ export function MealPlanningPage() {
         onGoToToday={goToToday}
       />
 
-      <MacroStrip macros={todayMacros} targets={todayTargets} />
+      <MacroStrip
+        macros={displayedMacros}
+        targets={displayedTargets}
+        displayDate={isWeekView ? undefined : selectedDateObj}
+        isWeekView={isWeekView}
+        weekStart={weekDays[0]}
+        weekEnd={weekDays[6]}
+      />
 
       <MealGrid
         weekDays={weekDays}
@@ -149,6 +212,10 @@ export function MealPlanningPage() {
         onAddMeal={handleAddMeal}
         onRemoveMeal={handleRemoveMeal}
         isLoading={isLoading}
+        selectedDate={selectedDate}
+        onSelectDate={handleSelectDate}
+        isWeekView={isWeekView}
+        onToggleWeekView={handleToggleWeekView}
       />
 
       {selectedSlot && (

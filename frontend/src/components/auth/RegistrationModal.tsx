@@ -6,16 +6,21 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card } from '../ui/card';
 import { ImageWithFallback } from '../ui/ImageWithFallback';
-import { ChevronLeft, ChevronRight, ChefHat, Moon, Sun, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChefHat, Moon, Sun, Loader2, Sparkles } from 'lucide-react';
 import { mockRecipes } from '../../data/mockRecipes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { completeOnboarding } from '../../api';
+import { completeOnboarding, updateUser } from '../../api';
 import type { User } from '../../api';
-import type { DietaryFilter } from '../../types/recipe';
+import type { DietaryFilter, Recipe } from '../../types/recipe';
+import { cn } from '../../lib/utils';
+
+const TASTE_PROFILE_STORAGE_KEY = 'nutrichoice_taste_profile';
 
 interface RegistrationModalProps {
   isOpen: boolean;
   onComplete: (user: User) => void;
+  /** Logged-in user shown on the final step so name, username, and email can be confirmed or edited */
+  initialUser?: User | null;
 }
 
 const COMMON_ALLERGIES = [
@@ -31,29 +36,78 @@ const COMMON_ALLERGIES = [
   'Sulfites',
 ];
 
-export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps) {
+const FOOD_LIKE_OPTIONS: { id: string; label: string; hint: string }[] = [
+  { id: 'fresh', label: 'Fresh & veggie-forward', hint: 'Salads, bowls, produce' },
+  { id: 'comfort', label: 'Comfort & cozy', hint: 'Warm, hearty classics' },
+  { id: 'spicy', label: 'Spicy & bold', hint: 'Heat and big flavor' },
+  { id: 'sweet', label: 'Sweet treats', hint: 'Baking and desserts' },
+  { id: 'quick', label: 'Quick & easy', hint: '30 minutes or less' },
+  { id: 'protein', label: 'High-protein', hint: 'Filling, gym-friendly' },
+  { id: 'light', label: 'Light & simple', hint: 'Easy on calories' },
+  { id: 'global', label: 'Global flavors', hint: 'Try cuisines from everywhere' },
+];
+
+const CUISINE_OPTIONS: { id: string; label: string }[] = [
+  { id: 'italian', label: 'Italian' },
+  { id: 'mexican', label: 'Mexican' },
+  { id: 'indian', label: 'Indian' },
+  { id: 'thai', label: 'Thai' },
+  { id: 'japanese', label: 'Japanese' },
+  { id: 'chinese', label: 'Chinese' },
+  { id: 'korean', label: 'Korean' },
+  { id: 'mediterranean', label: 'Mediterranean' },
+  { id: 'french', label: 'French' },
+  { id: 'american', label: 'American' },
+];
+
+const COOKING_FREQUENCY_OPTIONS: { id: string; label: string; sub: string }[] = [
+  { id: 'rarely', label: 'Rarely', sub: 'Mostly takeout or convenience' },
+  { id: 'few_week', label: 'A few times a week', sub: 'Weekend cooking or simple meals' },
+  { id: 'most_nights', label: 'Most nights', sub: 'Home cooking is the default' },
+  { id: 'daily', label: 'Daily', sub: 'I love being in the kitchen' },
+];
+
+const GOAL_OPTIONS: { id: string; label: string; sub: string }[] = [
+  { id: 'time', label: 'Save time', sub: 'Faster shopping and cooking' },
+  { id: 'health', label: 'Eat healthier', sub: 'More balance and whole foods' },
+  { id: 'learn', label: 'Learn to cook', sub: 'Build skills and confidence' },
+  { id: 'diet', label: 'Stick to a plan', sub: 'Keto, macros, or doctor-led' },
+  { id: 'family', label: 'Feed others', sub: 'Family meals or meal prep' },
+];
+
+const STEPS = [
+  'welcome',
+  'food_likes',
+  'cuisines',
+  'diet',
+  'allergies',
+  'recipes',
+  'cooking_frequency',
+  'goal',
+  'account',
+] as const;
+
+type StepId = (typeof STEPS)[number];
+
+function recipeImageSrc(recipe: Recipe): string {
+  const withLegacy = recipe as Recipe & { image?: string };
+  return recipe.image_1 ?? withLegacy.image ?? '';
+}
+
+function toggleInList(list: string[], id: string): string[] {
+  return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+}
+
+export function RegistrationModal({ isOpen, onComplete, initialUser = null }: RegistrationModalProps) {
   const { theme, toggleTheme } = useTheme();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [stepIndex, setStepIndex] = useState(0);
   const [modalWidth, setModalWidth] = useState('90vw');
 
-  useEffect(() => {
-    const updateModalSize = () => {
-      if (window.innerWidth >= 1024) {
-        // Desktop
-        setModalWidth('70vw');
-      } else if (window.innerWidth >= 768) {
-        // Tablet/Medium
-        setModalWidth('85vw');
-      } else {
-        // Mobile
-        setModalWidth('95vw');
-      }
-    };
+  const [foodLikes, setFoodLikes] = useState<string[]>([]);
+  const [favoriteCuisines, setFavoriteCuisines] = useState<string[]>([]);
+  const [cookingFrequency, setCookingFrequency] = useState<string | null>(null);
+  const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
 
-    updateModalSize();
-    window.addEventListener('resize', updateModalSize);
-    return () => window.removeEventListener('resize', updateModalSize);
-  }, []);
   const [dietaryRestrictions, setDietaryRestrictions] = useState<DietaryFilter>({
     vegetarian: false,
     vegan: false,
@@ -64,12 +118,74 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
     paleo: false,
     low_carb: false,
   });
-  const [dietarySkipped, setDietarySkipped] = useState<boolean>(false);
+  const [dietarySkipped, setDietarySkipped] = useState(false);
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   const [customAllergy, setCustomAllergy] = useState('');
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
+
+  const [profileFirst, setProfileFirst] = useState('');
+  const [profileLast, setProfileLast] = useState('');
+  const [profileUsername, setProfileUsername] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profileFieldErrors, setProfileFieldErrors] = useState<Record<string, string>>({});
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const totalSteps = STEPS.length;
+  const currentStep = STEPS[stepIndex];
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setStepIndex(0);
+    setFoodLikes([]);
+    setFavoriteCuisines([]);
+    setCookingFrequency(null);
+    setPrimaryGoal(null);
+    setDietaryRestrictions({
+      vegetarian: false,
+      vegan: false,
+      gluten_free: false,
+      dairy_free: false,
+      nut_free: false,
+      keto: false,
+      paleo: false,
+      low_carb: false,
+    });
+    setDietarySkipped(false);
+    setSelectedAllergies([]);
+    setCustomAllergy('');
+    setSelectedRecipes([]);
+    setProfileFieldErrors({});
+    setSubmitError(null);
+    if (initialUser) {
+      setProfileFirst(initialUser.first_name ?? '');
+      setProfileLast(initialUser.last_name ?? '');
+      setProfileUsername(initialUser.username ?? '');
+      setProfileEmail(initialUser.email ?? '');
+    } else {
+      setProfileFirst('');
+      setProfileLast('');
+      setProfileUsername('');
+      setProfileEmail('');
+    }
+  }, [isOpen, initialUser?.public_id, initialUser?.username, initialUser?.email, initialUser?.first_name, initialUser?.last_name]);
+
+  useEffect(() => {
+    const updateModalSize = () => {
+      if (window.innerWidth >= 1024) {
+        setModalWidth('min(520px, 70vw)');
+      } else if (window.innerWidth >= 768) {
+        setModalWidth('85vw');
+      } else {
+        setModalWidth('100vw');
+      }
+    };
+
+    updateModalSize();
+    window.addEventListener('resize', updateModalSize);
+    return () => window.removeEventListener('resize', updateModalSize);
+  }, []);
 
   const dietaryOptions = [
     { key: 'vegetarian' as keyof DietaryFilter, label: 'Vegetarian' },
@@ -83,25 +199,18 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
   ];
 
   const handleDietaryChange = (key: keyof DietaryFilter, checked: boolean) => {
-    // Toggling any checkbox cancels a prior "skip" action
     setDietarySkipped(false);
-    setDietaryRestrictions({
-      ...dietaryRestrictions,
-      [key]: checked,
-    });
+    setDietaryRestrictions((prev) => ({ ...prev, [key]: checked }));
   };
 
   const handleAllergyToggle = (allergy: string) => {
-    setSelectedAllergies((prev) =>
-      prev.includes(allergy)
-        ? prev.filter((a) => a !== allergy)
-        : [...prev, allergy]
-    );
+    setSelectedAllergies((prev) => toggleInList(prev, allergy));
   };
 
   const handleCustomAllergyAdd = () => {
-    if (customAllergy.trim() && !selectedAllergies.includes(customAllergy.trim())) {
-      setSelectedAllergies([...selectedAllergies, customAllergy.trim()]);
+    const next = customAllergy.trim();
+    if (next && !selectedAllergies.includes(next)) {
+      setSelectedAllergies((prev) => [...prev, next]);
       setCustomAllergy('');
     }
   };
@@ -111,27 +220,10 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
   };
 
   const handleRecipeToggle = (recipeId: string) => {
-    setSelectedRecipes((prev) =>
-      prev.includes(recipeId)
-        ? prev.filter((id) => id !== recipeId)
-        : [...prev, recipeId]
-    );
-  };
-
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+    setSelectedRecipes((prev) => toggleInList(prev, recipeId));
   };
 
   const handleSkipDietary = () => {
-    // Reset all checkboxes and mark as skipped — persists as NULL on the backend
     setDietaryRestrictions({
       vegetarian: false,
       vegan: false,
@@ -143,208 +235,401 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
       low_carb: false,
     });
     setDietarySkipped(true);
-    handleNext();
+    setStepIndex((i) => Math.min(i + 1, totalSteps - 1));
+  };
+
+  const validateProfileStep = (): boolean => {
+    if (!initialUser) return true;
+    const errors: Record<string, string> = {};
+    if (!profileFirst.trim()) errors.first = 'First name is required';
+    if (!profileLast.trim()) errors.last = 'Last name is required';
+    if (profileUsername.trim().length < 4) errors.username = 'Username must be at least 4 characters';
+    if (profileUsername.trim().length > 24) errors.username = 'Username must be 24 characters or fewer';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileEmail.trim())) errors.email = 'Enter a valid email';
+    setProfileFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 'account' && initialUser && !validateProfileStep()) {
+      return;
+    }
+    if (stepIndex < totalSteps - 1) {
+      setStepIndex((i) => i + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (stepIndex > 0) {
+      setStepIndex((i) => i - 1);
+    }
+  };
+
+  const persistTasteProfile = () => {
+    try {
+      localStorage.setItem(
+        TASTE_PROFILE_STORAGE_KEY,
+        JSON.stringify({
+          foodLikes,
+          favoriteCuisines,
+          cookingFrequency,
+          primaryGoal,
+          selectedRecipeIds: selectedRecipes,
+          savedAt: new Date().toISOString(),
+        })
+      );
+    } catch {
+      // ignore quota / private mode
+    }
   };
 
   const handleComplete = async () => {
+    if (initialUser && !validateProfileStep()) {
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError(null);
     try {
+      if (initialUser) {
+        const payload: Parameters<typeof updateUser>[1] = {};
+        if (profileFirst.trim() !== (initialUser.first_name ?? '')) payload.first_name = profileFirst.trim();
+        if (profileLast.trim() !== (initialUser.last_name ?? '')) payload.last_name = profileLast.trim();
+        if (profileUsername.trim() !== initialUser.username) payload.username = profileUsername.trim();
+        if (profileEmail.trim() !== initialUser.email) payload.email = profileEmail.trim();
+        if (Object.keys(payload).length > 0) {
+          await updateUser(initialUser.public_id, payload);
+        }
+      }
+
       const updatedUser = await completeOnboarding({
-        // null signals "no preference provided" (skipped); otherwise send the selections
-        diet_type: dietarySkipped ? null : dietaryRestrictions,
+        diet_type: dietarySkipped ? null : ({ ...dietaryRestrictions } as Record<string, boolean>),
         allergies: selectedAllergies,
       });
+      persistTasteProfile();
       onComplete(updatedUser);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save preferences. Please try again.';
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
+  const stepHeading = (title: string, subtitle: string) => (
+    <div className="space-y-1.5 pb-1">
+      <h3 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{title}</h3>
+      <p className="text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+    </div>
+  );
+
+  const chipClass = (active: boolean) =>
+    cn(
+      'rounded-full border px-4 py-3 text-left text-sm font-medium transition-all',
+      active
+        ? 'border-[#6ec257] bg-[#6ec257]/15 text-foreground shadow-sm ring-2 ring-[#6ec257]/40'
+        : 'border-border bg-card text-foreground hover:border-[#6ec257]/50 hover:bg-muted/40'
+    );
+
+  const renderStepBody = () => {
+    switch (currentStep as StepId) {
+      case 'welcome':
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">What are your dietary restrictions?</h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                Select all that apply to help us personalize your recipe recommendations.
-              </p>
+          <div className="flex flex-col items-center justify-center space-y-6 py-4 text-center sm:py-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[#6ec257]/20">
+              <Sparkles className="h-10 w-10 text-[#6ec257]" aria-hidden />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {stepHeading("Let's get to know your taste", "A few quick questions—one screen at a time—so NutriChoice can feel personal from day one.")}
+            <p className="max-w-sm text-xs text-muted-foreground">
+              You can change preferences anytime in your account.
+            </p>
+          </div>
+        );
+
+      case 'food_likes':
+        return (
+          <div className="space-y-5">
+            {stepHeading('What kinds of foods do you gravitate toward?', 'Pick all that sound like you—there are no wrong answers.')}
+            <div className="flex flex-col gap-2.5">
+              {FOOD_LIKE_OPTIONS.map(({ id, label, hint }) => {
+                const active = foodLikes.includes(id);
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setFoodLikes((prev) => toggleInList(prev, id))}
+                    className={cn(chipClass(active), 'flex w-full flex-col items-start gap-0.5')}
+                  >
+                    <span>{label}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{hint}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 'cuisines':
+        return (
+          <div className="space-y-5">
+            {stepHeading('Favorite cuisines?', 'Choose the flavors you want to see more of.')}
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              {CUISINE_OPTIONS.map(({ id, label }) => {
+                const active = favoriteCuisines.includes(id);
+                return (
+                  <button key={id} type="button" onClick={() => setFavoriteCuisines((prev) => toggleInList(prev, id))} className={chipClass(active)}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 'diet':
+        return (
+          <div className="space-y-5">
+            {stepHeading('Any dietary preferences?', 'We will prioritize recipes that match what you need.')}
+            <div className="grid grid-cols-4 grid-rows-2 gap-1.5 sm:gap-2">
               {dietaryOptions.map(({ key, label }) => (
-                <div key={key} className="flex items-center space-x-2">
+                <div key={key} className="flex min-w-0 items-center gap-1.5 rounded-lg border border-border px-1.5 py-1.5 sm:gap-2 sm:rounded-xl sm:px-2.5 sm:py-2">
                   <Checkbox
                     id={key}
                     checked={dietaryRestrictions[key]}
-                    onCheckedChange={(checked) =>
-                      handleDietaryChange(key, checked as boolean)
-                    }
+                    onCheckedChange={(checked) => handleDietaryChange(key, checked as boolean)}
                   />
-                  <Label
-                    htmlFor={key}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
+                  <Label htmlFor={key} className="min-w-0 cursor-pointer text-[11px] font-medium leading-tight sm:text-sm sm:leading-snug">
                     {label}
                   </Label>
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex flex-col items-start gap-1">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleSkipDietary}
-                className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 px-0 hover:bg-transparent hover:underline"
-              >
-                Skip / No Preference
-              </Button>
-              {dietarySkipped && (
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  Skipped — you can set this later in Account.
-                </p>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleSkipDietary}
+              className="h-auto px-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground hover:underline"
+            >
+              Skip — no specific diet
+            </Button>
+            {dietarySkipped && <p className="text-xs text-muted-foreground">Skipped. You can set this later in Account.</p>}
+          </div>
+        );
+
+      case 'allergies':
+        return (
+          <div className="space-y-5">
+            {stepHeading('Allergies or ingredients to avoid?', 'So we can steer you away from risky recipes.')}
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {COMMON_ALLERGIES.map((allergy) => (
+                <div key={allergy} className="flex items-center space-x-3 rounded-xl border border-border px-3 py-2">
+                  <Checkbox id={allergy} checked={selectedAllergies.includes(allergy)} onCheckedChange={() => handleAllergyToggle(allergy)} />
+                  <Label htmlFor={allergy} className="cursor-pointer text-sm font-medium">
+                    {allergy}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label htmlFor="custom-allergy" className="text-sm font-medium">
+                Something else?
+              </Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="custom-allergy"
+                  type="text"
+                  placeholder="e.g. Mustard, Celery"
+                  value={customAllergy}
+                  onChange={(e) => setCustomAllergy(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCustomAllergyAdd();
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button type="button" variant="outline" onClick={handleCustomAllergyAdd} disabled={!customAllergy.trim()}>
+                  Add
+                </Button>
+              </div>
+              {selectedAllergies.filter((a) => !COMMON_ALLERGIES.includes(a)).length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {selectedAllergies
+                    .filter((a) => !COMMON_ALLERGIES.includes(a))
+                    .map((allergy) => (
+                      <div
+                        key={allergy}
+                        className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-sm text-foreground"
+                      >
+                        <span>{allergy}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCustomAllergyRemove(allergy)}
+                          className="text-muted-foreground transition-colors hover:text-destructive"
+                          aria-label={`Remove ${allergy}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                </div>
               )}
             </div>
           </div>
         );
 
-      case 2:
+      case 'recipes':
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Any Allergies?</h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                Select common allergies or add your own.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {COMMON_ALLERGIES.map((allergy) => (
-                  <div key={allergy} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={allergy}
-                      checked={selectedAllergies.includes(allergy)}
-                      onCheckedChange={() => handleAllergyToggle(allergy)}
-                    />
-                    <Label
-                      htmlFor={allergy}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {allergy}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Label htmlFor="custom-allergy" className="text-xs sm:text-sm font-medium mb-2 block">
-                  Add Custom Allergy
-                </Label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    id="custom-allergy"
-                    type="text"
-                    placeholder="e.g., Cinnamon, Mustard"
-                    value={customAllergy}
-                    onChange={(e) => setCustomAllergy(e.target.value)}
+          <div className="space-y-5">
+            {stepHeading('Which recipes would you actually try?', 'Tap a few favorites—we use this to tune recommendations.')}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+              {mockRecipes.map((recipe) => {
+                const selected = selectedRecipes.includes(recipe.id);
+                const src = recipeImageSrc(recipe);
+                return (
+                  <Card
+                    key={recipe.id}
+                    role="button"
+                    tabIndex={0}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        handleCustomAllergyAdd();
+                        handleRecipeToggle(recipe.id);
                       }
                     }}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCustomAllergyAdd}
-                    disabled={!customAllergy.trim()}
+                    className={cn(
+                      'cursor-pointer overflow-hidden border-2 transition-all hover:shadow-md',
+                      selected ? 'border-[#6ec257] ring-2 ring-[#6ec257]/30' : 'border-transparent'
+                    )}
+                    onClick={() => handleRecipeToggle(recipe.id)}
                   >
-                    Add
-                  </Button>
-                </div>
-                {selectedAllergies.filter((a) => !COMMON_ALLERGIES.includes(a)).length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedAllergies
-                      .filter((a) => !COMMON_ALLERGIES.includes(a))
-                      .map((allergy) => (
-                        <div
-                          key={allergy}
-                          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-sm"
-                        >
-                          <span>{allergy}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCustomAllergyRemove(allergy)}
-                            className="hover:text-red-500 transition-colors"
-                            aria-label={`Remove ${allergy}`}
-                          >
-                            ×
-                          </button>
+                    <div className="relative aspect-[4/3] w-full bg-muted">
+                      {src ? (
+                        <ImageWithFallback src={src} alt={recipe.name} className="h-full w-full object-cover" />
+                      ) : null}
+                      {selected && (
+                        <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#6ec257] text-xs font-bold text-white shadow-md">
+                          ✓
                         </div>
-                      ))}
+                      )}
+                    </div>
+                    <div className="p-2">
+                      <h4 className="line-clamp-2 text-xs font-medium leading-snug sm:text-sm">{recipe.name}</h4>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 'cooking_frequency':
+        return (
+          <div className="space-y-5">
+            {stepHeading('How often do you cook at home?', 'This helps us suggest realistic recipes.')}
+            <div className="flex flex-col gap-2.5">
+              {COOKING_FREQUENCY_OPTIONS.map(({ id, label, sub }) => {
+                const active = cookingFrequency === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setCookingFrequency(id)}
+                    className={cn(chipClass(active), 'flex w-full flex-col items-start gap-0.5 text-left')}
+                  >
+                    <span>{label}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{sub}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 'goal':
+        return (
+          <div className="space-y-5">
+            {stepHeading('What is your main goal right now?', 'Pick the one that matters most—we will prioritize around it.')}
+            <div className="flex flex-col gap-2.5">
+              {GOAL_OPTIONS.map(({ id, label, sub }) => {
+                const active = primaryGoal === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setPrimaryGoal(id)}
+                    className={cn(chipClass(active), 'flex w-full flex-col items-start gap-0.5 text-left')}
+                  >
+                    <span>{label}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{sub}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 'account':
+        if (initialUser) {
+          return (
+            <div className="space-y-5">
+              {stepHeading('Almost there—confirm your account', 'Your name, username, and email. Edit anything that needs a tweak.')}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="ob-first">First name</Label>
+                    <Input
+                      id="ob-first"
+                      value={profileFirst}
+                      onChange={(e) => setProfileFirst(e.target.value)}
+                      className={profileFieldErrors.first ? 'border-red-500' : ''}
+                      autoComplete="given-name"
+                    />
+                    {profileFieldErrors.first && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.first}</p>}
                   </div>
-                )}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="ob-last">Last name</Label>
+                    <Input
+                      id="ob-last"
+                      value={profileLast}
+                      onChange={(e) => setProfileLast(e.target.value)}
+                      className={profileFieldErrors.last ? 'border-red-500' : ''}
+                      autoComplete="family-name"
+                    />
+                    {profileFieldErrors.last && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.last}</p>}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="ob-user">Username</Label>
+                  <Input
+                    id="ob-user"
+                    value={profileUsername}
+                    onChange={(e) => setProfileUsername(e.target.value)}
+                    className={profileFieldErrors.username ? 'border-red-500' : ''}
+                    autoComplete="username"
+                  />
+                  {profileFieldErrors.username && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.username}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="ob-email">Email</Label>
+                  <Input
+                    id="ob-email"
+                    type="email"
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    className={profileFieldErrors.email ? 'border-red-500' : ''}
+                    autoComplete="email"
+                  />
+                  {profileFieldErrors.email && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.email}</p>}
+                </div>
               </div>
             </div>
-          </div>
-        );
-
-      case 3:
+          );
+        }
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                Select the recipes you are most likely to cook:
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                Choose your favorite recipes to help us personalize your experience.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 pr-2">
-              {mockRecipes.map((recipe) => (
-                <Card
-                  key={recipe.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
-                    selectedRecipes.includes(recipe.id)
-                      ? 'ring-2 ring-[#6ec257] border-[#6ec257]'
-                      : ''
-                  }`}
-                  onClick={() => handleRecipeToggle(recipe.id)}
-                >
-                  <div className="relative">
-                    <ImageWithFallback
-                      src={recipe.image_1}
-                      alt={recipe.name}
-                      className="w-full h-24 sm:h-28 md:h-32 object-cover rounded-t-lg"
-                    />
-                    {selectedRecipes.includes(recipe.id) && (
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#6ec257] flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-2 sm:p-3">
-                    <h4 className="text-xs sm:text-sm font-medium line-clamp-2">{recipe.name}</h4>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6 text-center py-8">
-            <ChefHat className="h-16 w-16 mx-auto text-[#6ec257] mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">You're all set!</h3>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              Click finish to complete your registration and start exploring recipes.
-            </p>
+          <div className="flex flex-col items-center space-y-5 py-6 text-center">
+            <ChefHat className="h-16 w-16 text-[#6ec257]" />
+            {stepHeading('You are ready', 'Save your preferences and start exploring recipes.')}
           </div>
         );
 
@@ -353,99 +638,67 @@ export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps
     }
   };
 
+  const isLastStep = stepIndex === totalSteps - 1;
+  const primaryLabel = isLastStep ? (initialUser ? 'Save & start' : 'Finish') : 'Continue';
+
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent 
-        className="h-[90vh] sm:h-[85vh] md:h-[90vh] max-h-[90vh] sm:max-h-[85vh] md:max-h-[80vh] flex flex-col [&>button]:hidden"
-        style={{ 
+      <DialogContent
+        className="flex h-[100dvh] max-h-[100dvh] flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:h-[min(720px,90vh)] sm:max-h-[90vh] sm:rounded-xl sm:border sm:p-6 [&>button]:hidden"
+        style={{
           width: modalWidth,
-          maxWidth: '1600px'
+          maxWidth: '560px',
         }}
       >
-        <DialogHeader className="relative">
-          <div className="absolute top-0 right-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9"
-              aria-label="Toggle theme"
-            >
-              {theme === 'light' ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
+        <DialogHeader className="relative shrink-0 space-y-3 border-b border-border px-4 pb-3 pt-4 sm:border-0 sm:px-0 sm:pb-0 sm:pt-0">
+          <div className="absolute right-2 top-2 sm:right-0 sm:top-0">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9" aria-label="Toggle theme">
+              {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
           </div>
-          <DialogTitle className="text-base sm:text-lg">Complete Your Profile</DialogTitle>
-          <div className="flex items-center gap-1 sm:gap-2 pt-3 sm:pt-4">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center flex-1">
-                <div
-                  className={`flex-1 h-1.5 sm:h-2 rounded-full transition-colors ${
-                    step <= currentStep
-                      ? 'bg-[#6ec257]'
-                      : 'bg-gray-200 dark:bg-gray-700'
-                  }`}
-                />
-                {step < 4 && (
-                  <div
-                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mx-0.5 sm:mx-1 transition-colors ${
-                      step < currentStep
-                        ? 'bg-[#6ec257]'
-                        : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  />
-                )}
-              </div>
+          <DialogTitle className="pr-12 text-left text-lg font-semibold sm:pr-10 sm:text-xl">Personalize NutriChoice</DialogTitle>
+          <div className="flex items-center gap-1.5">
+            {STEPS.map((_, i) => (
+              <div
+                key={i}
+                className={cn('h-1.5 flex-1 rounded-full transition-colors', i <= stepIndex ? 'bg-[#6ec257]' : 'bg-muted')}
+                aria-hidden
+              />
             ))}
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pt-1 sm:pt-2">
-            <span>{currentStep}/4</span>
-            <span className="hidden sm:inline">Step {currentStep} of 4</span>
-          </div>
+          <p className="text-left text-xs text-muted-foreground">
+            Step {stepIndex + 1} of {totalSteps}
+          </p>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-4 sm:py-6 min-h-0">{renderStep()}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-0 sm:py-2">{renderStepBody()}</div>
 
         {submitError && (
-          <div className="px-1 pb-2">
+          <div className="shrink-0 px-4 sm:px-0">
             <p className="text-xs text-red-600 dark:text-red-400">{submitError}</p>
           </div>
         )}
-        <div className="flex justify-between gap-2 sm:gap-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1 || isSubmitting}
-            className="text-xs sm:text-sm"
-          >
-            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Previous</span>
-            <span className="sm:hidden">Prev</span>
+
+        <div className="flex shrink-0 items-stretch justify-between gap-2 border-t border-border bg-background px-4 py-3 sm:rounded-b-xl sm:border-0 sm:px-0 sm:py-0 sm:pt-3">
+          <Button type="button" variant="outline" onClick={handlePrevious} disabled={stepIndex === 0 || isSubmitting} className="min-w-[88px]">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Back
           </Button>
-          {currentStep < 4 ? (
-            <Button type="button" onClick={handleNext} className="text-xs sm:text-sm">
-              Next
-              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={handleComplete}
-              disabled={isSubmitting}
-              className="text-xs sm:text-sm"
-            >
+          {isLastStep ? (
+            <Button type="button" onClick={handleComplete} disabled={isSubmitting} className="min-w-[120px] flex-1 sm:flex-none">
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving…
                 </>
               ) : (
-                'Finish'
+                primaryLabel
               )}
+            </Button>
+          ) : (
+            <Button type="button" onClick={handleNext} className="min-w-[120px] flex-1 sm:flex-none">
+              {primaryLabel}
+              <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           )}
         </div>

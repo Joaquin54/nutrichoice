@@ -8,6 +8,7 @@ import {
   deleteMealPlanEntry,
   type MealPlanEntryResponse,
 } from '../api';
+import { toLocalISODate } from '../lib/utils';
 
 /** A single planned meal entry associating a date, meal slot, and recipe. */
 export interface MealPlan {
@@ -76,6 +77,73 @@ function entryToMealPlan(entry: MealPlanEntryResponse): MealPlan {
   };
 }
 
+/** Coerces a single MealPlan's macro strings to finite numbers (0 when unparseable). */
+function coerceMacros(p: MealPlan): DailyMacros {
+  const cal = parseFloat(p.calories ?? '');
+  const pro = parseFloat(p.protein ?? '');
+  const carb = parseFloat(p.carbs ?? '');
+  const fat = parseFloat(p.fat ?? '');
+  return {
+    calories: Number.isFinite(cal) ? cal : 0,
+    protein: Number.isFinite(pro) ? pro : 0,
+    carbs: Number.isFinite(carb) ? carb : 0,
+    fat: Number.isFinite(fat) ? fat : 0,
+  };
+}
+
+/**
+ * Aggregates macro totals for all meal plans on a given ISO date string.
+ *
+ * Pure function — no side effects, no network calls. Safe to call on every render.
+ * `calories|protein|carbs|fat` on each `MealPlan` are Django Decimal strings or null;
+ * any value that cannot be parsed to a finite number is silently treated as 0.
+ */
+export function aggregateMacrosForDate(
+  plans: readonly MealPlan[],
+  dateIso: string,
+): DailyMacros {
+  return plans.reduce<DailyMacros>(
+    (acc, p) => {
+      if (p.date !== dateIso) return acc;
+      const m = coerceMacros(p);
+      return {
+        calories: acc.calories + m.calories,
+        protein: acc.protein + m.protein,
+        carbs: acc.carbs + m.carbs,
+        fat: acc.fat + m.fat,
+      };
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+}
+
+/**
+ * Aggregates macro totals across all 7 days of a week.
+ *
+ * Pure function — same guarantees as `aggregateMacrosForDate`.
+ * Pass the ISO date strings for the 7 displayed days; any plan entry whose date is
+ * not in that set is ignored.
+ */
+export function aggregateMacrosForWeek(
+  plans: readonly MealPlan[],
+  weekDateIsos: readonly string[],
+): DailyMacros {
+  const isoSet = new Set(weekDateIsos);
+  return plans.reduce<DailyMacros>(
+    (acc, p) => {
+      if (!isoSet.has(p.date)) return acc;
+      const m = coerceMacros(p);
+      return {
+        calories: acc.calories + m.calories,
+        protein: acc.protein + m.protein,
+        carbs: acc.carbs + m.carbs,
+        fat: acc.fat + m.fat,
+      };
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+}
+
 const MealPlanningContext = createContext<MealPlanningContextType | undefined>(undefined);
 
 /** Provides meal planning state backed by the backend API to all descendant components. */
@@ -94,7 +162,7 @@ export function MealPlanningProvider({ children }: { children: ReactNode }) {
   const loadWeek = useCallback(async (weekStart: Date): Promise<void> => {
     setIsLoading(true);
     try {
-      const weekStartStr = weekStart.toISOString().split('T')[0];
+      const weekStartStr = toLocalISODate(weekStart);
       const data = await fetchWeekPlan(weekStartStr);
       const loaded: MealPlan[] = [];
       for (const day of data.days) {
@@ -162,7 +230,7 @@ export function MealPlanningProvider({ children }: { children: ReactNode }) {
       for (let i = 0; i < 7; i++) {
         const date = new Date(startDate);
         date.setDate(date.getDate() + i);
-        const dateString = date.toISOString().split('T')[0];
+        const dateString = toLocalISODate(date);
         weekPlans.set(dateString, getMealPlansForDate(dateString));
       }
       return weekPlans;

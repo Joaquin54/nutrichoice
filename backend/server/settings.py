@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from mongoengine import connect
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +36,6 @@ INSTALLED_APPS = [
     "django.contrib.postgres.fields",
     "rest_framework",
     "rest_framework.authtoken",  # Required for Token authentication
-    "rest_framework_mongoengine",
     "corsheaders",
     "anymail",
     "api",
@@ -124,9 +122,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://mongo:27017/capstone_db")
-connect(host=MONGO_URL)
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
