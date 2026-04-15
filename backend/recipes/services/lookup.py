@@ -9,6 +9,8 @@ from recipes.models import Recipe
 from recipes.services.feed import ALLOWED_DIET_KEYS
 from recipes.services.user_filters import get_active_allergies
 
+_LOOKUP_LIMIT = 20
+
 
 class RecipeLookupService:
   """
@@ -17,6 +19,11 @@ class RecipeLookupService:
   Applies diet preferences (AND semantics), allergy exclusions (icontains
   on ingredient names), optional full-text search, and a per-session stable
   random ordering keyed on a client-supplied seed.
+
+  At most _LOOKUP_LIMIT recipes are returned per call. All filter constraints
+  (diet, allergies, search) are evaluated on the full filtered set before the
+  cap is applied, so the results are always a correct random sample of the
+  matching pool.
   """
 
   def build_lookup(
@@ -27,7 +34,14 @@ class RecipeLookupService:
     diet_override: list[str] | None,
   ) -> QuerySet[Recipe]:
     """
-    Return a filtered, annotated QuerySet for recipe lookup.
+    Return a filtered, annotated QuerySet capped at _LOOKUP_LIMIT recipes.
+
+    Strategy: apply all filter conditions on a lightweight queryset (no
+    prefetch), then run a single SQL query to retrieve the first _LOOKUP_LIMIT
+    IDs in seeded-random order. A second queryset filtered to those IDs is
+    returned — it is un-sliced so DRF pagination can call .count() on it
+    safely. The outer COUNT and data-fetch queries are both bounded by
+    _LOOKUP_LIMIT, making them trivially fast regardless of total recipe count.
 
     Args:
       user: The authenticated request user (must have a .profile relation).
@@ -39,10 +53,7 @@ class RecipeLookupService:
       diet_override: If not None, use this list of diet keys instead of the
                      user's profile. An empty list disables all diet filtering.
     """
-    qs: QuerySet[Recipe] = Recipe.objects.all().prefetch_related(
-      "ingredients__ingredient",
-      "instructions",
-    )
+    qs: QuerySet[Recipe] = Recipe.objects.all()
 
     # 1. Diet filter — AND semantics: every active tag must be present.
     effective_diets: list[str] = (

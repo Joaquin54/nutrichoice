@@ -69,8 +69,8 @@ function RecipeReviewsSection({
         onClick={handleClick}
         className="w-full rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-left transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:bg-gray-900/70 sm:p-3"
       >
-        <h4 className="mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300 sm:text-base">Reviews & ratings</h4>
-        <p className="text-sm leading-snug text-gray-600 dark:text-gray-400 sm:text-base">No reviews yet. Be the first to rate this recipe!</p>
+        <h4 className="mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300 sm:text-base 2xl:text-lg">Reviews & ratings</h4>
+        <p className="text-sm leading-snug text-gray-600 dark:text-gray-400 sm:text-base 2xl:text-lg">No reviews yet. Be the first to rate this recipe!</p>
       </button>
     );
   }
@@ -82,12 +82,12 @@ function RecipeReviewsSection({
       className="flex min-h-0 w-full cursor-pointer flex-col rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-left transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6ec257] focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:bg-gray-900/70 sm:p-3"
     >
       <div className="mb-2 flex flex-shrink-0 items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 sm:text-base">Reviews & ratings</h4>
+        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 sm:text-base 2xl:text-lg">Reviews & ratings</h4>
         {average != null && (
           <div className="flex shrink-0 items-center gap-1">
             <StarRating rating={average} size="sm" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:text-base">{average.toFixed(1)}</span>
-            <span className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">({reviews.length})</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:text-base 2xl:text-lg">{average.toFixed(1)}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 sm:text-base 2xl:text-lg">({reviews.length})</span>
           </div>
         )}
       </div>
@@ -95,7 +95,7 @@ function RecipeReviewsSection({
         {previewReviews.map((review: RecipeReview, index) => (
           <div
             key={review.id}
-            className={`border-b border-gray-200/80 pb-2 text-sm last:border-0 last:pb-0 dark:border-gray-700/80 sm:text-base ${
+            className={`border-b border-gray-200/80 pb-2 text-sm last:border-0 last:pb-0 dark:border-gray-700/80 sm:text-base 2xl:text-lg ${
               index === 1 ? "hidden sm:block" : ""
             }`}
           >
@@ -108,7 +108,7 @@ function RecipeReviewsSection({
         ))}
       </div>
       {reviews.length > PREVIEW_REVIEWS_MAX && (
-        <p className="mt-1.5 text-sm font-medium text-[#6ec257] sm:text-base">View all {reviews.length} reviews →</p>
+        <p className="mt-1.5 text-sm font-medium text-[#6ec257] sm:text-base 2xl:text-lg">View all {reviews.length} reviews →</p>
       )}
     </button>
   );
@@ -290,7 +290,7 @@ export function RecipeFeedPage() {
                         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pr-0.5">
                           {/* Recipe Title */}
                           <div className="mt-1 sm:mt-0">
-                            <h2 className="mb-2 pr-10 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg lg:text-xl">
+                            <h2 className="mb-2 pr-10 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg lg:text-xl 2xl:text-2xl">
                               {recipe.name}
                             </h2>
                           </div>
@@ -310,7 +310,7 @@ export function RecipeFeedPage() {
 
                           {/* Recipe Description Box */}
                           <div className="mb-1 rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/50 sm:p-3">
-                            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 sm:text-base">
+                            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 sm:text-base 2xl:text-lg">
                               {recipe.description}
                             </p>
                           </div>
@@ -330,7 +330,7 @@ export function RecipeFeedPage() {
                           <Popover>
                           <PopoverTrigger asChild>
                             <Button
-                              className="w-full rounded-lg bg-[#6ec257] py-2 text-xs font-semibold text-white transition-colors hover:bg-[#5ba045] sm:py-3 sm:text-sm"
+                              className="w-full rounded-lg bg-[#6ec257] py-2 text-xs font-semibold text-white transition-colors hover:bg-[#5ba045] sm:py-3 sm:text-sm 2xl:text-base"
                             >
                               Add to Cookbook
                             </Button>
@@ -386,7 +386,7 @@ export function RecipeFeedPage() {
 
                   {/* Mobile Page 2 - Instructions */}
                   <div className="flex h-full w-full flex-shrink-0 snap-start flex-col p-4 sm:hidden">
-                    <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:text-lg">
+                    <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:text-lg 2xl:text-xl">
                       Instructions
                     </h3>
                     <div className="flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -396,7 +396,7 @@ export function RecipeFeedPage() {
                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6ec257] text-xs font-semibold text-white shadow-sm">
                               {index + 1}
                             </span>
-                            <span className="min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200 sm:text-base">
+                            <span className="min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200 sm:text-base 2xl:text-lg">
                               {instruction}
                             </span>
                           </li>
@@ -407,7 +407,7 @@ export function RecipeFeedPage() {
 
                   {/* Mobile Page 3 - Ingredients */}
                   <div className="flex h-full w-full flex-shrink-0 snap-start flex-col p-4 sm:hidden">
-                    <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:text-lg">
+                    <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:text-lg 2xl:text-xl">
                       Ingredients
                     </h3>
                     <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 overflow-y-auto">
@@ -425,7 +425,7 @@ export function RecipeFeedPage() {
                   <div className="hidden sm:flex flex-col sm:flex-row h-full w-full flex-shrink-0 snap-start p-4 sm:p-6">
                     {/* Left Half: Instructions */}
                     <div className="mb-4 flex w-full flex-col pr-0 sm:mb-0 sm:w-1/2 sm:pr-3">
-                      <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg">
+                      <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg 2xl:text-xl">
                         Instructions
                       </h3>
                       <div className="flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50 sm:p-4">
@@ -435,7 +435,7 @@ export function RecipeFeedPage() {
                               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6ec257] text-xs font-semibold text-white shadow-sm sm:h-7 sm:w-7 sm:text-sm">
                                 {index + 1}
                               </span>
-                              <span className="min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200 sm:text-base">
+                              <span className="min-w-0 pt-0.5 text-sm leading-relaxed text-gray-800 dark:text-gray-200 sm:text-base 2xl:text-lg">
                                 {instruction}
                               </span>
                             </li>
@@ -446,7 +446,7 @@ export function RecipeFeedPage() {
 
                     {/* Right Half: Ingredients */}
                     <div className="flex w-full flex-col pl-0 sm:w-1/2 sm:pl-3">
-                      <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg">
+                      <h3 className="mb-2 text-base font-bold text-gray-900 dark:text-white sm:mb-3 sm:text-lg 2xl:text-xl">
                         Ingredients
                       </h3>
                       <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 overflow-y-auto">
