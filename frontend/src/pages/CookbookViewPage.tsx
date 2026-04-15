@@ -711,7 +711,7 @@ function EmptyPage() {
 function RecipePageContent({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-col break-words">
-      <div className="relative mb-3 h-36 md:h-44 xl:h-56 2xl:h-64 w-full shrink-0 overflow-hidden rounded-lg bg-amber-100 dark:bg-stone-800">
+      <div className="relative mb-3 h-[calc(9rem_*_0.90)] md:h-[calc(11rem_*_0.90)] xl:h-[calc(14rem_*_0.90)] 2xl:h-[calc(16rem_*_0.90)] w-full shrink-0 overflow-hidden rounded-lg bg-amber-100 dark:bg-stone-800">
         <ImageWithFallback
           src={recipe.image_1}
           alt={recipe.name}
@@ -729,7 +729,7 @@ function RecipePageContent({ recipe }: { recipe: Recipe }) {
           <p className="mb-1 text-xs font-semibold text-gray-800 dark:text-gray-200 xl:text-sm 2xl:text-base">
             Ingredients
           </p>
-          <ul className="list-none columns-2 gap-x-3 space-y-1 text-muted-foreground">
+          <ul className="list-none columns-3 gap-x-3 space-y-1 text-muted-foreground">
             {recipe.ingredients.map((ing, i) => (
               <IngredientListItem key={i} variant="compact">
                 {ing}
