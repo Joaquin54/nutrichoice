@@ -66,6 +66,7 @@ export type User = {
   last_name: string;
   email: string;
   date_created: string;
+  recipes_count: number;
   profile?: UserProfile | null;
 };
 

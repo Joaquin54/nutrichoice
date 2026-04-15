@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.db.models import Q, QuerySet
-from django.db.models.expressions import RawSQL
+from django.db.models import F, Q, QuerySet, TextField, Value
+from django.db.models.functions import Cast, Concat, MD5
 
 from recipes.models import Recipe
 from recipes.services.feed import ALLOWED_DIET_KEYS
@@ -80,26 +80,19 @@ class RecipeLookupService:
         | Q(ingredients__ingredient__name__icontains=search)
       ).distinct()
 
-    # 4. Pick at most _LOOKUP_LIMIT IDs using the seeded random ordering.
-    #    Running this as an eager list() keeps the outer queryset un-sliced so
-    #    DRF can call .count() on it without raising TypeError. The ID query
-    #    itself is bounded by LIMIT _LOOKUP_LIMIT, so it is cheap.
-    #    RawSQL uses parameterized binding (%s) — no SQL injection risk.
-    selected_ids: list[int] = list(
-      qs.annotate(_rand=RawSQL("md5(CAST(id AS text) || %s)", [seed]))
-      .order_by("_rand", "-id")
-      .values_list("id", flat=True)[:_LOOKUP_LIMIT]
-    )
-
-    # 5. Return a full queryset for those IDs so DRF pagination and serializers
-    #    work normally. COUNT and data-fetch are both bounded by _LOOKUP_LIMIT.
-    #    Secondary sort on -id provides a stable tiebreaker.
-    return (
-      Recipe.objects.filter(id__in=selected_ids)
-      .prefetch_related("ingredients__ingredient", "instructions")
-      .annotate(_rand=RawSQL("md5(CAST(id AS text) || %s)", [seed]))
-      .order_by("_rand", "-id")
-    )
+    # 4. Seeded stable random ordering expressed entirely through the ORM.
+    #    MD5(Concat(Cast("id", TextField()), Value(seed))) compiles to
+    #    md5("recipes_recipe"."id"::text || %s) with seed bound as a parameter.
+    #    The table-qualified column avoids the ambiguity introduced when the
+    #    search filter joins recipes_recipeingredient and ingredients_ingredient.
+    #    F("id").desc() similarly resolves to "recipes_recipe"."id" DESC.
+    return qs.annotate(
+      _rand=MD5(Concat(
+        Cast("id", output_field=TextField()),
+        Value(seed),
+        output_field=TextField(),
+      ))
+    ).order_by("_rand", F("id").desc())
 
   def _get_active_diet_prefs(self, user: Any) -> list[str]:
     """

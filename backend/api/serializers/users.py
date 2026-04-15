@@ -106,6 +106,7 @@ class PasswordChangeConfirmSerializer(serializers.Serializer):
 
 class CurrentUserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -116,16 +117,21 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "date_created",
+            "recipes_count",
             "profile"
         ]
         read_only_fields = ["public_id", "date_created"]
 
-    def get_profile(self, obj):
+    def get_profile(self, obj: User) -> dict | None:
         try:
             profile = obj.profile
             return UserProfileSerializer(profile).data
         except UserProfile.DoesNotExist:
             return None
+
+    def get_recipes_count(self, obj: User) -> int:
+        from recipes.models import Recipe
+        return Recipe.objects.filter(creator=obj).count()
 
 
 class CompleteOnboardingSerializer(serializers.Serializer):
