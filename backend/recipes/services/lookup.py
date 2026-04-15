@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.db.models import Q, QuerySet
-from django.db.models.expressions import RawSQL
+from django.db.models import F, Q, QuerySet, TextField, Value
+from django.db.models.functions import Cast, Concat, MD5
 
 from recipes.models import Recipe
 from recipes.services.feed import ALLOWED_DIET_KEYS
@@ -69,12 +69,19 @@ class RecipeLookupService:
         | Q(ingredients__ingredient__name__icontains=search)
       ).distinct()
 
-    # 4. Seeded stable random ordering via md5.
-    #    RawSQL uses parameterized binding (%s) — no SQL injection risk.
-    #    Secondary sort on -id provides a fully stable tiebreaker across pages.
+    # 4. Seeded stable random ordering expressed entirely through the ORM.
+    #    MD5(Concat(Cast("id", TextField()), Value(seed))) compiles to
+    #    md5("recipes_recipe"."id"::text || %s) with seed bound as a parameter.
+    #    The table-qualified column avoids the ambiguity introduced when the
+    #    search filter joins recipes_recipeingredient and ingredients_ingredient.
+    #    F("id").desc() similarly resolves to "recipes_recipe"."id" DESC.
     return qs.annotate(
-      _rand=RawSQL("md5(CAST(id AS text) || %s)", [seed])
-    ).order_by("_rand", "-id")
+      _rand=MD5(Concat(
+        Cast("id", output_field=TextField()),
+        Value(seed),
+        output_field=TextField(),
+      ))
+    ).order_by("_rand", F("id").desc())
 
   def _get_active_diet_prefs(self, user: Any) -> list[str]:
     """

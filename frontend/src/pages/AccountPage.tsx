@@ -294,7 +294,7 @@ export function AccountPage() {
 
         {/* Social stats — followers / following / recipes */}
         <div className="w-full md:w-1/2">
-          <SocialStats onOpenTab={handleOpenSocial} />
+          <SocialStats onOpenTab={handleOpenSocial} recipesCount={user?.recipes_count ?? 0} />
         </div>
         
         <div className="w-full md:w-1/2">

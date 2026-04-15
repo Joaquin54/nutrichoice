@@ -1,20 +1,19 @@
 import { useSocialActions } from '../../hooks/useSocialActions';
-import { useRecipes } from '../../hooks/useRecipes';
 
 type SocialTab = 'followers' | 'following' | 'blocked';
 
 interface SocialStatsProps {
   onOpenTab: (tab: SocialTab) => void;
+  recipesCount: number;
 }
 
-export function SocialStats({ onOpenTab }: SocialStatsProps) {
+export function SocialStats({ onOpenTab, recipesCount }: SocialStatsProps) {
   const { followers, following } = useSocialActions();
-  const { recipes } = useRecipes();
 
   const stats = [
     { label: 'Followers', count: followers.length, tab: 'followers' as SocialTab },
     { label: 'Following', count: following.length, tab: 'following' as SocialTab },
-    { label: 'Recipes', count: recipes.length, tab: null },
+    { label: 'Recipes', count: recipesCount, tab: null },
   ];
 
   return (

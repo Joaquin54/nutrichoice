@@ -29,7 +29,7 @@ class Recipe(models.Model):
     date_created = models.DateTimeField(auto_now=True)
     description = models.TextField(max_length=500)
     cuisine_type = models.TextField(max_length=20)
-    dietary_tags = ArrayField(models.CharField(max_length=25))
+    dietary_tags = ArrayField(models.CharField(max_length=25), blank=True, default=list)
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
