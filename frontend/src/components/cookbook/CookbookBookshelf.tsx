@@ -72,6 +72,7 @@ export function CookbookBookshelf({
 }: CookbookBookshelfProps) {
   const paperFilterId = useId().replace(/:/g, "");
   const viewportRef = useRef<HTMLDivElement>(null);
+  const bookRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -116,6 +117,9 @@ export function CookbookBookshelf({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  /** Coarse / touch: shorter open–close. Fine pointer + hover keeps the slower ease. */
+  const bookTransitionMs = hoverShelf ? 500 : 300;
+
   const heightPx = isLargeScreen ? Math.round(HEIGHT_PX * 1.1) : HEIGHT_PX;
   const spineWidth = `${SPINE_PX}px`;
   const coverWidth = `${COVER_PX}px`;
@@ -134,6 +138,7 @@ export function CookbookBookshelf({
   }, []);
 
   useLayoutEffect(() => {
+    if (!hoverShelf) return;
     const el = viewportRef.current;
     if (!el || selectedIndex === null) return;
     const target = scrollLeftToCenterBook(
@@ -155,6 +160,21 @@ export function CookbookBookshelf({
   ]);
 
   useEffect(() => {
+    if (hoverShelf || selectedIndex === null) return;
+
+    const scrollDelayMs = bookTransitionMs + 20;
+    const timer = setTimeout(() => {
+      bookRefs.current[selectedIndex]?.scrollIntoView({
+        inline: "center",
+        block: "nearest",
+        behavior: reduceMotion ? "instant" : "smooth",
+      });
+    }, scrollDelayMs);
+
+    return () => clearTimeout(timer);
+  }, [selectedIndex, hoverShelf, reduceMotion, bookTransitionMs]);
+
+  useEffect(() => {
     if (cookbooks.length === 0) return;
     setSelectedIndex((prev) => {
       if (prev === null) return null;
@@ -165,9 +185,11 @@ export function CookbookBookshelf({
 
   const transitionStyle = reduceMotion
     ? "none"
-    : "width 500ms ease, transform 500ms ease";
+    : `width ${bookTransitionMs}ms ease, transform ${bookTransitionMs}ms ease`;
 
-  const transformTransition = reduceMotion ? "none" : "transform 500ms ease";
+  const transformTransition = reduceMotion
+    ? "none"
+    : `transform ${bookTransitionMs}ms ease`;
 
   const goShelfLeft = useCallback(() => {
     setSelectedIndex((prev) => {
@@ -260,6 +282,7 @@ export function CookbookBookshelf({
               return (
                 <div
                   key={cb.id}
+                  ref={(el) => { bookRefs.current[index] = el; }}
                   className="motion-reduce:transition-none"
                   style={{
                     flexShrink: 0,
@@ -323,7 +346,7 @@ export function CookbookBookshelf({
                           style={{ filter: `url(#${paperFilterId})` }}
                         />
                         <h3
-                          className="relative z-[2] mt-0 max-h-[calc(100%-1.25rem)] flex-1 overflow-hidden text-ellipsis px-0.5 pt-2 text-center text-xl font-semibold leading-snug 2xl:text-2xl"
+                          className="relative z-[2] mt-0 max-h-[calc(100%-1.25rem)] flex-1 overflow-hidden text-ellipsis px-0.5 pt-2 text-center text-[22px] font-semibold leading-snug 2xl:text-[26px]"
                           style={{
                             writingMode: "vertical-rl",
                             textOrientation: "mixed",
@@ -383,7 +406,7 @@ export function CookbookBookshelf({
                               </PopoverTrigger>
                             </div>
                           )}
-                          <p className="pr-10 font-serif text-lg font-bold leading-tight text-gray-900 line-clamp-4 dark:text-stone-900 2xl:text-xl">
+                          <p className="pr-10 font-serif text-[20px] font-bold leading-tight text-gray-900 line-clamp-4 dark:text-stone-900 2xl:text-[22px]">
                             {cb.name}
                           </p>
                           <p className="mt-1 text-sm text-stone-700/90">
@@ -398,7 +421,7 @@ export function CookbookBookshelf({
                               <Button
                                 asChild
                                 size="sm"
-                                className="h-10 w-full bg-[#6ec257] text-base text-white hover:bg-[#6ec257]/90 2xl:text-lg"
+                                className="h-10 w-full bg-[#6ec257] text-[18px] text-white hover:bg-[#6ec257]/90 2xl:text-[20px]"
                               >
                                 <Link to={`/cookbooks/${cb.id}`}>
                                   Open cookbook
@@ -407,7 +430,7 @@ export function CookbookBookshelf({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-10 w-full border-[#6ec257]/50 text-base text-[#2d5a27] hover:!bg-white/40 dark:border-[#6ec257]/45 dark:text-white dark:hover:!bg-[#6ec257]/50 2xl:text-lg"
+                                className="h-10 w-full border-[#6ec257]/50 text-[18px] text-[#2d5a27] hover:!bg-white/40 dark:border-[#6ec257]/45 dark:text-white dark:hover:!bg-[#6ec257]/50 2xl:text-[20px]"
                                 onClick={() => onAddRecipes(cb.id)}
                               >
                                 <BookMarked className="mr-1.5 h-4 w-4" />
