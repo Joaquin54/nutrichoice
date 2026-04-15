@@ -171,26 +171,8 @@ CORS_ALLOW_HEADERS = [
 ]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Frontend URL (used in password reset emails)
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
 # Password reset token expires after 5 minutes (300 seconds)
 PASSWORD_RESET_TIMEOUT = 300
-
-# Email configuration
-# Set EMAIL_HOST in your .env to switch to real SMTP delivery.
-# Without it, emails are printed to the console (useful in development).
-if os.getenv("EMAIL_HOST"):
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = os.getenv("EMAIL_HOST")
-    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@nutrichoice.com")
 
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
@@ -223,9 +205,11 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '30/min',
         'user': '300/min',
+        'password_reset_request': '5/hour',
     },
 }

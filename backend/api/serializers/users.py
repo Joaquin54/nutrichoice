@@ -72,12 +72,6 @@ class UserLoginSerializer(serializers.Serializer):
 class PasswordChangeRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
-    def validate_email(self, value):
-        if not User.objects.filter(email=value).exists():
-            raise serializers.ValidationError(
-                "No user found with this email address")
-        return value
-
 
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
@@ -103,11 +97,6 @@ class PasswordChangeConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(
         write_only=True, validators=[validate_password])
     new_password_confirm = serializers.CharField(write_only=True)
-
-    def validate_user_id(self, value):
-        if not User.objects.filter(public_id=value).exists():
-            raise serializers.ValidationError("Invalid user")
-        return value
 
     def validate(self, attrs):
         if attrs['new_password'] != attrs['new_password_confirm']:

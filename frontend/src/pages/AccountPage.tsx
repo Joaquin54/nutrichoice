@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ProfileForm,
-  DietaryPreferencesCard
+  DietaryPreferencesCard,
+  SecuritySettings,
 } from '../components/account';
 import { SocialStats } from '../components/account/SocialStats';
 import { SocialModal } from '../components/account/SocialModal';
@@ -12,7 +13,7 @@ import { useSupabaseUpload } from '../hooks/useSupabaseUpload';
 import { Button } from '../components/ui/button';
 import { Edit2, Save, X, BookOpen, ChevronRight } from 'lucide-react';
 import type { DietaryFilter } from '../types/recipe';
-import { getCurrentUser, updateUser, updateUserProfile, type User } from '../api';
+import { getCurrentUser, updateUser, updateUserProfile, changePassword, type User } from '../api';
 
 type SocialTab = 'followers' | 'following' | 'blocked';
 
@@ -24,6 +25,8 @@ export function AccountPage() {
   const [error, setError] = useState<string | null>(null);
   const [socialModalOpen, setSocialModalOpen] = useState(false);
   const [socialModalTab, setSocialModalTab] = useState<SocialTab>('followers');
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [securityError, setSecurityError] = useState<string | null>(null);
 
   const handleOpenSocial = (tab: SocialTab) => {
     setSocialModalTab(tab);
@@ -188,6 +191,24 @@ export function AccountPage() {
     await updateDietaryPreferences(preferences);
   }, [updateDietaryPreferences]);
 
+  const handlePasswordChange = useCallback(async (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) => {
+    setSecurityLoading(true);
+    setSecurityError(null);
+    try {
+      await changePassword(data.currentPassword, data.newPassword, data.confirmNewPassword);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to change password. Please try again.';
+      setSecurityError(message);
+      throw err; // re-throw so SecuritySettings does not show success
+    } finally {
+      setSecurityLoading(false);
+    }
+  }, []);
+
   const isSaving = profileLoading || dietaryLoading;
 
   if (isLoading) {
@@ -277,11 +298,19 @@ export function AccountPage() {
         </div>
         
         <div className="w-full md:w-1/2">
-          <DietaryPreferencesCard 
+          <DietaryPreferencesCard
             preferences={isEditMode ? tempDietaryPreferences : dietaryPreferences}
             onPreferencesChange={(prefs) => setTempDietaryPreferences(prefs)}
             isLoading={dietaryLoading}
             isReadOnly={!isEditMode}
+          />
+        </div>
+
+        <div className="w-full md:w-1/2">
+          <SecuritySettings
+            onSubmit={handlePasswordChange}
+            isLoading={securityLoading}
+            error={securityError}
           />
         </div>
 

@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from api.views.feed import RecipeFeedView
+from api.views.lookup import RecipeLookupView
 from api.views.meal_planning import (
     WeekPlanView,
     DailyMacrosView,
@@ -46,6 +47,7 @@ urlpatterns = [
     path('storage/save-url/', SaveUrlView.as_view(), name='storage-save-url'),
     path('health/', HealthView.as_view(), name='health-check'),
     path('recipe-feed/', RecipeFeedView.as_view(), name='recipe-feed'),
+    path('recipe-lookup/', RecipeLookupView.as_view(), name='recipe-lookup'),
     path('recipes/create/', RecipeCreateView.as_view(), name='recipe-create'),
     path('recipes/<int:recipe_id>/nutrition/', RecipeNutritionView.as_view(), name='recipe-nutrition'),
     path('meal-plan/week/', WeekPlanView.as_view(), name='meal-plan-week'),
