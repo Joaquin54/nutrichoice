@@ -304,3 +304,78 @@ class TestSeedRequired(RecipeLookupTestBase):
     """seed= (empty string) is treated as missing."""
     response = self.client.get(f"{self.URL}?seed=")
     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TestSearch(RecipeLookupTestBase):
+
+  def test_search_by_recipe_name(self) -> None:
+    """?search=<name> returns recipes whose name contains the term."""
+    response = self.client.get(self._seed_url(search="vegan"))
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    ids = self._get_ids(response)
+    self.assertIn(self.vegan_recipe.id, ids)
+    self.assertNotIn(self.peanut_recipe.id, ids)
+
+  def test_search_by_ingredient_name(self) -> None:
+    """
+    ?search=<ingredient> returns recipes containing that ingredient.
+    This is the direct regression test for the 'id is ambiguous' bug:
+    the ingredient join previously caused a Postgres 500 on any search query.
+    """
+    response = self.client.get(self._seed_url(search="chicken"))
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    ids = self._get_ids(response)
+    self.assertIn(self.chicken_recipe.id, ids)
+
+  def test_search_by_cuisine_type(self) -> None:
+    """?search=<cuisine> matches recipes by cuisine_type."""
+    response = self.client.get(self._seed_url(search="asian"))
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    ids = self._get_ids(response)
+    self.assertIn(self.peanut_recipe.id, ids)
+    self.assertIn(self.chicken_recipe.id, ids)
+    self.assertNotIn(self.vegan_recipe.id, ids)
+
+  def test_search_combined_with_diet_and_allergy(self) -> None:
+    """Search interacts correctly with active diet and allergy filters."""
+    self.profile.allergies = ["Peanut"]
+    self.profile.diet_type = {"vegan": True}
+    self.profile.save()
+
+    response = self.client.get(self._seed_url(search="pasta"))
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    ids = self._get_ids(response)
+    self.assertIn(self.vegan_recipe.id, ids)
+    self.assertNotIn(self.peanut_recipe.id, ids)
+
+  def test_search_returns_each_recipe_once(self) -> None:
+    """
+    A recipe with multiple ingredients that all match the search term
+    must appear exactly once (verifies .distinct() works correctly).
+    """
+    from ingredients.models import Ingredient
+    from recipes.models import RecipeIngredient
+
+    # Create a second peanut-based ingredient on peanut_recipe
+    peanut_oil = Ingredient.objects.create(
+      name="Peanut Oil",
+      calories_per_100g=884,
+      protein_per_100g=0,
+      carbs_per_100g=0,
+      fat_per_100g=100,
+      fiber_per_100g=0,
+      sugar_per_100g=0,
+      sodium_per_100g=0,
+    )
+    RecipeIngredient.objects.create(
+      recipe=self.peanut_recipe,
+      ingredient=peanut_oil,
+      quantity=15,
+      unit="ml",
+    )
+
+    # peanut_recipe now has TWO ingredients whose name contains "peanut"
+    response = self.client.get(self._seed_url(search="peanut"))
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    ids = self._get_ids(response)
+    self.assertEqual(ids.count(self.peanut_recipe.id), 1)

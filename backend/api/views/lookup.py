@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 
 from api.pagination import FeedPagination
-from api.serializers.recipes import RecipeDetailSerializer
+from api.serializers.recipes import RecipeListSerializer
 from recipes.services.lookup import RecipeLookupService
 
 
@@ -29,7 +29,7 @@ class RecipeLookupView(generics.ListAPIView):
   Permission: authenticated requests only.
   """
 
-  serializer_class = RecipeDetailSerializer
+  serializer_class = RecipeListSerializer
   permission_classes = [IsAuthenticated]
   pagination_class = FeedPagination
 

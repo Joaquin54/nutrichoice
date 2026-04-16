@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from ingredients.models import Ingredient
@@ -29,7 +30,7 @@ class Recipe(models.Model):
     date_created = models.DateTimeField(auto_now=True)
     description = models.TextField(max_length=500)
     cuisine_type = models.TextField(max_length=20)
-    dietary_tags = ArrayField(models.CharField(max_length=25))
+    dietary_tags = ArrayField(models.CharField(max_length=25), blank=True, default=list)
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -59,6 +60,7 @@ class Recipe(models.Model):
             models.Index(fields=["creator"], name="ix_recipe_creator"),
             models.Index(fields=["-date_created"], name="ix_recipe_date_created"),
             models.Index(fields=["cuisine_type"], name="ix_recipe_cuisine_type"),
+            GinIndex(fields=["dietary_tags"], name="ix_recipe_dietary_tags_gin"),
         ]
 
 

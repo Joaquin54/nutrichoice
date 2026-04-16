@@ -11,23 +11,12 @@ from django.db.models import (
 )
 
 from recipes.models import Recipe, RecipeIngredient
+from recipes.services.diet_tags import ALLOWED_DIET_KEYS  # re-exported for back-compat
 from recipes.services.user_filters import get_active_allergies
 from social.models import TriedRecipe, UserBlock, UserFollow
 from users.models import User
 
-
-# Canonical set of allowed dietary preference keys.
-# Each key must correspond to a value that can appear in Recipe.dietary_tags.
-ALLOWED_DIET_KEYS: frozenset[str] = frozenset({
-    "vegetarian",
-    "vegan",
-    "gluten_free",
-    "dairy_free",
-    "nut_free",
-    "keto",
-    "paleo",
-    "low_carb",
-})
+__all__ = ["ALLOWED_DIET_KEYS", "RecipeFeedService"]
 
 
 class RecipeFeedService:

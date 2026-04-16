@@ -49,17 +49,20 @@ export function HomePage() {
   const { recipes, isLoading, isLoadingMore, hasMore, loadMore, totalCount } =
     useRecipeLookup({ search: searchQuery, dietOverride });
 
-  // IntersectionObserver sentinel for infinite scroll.
-  // Uses viewport as root (no `root:` option) since HomePage has no scroll container.
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  // Callback ref for IntersectionObserver — attaches the observer at the moment
+  // the sentinel element mounts (after the first page of results renders), not at
+  // component mount (when the sentinel does not yet exist in the DOM).
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef(loadMore);
   loadMoreRef.current = loadMore;
 
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (node === null) return;
+    observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
           loadMoreRef.current();
@@ -67,10 +70,11 @@ export function HomePage() {
       },
       { threshold: 0.1, rootMargin: "0px 0px 300px 0px" }
     );
+    observerRef.current.observe(node);
+  }, []); // empty deps: loadMoreRef keeps the callback current without re-creating the ref
 
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []); // observer is created once; loadMoreRef keeps the callback current
+  // Disconnect the observer on component unmount.
+  useEffect(() => () => { observerRef.current?.disconnect(); }, []);
 
   const handleViewRecipe = useCallback(async (recipe: Recipe) => {
     setSelectedRecipe(recipe);

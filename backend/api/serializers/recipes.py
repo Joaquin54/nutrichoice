@@ -9,6 +9,7 @@ from api.serializers.ingredients import IngredientSerializer
 from nutrition.services import compute_and_store_nutrition
 from nutrition.services.conversions import convert_from_grams, convert_to_grams
 from recipes.models import Cookbook, CookbookRecipe, Recipe, RecipeIngredient, RecipeInstruction
+from recipes.services.diet_tags import ALLOWED_DIET_KEYS, normalize_dietary_tags
 from social.models import RecipeLike, TriedRecipe
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,23 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Step numbers must be unique.")
         return value
 
+    def validate_dietary_tags(self, value: list[str]) -> list[str]:
+        """
+        Reject dietary tag values that are not in the canonical ALLOWED_DIET_KEYS set.
+
+        Normalization (comma-splitting, lowercasing) is intentionally not applied here
+        so that API clients learn to submit canonical keys rather than relying on silent
+        coercion.  Unknown tags are surfaced as a descriptive 400 error.
+        """
+        normalized: list[str] = normalize_dietary_tags(value)
+        unknown: set[str] = {tag for tag in value if tag not in ALLOWED_DIET_KEYS}
+        if unknown:
+            raise serializers.ValidationError(
+                f"Unknown dietary tags: {sorted(unknown)}. "
+                f"Allowed: {sorted(ALLOWED_DIET_KEYS)}."
+            )
+        return normalized
+
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         instructions_data = validated_data.pop('instructions')
@@ -88,7 +106,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = [
             'id', 'name', 'description', 'cuisine_type', 'dietary_tags',
-            'date_created', 'creator', 'image_1',
+            'measure_type', 'servings', 'date_created', 'creator',
+            'image_1', 'image_2', 'image_3',
         ]
         read_only_fields = fields
 
