@@ -1,6 +1,5 @@
 import { memo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
 import { Bell } from 'lucide-react';
 
 interface NotificationSettingsData {
@@ -16,10 +15,9 @@ interface NotificationSettingsProps {
   isReadOnly?: boolean;
 }
 
-export const NotificationSettings = memo(function NotificationSettings({ 
-  settings, 
-  onSettingsChange, 
-  isLoading = false,
+export const NotificationSettings = memo(function NotificationSettings({
+  settings,
+  onSettingsChange,
   isReadOnly = false
 }: NotificationSettingsProps) {
   const [localSettings, setLocalSettings] = useState(settings);
@@ -36,10 +34,6 @@ export const NotificationSettings = memo(function NotificationSettings({
     };
     setLocalSettings(updated);
     onSettingsChange(updated);
-  };
-
-  const handleSaveSettings = () => {
-    onSettingsChange(localSettings);
   };
 
   return (

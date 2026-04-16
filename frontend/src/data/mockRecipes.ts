@@ -12,7 +12,7 @@ export const mockRecipes: Recipe[] = [
     id: '1',
     name: 'Mediterranean Quinoa Bowl',
     description: 'A fresh and healthy bowl packed with quinoa, roasted vegetables, and herbs.',
-    image: mediteraneanquinoaImg,
+    image_1:mediteraneanquinoaImg,
     dietary_tags: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Low Carb'],
     ingredients: [
       '1 cup quinoa',
@@ -39,7 +39,7 @@ export const mockRecipes: Recipe[] = [
     id: '2',
     name: 'Classic Spaghetti Carbonara',
     description: 'Traditional Italian pasta dish with eggs, cheese, and pancetta.',
-    image: spaghetticarbonaraImg,
+    image_1:spaghetticarbonaraImg,
     dietary_tags: ['Italian'],
     ingredients: [
       '400g spaghetti',
@@ -64,7 +64,7 @@ export const mockRecipes: Recipe[] = [
     id: '3',
     name: 'Herb-Crusted Grilled Chicken',
     description: 'Juicy grilled chicken breast with a flavorful herb crust and fresh avocado.',
-    image: 'https://images.unsplash.com/photo-1744116432654-574391dbe3ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmlsbGVkJTIwY2hpY2tlbiUyMGF2b2NhZG8lMjBoZWFsdGh5fGVufDF8fHx8MTc1NzQ2NjU1NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    image_1:'https://images.unsplash.com/photo-1744116432654-574391dbe3ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmlsbGVkJTIwY2hpY2tlbiUyMGF2b2NhZG8lMjBoZWFsdGh5fGVufDF8fHx8MTc1NzQ2NjU1NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
     dietary_tags: ['Low Carb', 'Keto', 'Gluten-Free', 'Dairy-Free'],
     ingredients: [
       '4 chicken breasts',
@@ -91,7 +91,7 @@ export const mockRecipes: Recipe[] = [
     id: '4',
     name: 'Baked Salmon with Lemon Herbs',
     description: 'Flaky salmon fillet baked with fresh herbs and lemon for a healthy dinner.',
-    image: bakedsalmonImg,
+    image_1:bakedsalmonImg,
     dietary_tags: ['Pescatarian', 'Low Carb', 'Keto', 'Gluten-Free', 'Dairy-Free'],
     ingredients: [
       '4 salmon fillets',
@@ -116,7 +116,7 @@ export const mockRecipes: Recipe[] = [
     id: '5',
     name: 'Mushroom Risotto',
     description: 'Creamy Arborio rice cooked with wild mushrooms and Parmesan cheese.',
-    image: mushroomrisottoImg,
+    image_1:mushroomrisottoImg,
     dietary_tags: ['Vegetarian', 'Italian'],
     ingredients: [
       '1.5 cups Arborio rice',
@@ -147,7 +147,7 @@ export const mockRecipes: Recipe[] = [
     id: '6',
     name: 'Greek Salad Bowl',
     description: 'Fresh Mediterranean salad with feta cheese, olives, and a lemon-oregano dressing.',
-    image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1080',
+    image_1:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1080',
     dietary_tags: ['Vegetarian', 'Gluten-Free'],
     ingredients: [
       '2 cups mixed greens',
@@ -173,7 +173,7 @@ export const mockRecipes: Recipe[] = [
     id: '7',
     name: 'Japanese Miso Ramen',
     description: 'Comforting Japanese noodle soup with miso broth, soft-boiled eggs, and vegetables.',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1080',
+    image_1:'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1080',
     dietary_tags: ['Pescatarian'],
     ingredients: [
       '4 servings ramen noodles',
@@ -201,7 +201,7 @@ export const mockRecipes: Recipe[] = [
     id: '8',
     name: 'Chocolate Chip Banana Bread',
     description: 'Moist and tender banana bread loaded with chocolate chips - perfect for breakfast or snack.',
-    image: chocolatebananaImg,
+    image_1:chocolatebananaImg,
     dietary_tags: ['Vegetarian'],
     ingredients: [
       '3 ripe bananas, mashed',
@@ -229,7 +229,7 @@ export const mockRecipes: Recipe[] = [
     id: '9',
     name: 'Indian Butter Chicken',
     description: 'Creamy and flavorful Indian curry with tender chicken in a rich tomato-based sauce.',
-    image: indianbutterchickenImg,
+    image_1:indianbutterchickenImg,
     dietary_tags: ['Gluten-Free'],
     ingredients: [
       '1.5 lbs chicken breast, cubed',
@@ -259,7 +259,7 @@ export const mockRecipes: Recipe[] = [
     id: '10',
     name: 'Avocado Toast with Poached Egg',
     description: 'Simple yet delicious breakfast featuring creamy avocado and perfectly poached egg on sourdough.',
-    image: avocadotoastImg,
+    image_1:avocadotoastImg,
     dietary_tags: ['Vegetarian', 'Gluten-Free'],
     ingredients: [
       '2 slices sourdough bread',
@@ -284,7 +284,7 @@ export const mockRecipes: Recipe[] = [
     id: '11',
     name: 'Thai Green Curry',
     description: 'Aromatic and spicy Thai curry with vegetables and coconut milk.',
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=1080',
+    image_1:'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=1080',
     dietary_tags: ['Vegetarian', 'Gluten-Free'],
     ingredients: [
       '2 tbsp green curry paste',
@@ -307,7 +307,7 @@ export const mockRecipes: Recipe[] = [
     id: '12',
     name: 'Beef Stir Fry',
     description: 'Quick and flavorful beef stir fry with fresh vegetables.',
-    image: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=1080',
+    image_1:'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=1080',
     dietary_tags: ['Gluten-Free'],
     ingredients: [
       '1 lb beef sirloin, sliced',
@@ -330,7 +330,7 @@ export const mockRecipes: Recipe[] = [
     id: '13',
     name: 'Caesar Salad',
     description: 'Classic Caesar salad with crisp romaine and homemade dressing.',
-    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=1080',
+    image_1:'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=1080',
     dietary_tags: ['Vegetarian'],
     ingredients: [
       '2 heads romaine lettuce',
@@ -350,7 +350,7 @@ export const mockRecipes: Recipe[] = [
     id: '14',
     name: 'Chicken Tikka Masala',
     description: 'Creamy Indian curry with tender marinated chicken.',
-    image: 'https://images.unsplash.com/photo-1633945274309-2c16f968155f?w=1080',
+    image_1:'https://images.unsplash.com/photo-1633945274309-2c16f968155f?w=1080',
     dietary_tags: ['Gluten-Free'],
     ingredients: [
       '2 lbs chicken breast, cubed',
@@ -372,7 +372,7 @@ export const mockRecipes: Recipe[] = [
     id: '15',
     name: 'Vegetable Lasagna',
     description: 'Layered pasta dish with vegetables and cheese.',
-    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=1080',
+    image_1:'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=1080',
     dietary_tags: ['Vegetarian'],
     ingredients: [
       'Lasagna noodles',
@@ -394,7 +394,7 @@ export const mockRecipes: Recipe[] = [
     id: '16',
     name: 'Shrimp Scampi',
     description: 'Garlicky shrimp with pasta in a white wine sauce.',
-    image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=1080',
+    image_1:'https://images.unsplash.com/photo-1559847844-5315695dadae?w=1080',
     dietary_tags: ['Pescatarian'],
     ingredients: [
       '1 lb large shrimp',
@@ -416,7 +416,7 @@ export const mockRecipes: Recipe[] = [
     id: '17',
     name: 'Chicken Tacos',
     description: 'Seasoned chicken in warm tortillas with fresh toppings.',
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c5e67e3?w=1080',
+    image_1:'https://images.unsplash.com/photo-1565299585323-38174c5e67e3?w=1080',
     dietary_tags: ['Gluten-Free'],
     ingredients: [
       '2 lbs chicken thighs',
@@ -439,7 +439,7 @@ export const mockRecipes: Recipe[] = [
     id: '18',
     name: 'Ramen Bowl',
     description: 'Comforting Japanese noodle soup with broth and toppings.',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1080',
+    image_1:'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1080',
     dietary_tags: ['Pescatarian'],
     ingredients: [
       'Ramen noodles',
@@ -461,7 +461,7 @@ export const mockRecipes: Recipe[] = [
     id: '19',
     name: 'Caprese Salad',
     description: 'Fresh Italian salad with tomatoes, mozzarella, and basil.',
-    image: 'https://images.unsplash.com/photo-1607532941433-304659e8198a?w=1080',
+    image_1:'https://images.unsplash.com/photo-1607532941433-304659e8198a?w=1080',
     dietary_tags: ['Vegetarian', 'Gluten-Free'],
     ingredients: [
       'Fresh mozzarella',
@@ -483,7 +483,7 @@ export const mockRecipes: Recipe[] = [
     id: '20',
     name: 'Beef Bourguignon',
     description: 'French stew with beef braised in red wine.',
-    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=1080',
+    image_1:'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=1080',
     dietary_tags: ['Gluten-Free'],
     ingredients: [
       '3 lbs beef chuck',

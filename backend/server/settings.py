@@ -94,11 +94,11 @@ SUPABASE_SIGNED_URL_EXPIRY: int = 120  # seconds
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("SUPABASE_DB_NAME"),
-        "USER": os.environ.get("SUPABASE_DB_USER"),
-        "PASSWORD": os.environ.get("SUPABASE_DB_PASSWORD"),
-        "HOST": os.environ.get("SUPABASE_DB_HOST"),
-        "PORT": os.environ.get("SUPABASE_DB_PORT", "6543"),
+        "NAME": (os.environ.get("SUPABASE_DB_NAME") or "").strip(),
+        "USER": (os.environ.get("SUPABASE_DB_USER") or "").strip(),
+        "PASSWORD": (os.environ.get("SUPABASE_DB_PASSWORD") or "").strip(),
+        "HOST": (os.environ.get("SUPABASE_DB_HOST") or "").strip(),
+        "PORT": (os.environ.get("SUPABASE_DB_PORT") or "6543").strip(),
         "OPTIONS": {
             "sslmode": "require",
         },

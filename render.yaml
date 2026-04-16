@@ -17,13 +17,13 @@ services:
       - key: DJANGO_SECRET_KEY
         sync: false
       - key: ALLOWED_HOSTS
-        value: change-me.onrender.com
+        value: nutrichoice-backend.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://change-me.onrender.com
+        value: https://nutrichoice-backend.onrender.com
       - key: CORS_ALLOWED_ORIGINS
-        value: https://change-me-frontend.onrender.com
+        value: https://nutrichoice-frontend.onrender.com
       - key: FRONTEND_URL
-        value: https://change-me-frontend.onrender.com
+        value: https://nutrichoice-frontend.onrender.com
       - key: SUPABASE_DB_NAME
         sync: false
       - key: SUPABASE_DB_USER
@@ -56,4 +56,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://change-me.onrender.com
+        value: https://nutrichoice-backend.onrender.com

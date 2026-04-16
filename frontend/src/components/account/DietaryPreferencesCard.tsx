@@ -1,6 +1,5 @@
 import { memo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
 import { Settings } from 'lucide-react';
 import type { DietaryFilter } from '../../types/recipe';
 
@@ -11,10 +10,9 @@ interface DietaryPreferencesCardProps {
   isReadOnly?: boolean;
 }
 
-export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({ 
-  preferences, 
-  onPreferencesChange, 
-  isLoading = false,
+export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
+  preferences,
+  onPreferencesChange,
   isReadOnly = false
 }: DietaryPreferencesCardProps) {
   const [localPreferences, setLocalPreferences] = useState(preferences);
@@ -32,10 +30,6 @@ export const DietaryPreferencesCard = memo(function DietaryPreferencesCard({
     };
     setLocalPreferences(updated);
     onPreferencesChange(updated);
-  };
-
-  const handleSavePreferences = () => {
-    onPreferencesChange(localPreferences);
   };
 
   const dietaryOptions = [
