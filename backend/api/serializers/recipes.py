@@ -106,7 +106,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = [
             'id', 'name', 'description', 'cuisine_type', 'dietary_tags',
-            'date_created', 'creator', 'image_1',
+            'measure_type', 'servings', 'date_created', 'creator',
+            'image_1', 'image_2', 'image_3',
         ]
         read_only_fields = fields
 
