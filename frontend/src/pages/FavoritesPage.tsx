@@ -6,7 +6,7 @@ import { RecipeModal } from '../components/recipe/RecipeModal';
 import { CreateRecipeModal } from '../components/recipe/CreateRecipeModal';
 import { useRecipeActions } from '../hooks/useRecipeActions';
 import { useRecipes } from '../hooks/useRecipes';
-import { getRecipes } from '../api';
+import { getRecipe, getRecipes } from '../api';
 import { Heart, CheckCircle, ChefHat, Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { RecipeCard } from '../components/recipe/RecipeCard';
@@ -19,6 +19,7 @@ export function FavoritesPage() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [hydratedRecipesById, setHydratedRecipesById] = useState<Record<string, Recipe>>({});
 
   const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
 
@@ -32,19 +33,86 @@ export function FavoritesPage() {
     refetchMyRecipes();
   }, [refetchMyRecipes]);
 
+  useEffect(() => {
+    const localById = new Map<string, Recipe>();
+    recipes.forEach((recipe) => localById.set(recipe.id, recipe));
+    myRecipes.forEach((recipe) => localById.set(recipe.id, recipe));
+    Object.values(hydratedRecipesById).forEach((recipe) => localById.set(recipe.id, recipe));
+
+    const targetIds = new Set<string>([...favoriteRecipes, ...triedRecipes]);
+    const missingNumericIds = [...targetIds]
+      .filter((id) => !localById.has(id))
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    if (missingNumericIds.length === 0) return;
+
+    let cancelled = false;
+
+    Promise.allSettled(missingNumericIds.map((id) => getRecipe(id)))
+      .then((results) => {
+        if (cancelled) return;
+        const loaded = results
+          .filter((result): result is PromiseFulfilledResult<Recipe> => result.status === 'fulfilled')
+          .map((result) => result.value);
+
+        if (loaded.length === 0) return;
+
+        setHydratedRecipesById((prev) => {
+          const next = { ...prev };
+          loaded.forEach((recipe) => {
+            next[recipe.id] = recipe;
+          });
+          return next;
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [favoriteRecipes, triedRecipes, recipes, myRecipes, hydratedRecipesById]);
+
+  const visibleRecipesById = useMemo(() => {
+    const byId = new Map<string, Recipe>();
+    recipes.forEach((recipe) => byId.set(recipe.id, recipe));
+    myRecipes.forEach((recipe) => byId.set(recipe.id, recipe));
+    Object.values(hydratedRecipesById).forEach((recipe) => byId.set(recipe.id, recipe));
+    return byId;
+  }, [recipes, myRecipes, hydratedRecipesById]);
+
   const favorites = useMemo(
-    () => recipes.filter(recipe => favoriteRecipes.has(recipe.id)),
-    [recipes, favoriteRecipes]
+    () =>
+      [...favoriteRecipes]
+        .map((id) => visibleRecipesById.get(id))
+        .filter((recipe): recipe is Recipe => recipe !== undefined),
+    [favoriteRecipes, visibleRecipesById]
   );
 
   const tried = useMemo(
-    () => recipes.filter(recipe => triedRecipes.has(recipe.id)),
-    [recipes, triedRecipes]
+    () =>
+      [...triedRecipes]
+        .map((id) => visibleRecipesById.get(id))
+        .filter((recipe): recipe is Recipe => recipe !== undefined),
+    [triedRecipes, visibleRecipesById]
   );
 
-  const handleViewRecipe = useCallback((recipe: Recipe) => {
+  const handleViewRecipe = useCallback(async (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
+
+    // List endpoints return lightweight recipes; fetch detail for full modal content.
+    const recipeId = Number(recipe.id);
+    if (!Number.isFinite(recipeId)) return;
+
+    try {
+      const detailedRecipe = await getRecipe(recipeId);
+      setSelectedRecipe((current) =>
+        current?.id === recipe.id ? detailedRecipe : current
+      );
+    } catch (error) {
+      console.error('Failed to load full recipe details:', error);
+    }
   }, []);
 
   const handleCloseModal = useCallback(() => {

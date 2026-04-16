@@ -16,6 +16,7 @@ import { MealPlanningProvider } from '../../hooks/useMealPlanning';
 export function Layout() {
   const location = useLocation();
   const isCookbookView = /^\/cookbooks\/[^/]+$/.test(location.pathname);
+  const isCookbookRoute = /^\/cookbooks(?:\/[^/]+)?$/.test(location.pathname);
 
   return (
     <RecipeActionsProvider>
@@ -25,8 +26,8 @@ export function Layout() {
               <div
                 className={
                   isCookbookView
-                    ? 'flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#6ec257]/15 dark:bg-gray-900'
-                    : 'flex min-h-[100dvh] flex-col bg-[#6ec257]/15 dark:bg-gray-900'
+                    ? `flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden ${isCookbookRoute ? 'bg-[#0a2629]' : 'bg-[#6ec257]/15 dark:bg-gray-900'}`
+                    : `flex min-h-[100dvh] flex-col ${isCookbookRoute ? 'bg-[#0a2629]' : 'bg-[#6ec257]/15 dark:bg-gray-900'}`
                 }
               >
                 {/* Single sticky stack: avoids nav sliding under/over header; header is opaque */}
