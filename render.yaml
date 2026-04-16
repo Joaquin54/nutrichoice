@@ -1,4 +1,4 @@
-Dservices:
+services:
   - type: web
     name: nutrichoice-backend
     runtime: python
