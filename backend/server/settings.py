@@ -27,6 +27,17 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if
 
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
+# Render injects RENDER_EXTERNAL_HOSTNAME on every web service. Append it
+# defensively so the app is correct even if ALLOWED_HOSTS env var is missing
+# or stale in the dashboard. No-op outside Render (env var will be unset).
+RENDER_EXTERNAL_HOSTNAME: str | None = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+  if RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+  render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+  if render_origin not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(render_origin)
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
