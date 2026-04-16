@@ -14,10 +14,12 @@ backend/venv
 backend/.nutri-env
 backend/.nutri-env/bin
 backend/server/__pycache__/
-*.pyc
+backend/staticfiles/
 # Environment files (DON'T leak secrets!)
 *.env
 .env.*
+!.env.example
+!**/.env.example
 
 # Logs
 *.log
