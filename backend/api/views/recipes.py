@@ -151,13 +151,17 @@ class TriedRecipeViewSet(viewsets.ModelViewSet):
     queryset = TriedRecipe.objects.all()  # type: ignore
     serializer_class = TriedRecipeSerializer
     lookup_field = 'public_id'
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "delete", "head", "options"]
 
     def get_queryset(self) -> QuerySet[TriedRecipe]:  # type: ignore
         """
         Optionally restricts the returned tried recipes by filtering against
         query parameters in the URL.
         """
-        queryset = TriedRecipe.objects.select_related("tried_by", "recipe").all()  # type: ignore
+        queryset = TriedRecipe.objects.select_related("tried_by", "recipe").filter(  # type: ignore
+            tried_by=self.request.user
+        )
         user_id: Optional[str] = self.request.query_params.get(
             'user_id', None)  # type: ignore
         recipe_id: Optional[str] = self.request.query_params.get(  # type: ignore
