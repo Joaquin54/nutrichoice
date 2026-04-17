@@ -1,7 +1,6 @@
 import type { RecipeReview } from '../types/recipe';
 
 const USER_REVIEWS_STORAGE_KEY = 'nutrichoice-user-reviews-v1';
-const USER_REVIEWS_STORAGE_KEY_SUFFIX = '-v1';
 
 /** Matches reviews created in-app (RecipeReviewsModal); only these can be deleted locally. */
 export const USER_REVIEW_AUTHOR_ID = 'current-user';
@@ -39,7 +38,6 @@ function parseUserReviewsRecord(raw: unknown): Record<string, RecipeReview[]> | 
 
 function loadUserReviewsFromStorage(): Record<string, RecipeReview[]> {
   if (typeof window === 'undefined') return {};
-  if (!USER_REVIEWS_STORAGE_KEY.endsWith(USER_REVIEWS_STORAGE_KEY_SUFFIX)) return {};
   try {
     const raw = window.localStorage.getItem(USER_REVIEWS_STORAGE_KEY);
     if (!raw) return {};
