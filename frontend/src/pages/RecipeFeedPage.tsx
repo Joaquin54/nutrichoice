@@ -346,7 +346,7 @@ export function RecipeFeedPage() {
                         <div
                           className={
                             totalPages > 1
-                              ? "mt-auto shrink-0 translate-y-0.5 pt-1 sm:translate-y-0 sm:pt-3"
+                              ? "mt-auto shrink-0 pt-1 sm:translate-y-0 sm:pt-3"
                               : "mt-10 mb-[12px] shrink-0 translate-y-0.5 pt-2 sm:translate-y-0 sm:pt-3"
                           }
                         >
