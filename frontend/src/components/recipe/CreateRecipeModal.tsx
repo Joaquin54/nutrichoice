@@ -3,7 +3,7 @@
 
 import { useReducer, useRef, useCallback, useState, Fragment, type ReactNode } from 'react';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -11,7 +11,8 @@ import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Plus, Trash2, ChefHat, ChevronDown, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { createRecipe, apiRecipeToRecipe, type CreateRecipePayload } from '../../api';
+// DEMO GATE: restore these imports when removing the demo gate in handleSubmit.
+// import { createRecipe, apiRecipeToRecipe, type CreateRecipePayload } from '../../api';
 import { useRecipes } from '../../hooks/useRecipes';
 import { useSupabaseUpload } from '../../hooks/useSupabaseUpload';
 import { ImageUploadGrid } from './ImageUploadGrid';
@@ -170,12 +171,15 @@ const INITIAL_STATE: FormState = {
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case 'SET_FIELD': return { ...state, [action.field]: action.value };
-    case 'TOGGLE_TAG': return {
-      ...state,
-      selectedTags: state.selectedTags.includes(action.tag)
-        ? state.selectedTags.filter((t) => t !== action.tag)
-        : [...state.selectedTags, action.tag],
-    };
+    case 'TOGGLE_TAG': {
+      const normalized = action.tag.toLowerCase().replace(/-/g, '_');
+      return {
+        ...state,
+        selectedTags: state.selectedTags.includes(normalized)
+          ? state.selectedTags.filter((t) => t !== normalized)
+          : [...state.selectedTags, normalized],
+      };
+    }
     case 'SET_INGREDIENT': {
       const updated = [...state.ingredients];
       updated[action.index] = action.row;
@@ -237,13 +241,14 @@ function validateInstructionsOnly(state: FormState): Record<string, string> {
   return errs;
 }
 
-function validateForSubmit(state: FormState): Record<string, string> {
-  return {
-    ...validateBasics(state),
-    ...validateIngredientsOnly(state),
-    ...validateInstructionsOnly(state),
-  };
-}
+// DEMO GATE: restore this function when removing the demo gate in handleSubmit.
+// function validateForSubmit(state: FormState): Record<string, string> {
+//   return {
+//     ...validateBasics(state),
+//     ...validateIngredientsOnly(state),
+//     ...validateInstructionsOnly(state),
+//   };
+// }
 
 // ---------------------------------------------------------------------------
 // CreateRecipeModal
@@ -266,8 +271,10 @@ const STEP_LABEL_COL = ['col-start-1', 'col-start-3', 'col-start-5', 'col-start-
 export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
   const [state, dispatch] = useReducer(formReducer, INITIAL_STATE);
   const [step, setStep] = useState(1);
-  const { addRecipe } = useRecipes();
-  const { uploadRecipeImage, state: uploadState } = useSupabaseUpload();
+  const [showDemoNotice, setShowDemoNotice] = useState<boolean>(false);
+  // DEMO GATE: restore destructured values when removing the demo gate in handleSubmit.
+  useRecipes();
+  const { state: uploadState } = useSupabaseUpload();
 
   // Staged file objects — uploaded after recipe creation so we have a valid recipe_id.
   const stagedFiles = useRef<(File | null)[]>([null, null, null]);
@@ -342,6 +349,10 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
   };
 
   const handleSubmit = async () => {
+    // DEMO GATE: remove this block to re-enable recipe creation.
+    setShowDemoNotice(true);
+    return;
+    /* --- original submit body preserved below for easy re-enable ---
     const errs = validateForSubmit(state);
     if (Object.keys(errs).length > 0) {
       dispatch({ type: 'SET_ERRORS', errors: errs });
@@ -358,7 +369,7 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
         name: state.title.trim(),
         description: state.description.trim(),
         cuisine_type: state.cuisineType,
-        dietary_tags: state.selectedTags,
+        dietary_tags: state.selectedTags.map((t) => t.toLowerCase().replace(/-/g, '_')),
         measure_type: 'grams',
         ingredients: state.ingredients
           .filter((i) => i.ingredientId !== null && i.quantity.trim())
@@ -387,11 +398,13 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
     } finally {
       dispatch({ type: 'SET_SUBMITTING', value: false });
     }
+    --- end of original body --- */
   };
 
   const isBusy = state.isSubmitting || uploadState.isUploading;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent
         className={cn(
@@ -512,7 +525,7 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
                 <Label className={MODAL_SECTION_TITLE}>Dietary Tags</Label>
                 <div className="flex flex-wrap gap-2">
                   {DIETARY_TAG_OPTIONS.map((tag) => {
-                    const active = state.selectedTags.includes(tag);
+                    const active = state.selectedTags.includes(tag.toLowerCase().replace(/-/g, '_'));
                     return (
                       <button key={tag} type="button" onClick={() => dispatch({ type: 'TOGGLE_TAG', tag })} className="focus:outline-none">
                         <Badge variant={active ? 'default' : 'outline'}
@@ -637,5 +650,26 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={showDemoNotice} onOpenChange={setShowDemoNotice}>
+      <DialogContent className="rounded-xl sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">Demo Notice</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Thank you for trying out our demo, we are not accepting recipe creations at this time.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            type="button"
+            onClick={() => setShowDemoNotice(false)}
+            className="bg-[#6ec257] hover:bg-[#5aad44] text-white"
+          >
+            OK
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
