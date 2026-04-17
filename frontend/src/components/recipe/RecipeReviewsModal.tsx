@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Star, ThumbsUp, Pencil } from "lucide-react";
+import { Star, ThumbsUp, Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,13 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { getReviewsForRecipe, getAverageRating } from "../../data/mockReviews";
+import {
+  appendUserReview,
+  getReviewsForRecipe,
+  getAverageRating,
+  removeUserReview,
+  USER_REVIEW_AUTHOR_ID,
+} from "../../data/mockReviews";
 import type { RecipeReview } from "../../types/recipe";
 
 function StarRatingDisplay({
@@ -89,18 +95,29 @@ export function RecipeReviewsModal({
     }, 100);
   };
 
+  const handleDeleteReview = (reviewId: string) => {
+    removeUserReview(recipeId, reviewId);
+    setLocalReviews(getReviewsForRecipe(recipeId));
+    setHelpfulCounts((prev) => {
+      const next = { ...prev };
+      delete next[reviewId];
+      return next;
+    });
+  };
+
   const handleSubmitReview = () => {
     if (newRating === 0 || !newComment.trim()) return;
     const review: RecipeReview = {
       id: `new-${Date.now()}`,
       recipeId,
-      userId: "current-user",
+      userId: USER_REVIEW_AUTHOR_ID,
       username: "You",
       rating: newRating,
       comment: newComment.trim(),
       createdAt: new Date().toISOString(),
     };
-    setLocalReviews((prev) => [review, ...prev]);
+    appendUserReview(recipeId, review);
+    setLocalReviews(getReviewsForRecipe(recipeId));
     setNewRating(0);
     setNewComment("");
     setShowWriteForm(false);
@@ -142,7 +159,22 @@ export function RecipeReviewsModal({
                     <span className="font-medium text-gray-900 dark:text-white text-sm">
                       {review.username}
                     </span>
-                    <StarRatingDisplay rating={review.rating} size="xs" />
+                    <div className="flex shrink-0 items-center gap-1">
+                      <StarRatingDisplay rating={review.rating} size="xs" />
+                      {review.userId === USER_REVIEW_AUTHOR_ID && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+                          onClick={() => handleDeleteReview(review.id)}
+                          aria-label="Delete your review"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span className="ml-1">Delete</span>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-2">
                     {review.comment}

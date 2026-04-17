@@ -223,7 +223,8 @@ class TriedRecipeSerializer(serializers.ModelSerializer):
             "date_added",
             "tried_by",
         ]
-        read_only_fields = ["public_id", "date_added"]
+        # tried_by is injected by the view from request.user.
+        read_only_fields = ["public_id", "date_added", "tried_by"]
 
     def validate(self, data):
         recipe = data.get("recipe")
