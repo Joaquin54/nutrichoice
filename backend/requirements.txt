@@ -1,10 +1,10 @@
 Django>=5.2,<5.3
 psycopg2-binary
-pyright
 djangorestframework
-django-stubs
 blinker
 django-cors-headers
 python-dotenv
-django-anymail
+django-anymail[postmark]
 supabase
+gunicorn
+whitenoise

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import type { DietaryFilter } from '../types/recipe';
 import { getMyProfile, updateUserProfile, getAuthToken } from '../api';
 
@@ -104,7 +105,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
         // When all boxes are unchecked, send null to the API (signals "no preference")
         // rather than {}, while keeping local state as all-false dict for UI stability.
         const allFalse = Object.values(preferences).every((v) => v === false);
-        await updateUserProfile({ diet_type: allFalse ? null : preferences });
+        await updateUserProfile({ diet_type: allFalse ? null : (preferences as unknown as Record<string, boolean>) });
       } catch {
         // Non-fatal — localStorage remains the local source of truth
       }

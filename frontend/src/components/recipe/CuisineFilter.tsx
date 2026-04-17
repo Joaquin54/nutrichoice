@@ -3,31 +3,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Globe } from "lucide-react";
-import type { CuisineFilter } from "../../types/recipe";
+import type { CuisineFilter as CuisineFilterType } from "../../types/recipe";
 
 interface CuisineFilterProps {
-  filters: CuisineFilter;
-  onFiltersChange: (filters: CuisineFilter) => void;
+  filters: CuisineFilterType;
+  onFiltersChange: (filters: CuisineFilterType) => void;
 }
 
-const cuisineOptions = [
-  { key: "italian" as keyof CuisineFilter, label: "Italian" },
-  { key: "french" as keyof CuisineFilter, label: "French" },
-  { key: "mexican" as keyof CuisineFilter, label: "Mexican" },
-  { key: "american" as keyof CuisineFilter, label: "American" },
-  { key: "japanese" as keyof CuisineFilter, label: "Japanese" },
-  { key: "chinese" as keyof CuisineFilter, label: "Chinese" },
-  { key: "indian" as keyof CuisineFilter, label: "Indian" },
-  { key: "thai" as keyof CuisineFilter, label: "Thai" },
-  { key: "mediterranean" as keyof CuisineFilter, label: "Mediterranean" },
-  { key: "korean" as keyof CuisineFilter, label: "Korean" },
+const cuisineOptions: Array<{ key: keyof CuisineFilterType; label: string }> = [
+  { key: "italian", label: "Italian" },
+  { key: "french", label: "French" },
+  { key: "mexican", label: "Mexican" },
+  { key: "american", label: "American" },
+  { key: "japanese", label: "Japanese" },
+  { key: "chinese", label: "Chinese" },
+  { key: "indian", label: "Indian" },
+  { key: "thai", label: "Thai" },
+  { key: "mediterranean", label: "Mediterranean" },
+  { key: "korean", label: "Korean" },
 ];
 
 export const CuisineFilter = memo(function CuisineFilter({
   filters,
   onFiltersChange,
 }: CuisineFilterProps) {
-  const handleFilterChange = (key: keyof CuisineFilter, checked: boolean) => {
+  const handleFilterChange = (key: keyof CuisineFilterType, checked: boolean) => {
     onFiltersChange({
       ...filters,
       [key]: checked,
