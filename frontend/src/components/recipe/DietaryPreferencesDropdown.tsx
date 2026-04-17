@@ -18,9 +18,9 @@ interface DietaryPreferencesDropdownProps {
 const dietaryOptions = [
   { key: "vegetarian" as keyof DietaryFilter, label: "Vegetarian", icon: HerbIcon },
   { key: "vegan" as keyof DietaryFilter, label: "Vegan", icon: Heart },
-  { key: "gluten_free" as keyof DietaryFilter, label: "Gluten\u2011Free", icon: Wheat },
-  { key: "dairy_free" as keyof DietaryFilter, label: "Dairy\u2011Free", icon: Milk },
-  { key: "nut_free" as keyof DietaryFilter, label: "Nut\u2011Free", icon: Egg },
+  { key: "gluten_free" as keyof DietaryFilter, label: "Gluten-Free", icon: Wheat },
+  { key: "dairy_free" as keyof DietaryFilter, label: "Dairy-Free", icon: Milk },
+  { key: "nut_free" as keyof DietaryFilter, label: "Nut-Free", icon: Egg },
   { key: "keto" as keyof DietaryFilter, label: "Keto", icon: FlameIcon },
   { key: "paleo" as keyof DietaryFilter, label: "Paleo", icon: Fish },
   { key: "low_carb" as keyof DietaryFilter, label: "Low Carb", icon: FlameIcon },
@@ -112,7 +112,7 @@ export const DietaryPreferencesDropdown = memo(function DietaryPreferencesDropdo
                       htmlFor={`dropdown-${key}`}
                       className="min-w-0 flex-1 cursor-pointer text-left text-xs leading-snug text-foreground sm:text-base sm:leading-snug"
                     >
-                      <span className="block break-words">{label}</span>
+                      <span className="whitespace-nowrap">{label}</span>
                     </Label>
                   </div>
                 </div>

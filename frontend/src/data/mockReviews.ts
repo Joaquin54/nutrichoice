@@ -1,18 +1,51 @@
 import type { RecipeReview } from '../types/recipe';
 
 const USER_REVIEWS_STORAGE_KEY = 'nutrichoice-user-reviews-v1';
+const USER_REVIEWS_STORAGE_KEY_SUFFIX = '-v1';
 
 /** Matches reviews created in-app (RecipeReviewsModal); only these can be deleted locally. */
 export const USER_REVIEW_AUTHOR_ID = 'current-user';
 
+function isRecipeReviewRow(value: unknown): value is RecipeReview {
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const o = value as Record<string, unknown>;
+  return (
+    typeof o.id === 'string' &&
+    typeof o.recipeId === 'string' &&
+    typeof o.userId === 'string' &&
+    typeof o.username === 'string' &&
+    typeof o.rating === 'number' &&
+    Number.isFinite(o.rating) &&
+    typeof o.comment === 'string' &&
+    typeof o.createdAt === 'string'
+  );
+}
+
+function parseUserReviewsRecord(raw: unknown): Record<string, RecipeReview[]> | null {
+  if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out: Record<string, RecipeReview[]> = {};
+  for (const [recipeId, list] of Object.entries(raw)) {
+    if (typeof recipeId !== 'string') return null;
+    if (!Array.isArray(list)) return null;
+    const reviews: RecipeReview[] = [];
+    for (const item of list) {
+      if (!isRecipeReviewRow(item)) return null;
+      reviews.push(item);
+    }
+    out[recipeId] = reviews;
+  }
+  return out;
+}
+
 function loadUserReviewsFromStorage(): Record<string, RecipeReview[]> {
   if (typeof window === 'undefined') return {};
+  if (!USER_REVIEWS_STORAGE_KEY.endsWith(USER_REVIEWS_STORAGE_KEY_SUFFIX)) return {};
   try {
     const raw = window.localStorage.getItem(USER_REVIEWS_STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
-    if (parsed == null || typeof parsed !== 'object') return {};
-    return parsed as Record<string, RecipeReview[]>;
+    const validated = parseUserReviewsRecord(parsed);
+    return validated ?? {};
   } catch {
     return {};
   }

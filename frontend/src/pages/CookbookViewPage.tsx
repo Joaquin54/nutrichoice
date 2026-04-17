@@ -54,8 +54,9 @@ const PAGE_SHELL_LEFT =
   'bg-[#eef6f4] dark:bg-[#0f1c1e] border-r border-teal-200/75 dark:border-teal-800/55 shadow-[inset_4px_0_10px_rgba(15,118,110,0.06)] dark:shadow-[inset_4px_0_12px_rgba(0,0,0,0.35)]';
 const PAGE_SHELL_RIGHT =
   'bg-[#eef6f4] dark:bg-[#0f1c1e] border-l border-teal-200/75 dark:border-teal-800/55 shadow-[inset_-4px_0_10px_rgba(15,118,110,0.06)] dark:shadow-[inset_-4px_0_12px_rgba(0,0,0,0.35)]';
+/** Same cool teal paper as the desktop spread — mobile is single-column only (`md` breakpoint). */
 const PAGE_SHELL_SINGLE =
-  'bg-[#fef9f0] dark:bg-[#1c1917] shadow-[inset_0_0_12px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.15)]';
+  'bg-[#eef6f4] dark:bg-[#0f1c1e] shadow-[inset_0_0_12px_rgba(15,118,110,0.06)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.35)]';
 const PAGE_BACK_LIGHT = 'bg-[#e5dcc8]';
 const PAGE_BACK_DARK = 'dark:bg-[#292524]';
 const PAGE_PAD_LEFT = 'p-3 sm:p-5 md:p-6 xl:p-8 2xl:p-10';

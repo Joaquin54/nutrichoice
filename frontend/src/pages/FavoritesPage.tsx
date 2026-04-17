@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FavoritesGrid, EmptyFavorites } from '../components/favorites';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -20,6 +20,9 @@ export function FavoritesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [hydratedRecipesById, setHydratedRecipesById] = useState<Record<string, Recipe>>({});
+  const hydratedRecipesByIdRef = useRef(hydratedRecipesById);
+  hydratedRecipesByIdRef.current = hydratedRecipesById;
+  const requestedIdsRef = useRef<Set<string>>(new Set());
 
   const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
 
@@ -37,17 +40,23 @@ export function FavoritesPage() {
     const localById = new Map<string, Recipe>();
     recipes.forEach((recipe) => localById.set(recipe.id, recipe));
     myRecipes.forEach((recipe) => localById.set(recipe.id, recipe));
-    Object.values(hydratedRecipesById).forEach((recipe) => localById.set(recipe.id, recipe));
+    Object.values(hydratedRecipesByIdRef.current).forEach((recipe) =>
+      localById.set(recipe.id, recipe)
+    );
 
     const targetIds = new Set<string>([...favoriteRecipes, ...triedRecipes]);
-    const missingNumericIds = [...targetIds]
-      .filter((id) => !localById.has(id))
-      .map((id) => Number(id))
-      .filter((id) => Number.isFinite(id));
+    const missingIds = [...targetIds].filter((id) => !localById.has(id));
+    if (missingIds.length === 0) return;
 
-    if (missingNumericIds.length === 0) return;
+    const idsToFetch = missingIds.filter((id) => Number.isFinite(Number(id)));
+    if (idsToFetch.length === 0) return;
+
+    if (idsToFetch.every((id) => requestedIdsRef.current.has(id))) return;
+
+    idsToFetch.forEach((id) => requestedIdsRef.current.add(id));
 
     let cancelled = false;
+    const missingNumericIds = idsToFetch.map((id) => Number(id));
 
     Promise.allSettled(missingNumericIds.map((id) => getRecipe(id)))
       .then((results) => {
@@ -66,12 +75,15 @@ export function FavoritesPage() {
           return next;
         });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        idsToFetch.forEach((id) => requestedIdsRef.current.delete(id));
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [favoriteRecipes, triedRecipes, recipes, myRecipes, hydratedRecipesById]);
+  }, [favoriteRecipes, triedRecipes, recipes, myRecipes]);
 
   const visibleRecipesById = useMemo(() => {
     const byId = new Map<string, Recipe>();
@@ -98,6 +110,12 @@ export function FavoritesPage() {
   );
 
   const handleViewRecipe = useCallback(async (recipe: Recipe) => {
+    if (hydratedRecipesById[recipe.id]) {
+      setSelectedRecipe(hydratedRecipesById[recipe.id]);
+      setIsModalOpen(true);
+      return;
+    }
+
     setSelectedRecipe(recipe);
     setIsModalOpen(true);
 
@@ -113,7 +131,7 @@ export function FavoritesPage() {
     } catch (error) {
       console.error('Failed to load full recipe details:', error);
     }
-  }, []);
+  }, [hydratedRecipesById]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
