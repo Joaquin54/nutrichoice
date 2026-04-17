@@ -6,21 +6,22 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card } from '../ui/card';
 import { ImageWithFallback } from '../ui/ImageWithFallback';
-import { ChevronLeft, ChevronRight, ChefHat, Moon, Sun, Loader2, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Moon, Sun, Loader2, Sparkles } from 'lucide-react';
 import { mockRecipes } from '../../data/mockRecipes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { completeOnboarding, updateUser } from '../../api';
+import { completeOnboarding } from '../../api';
 import type { User } from '../../api';
 import type { DietaryFilter, Recipe } from '../../types/recipe';
 import { cn } from '../../lib/utils';
 
 const TASTE_PROFILE_STORAGE_KEY = 'nutrichoice_taste_profile';
 
+/** Exclude from onboarding picks (e.g. if mock data still lists them). */
+const EXCLUDE_ONBOARDING_RECIPE_NAMES = /^chicken\s+tacos$/i;
+
 interface RegistrationModalProps {
   isOpen: boolean;
   onComplete: (user: User) => void;
-  /** Logged-in user shown on the final step so name, username, and email can be confirmed or edited */
-  initialUser?: User | null;
 }
 
 const COMMON_ALLERGIES = [
@@ -84,7 +85,6 @@ const STEPS = [
   'recipes',
   'cooking_frequency',
   'goal',
-  'account',
 ] as const;
 
 type StepId = (typeof STEPS)[number];
@@ -98,7 +98,7 @@ function toggleInList(list: string[], id: string): string[] {
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 }
 
-export function RegistrationModal({ isOpen, onComplete, initialUser = null }: RegistrationModalProps) {
+export function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps) {
   const { theme, toggleTheme } = useTheme();
   const [stepIndex, setStepIndex] = useState(0);
   const [modalWidth, setModalWidth] = useState('90vw');
@@ -122,12 +122,6 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   const [customAllergy, setCustomAllergy] = useState('');
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
-
-  const [profileFirst, setProfileFirst] = useState('');
-  const [profileLast, setProfileLast] = useState('');
-  const [profileUsername, setProfileUsername] = useState('');
-  const [profileEmail, setProfileEmail] = useState('');
-  const [profileFieldErrors, setProfileFieldErrors] = useState<Record<string, string>>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -156,20 +150,8 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
     setSelectedAllergies([]);
     setCustomAllergy('');
     setSelectedRecipes([]);
-    setProfileFieldErrors({});
     setSubmitError(null);
-    if (initialUser) {
-      setProfileFirst(initialUser.first_name ?? '');
-      setProfileLast(initialUser.last_name ?? '');
-      setProfileUsername(initialUser.username ?? '');
-      setProfileEmail(initialUser.email ?? '');
-    } else {
-      setProfileFirst('');
-      setProfileLast('');
-      setProfileUsername('');
-      setProfileEmail('');
-    }
-  }, [isOpen, initialUser?.public_id, initialUser?.username, initialUser?.email, initialUser?.first_name, initialUser?.last_name]);
+  }, [isOpen]);
 
   useEffect(() => {
     const updateModalSize = () => {
@@ -238,22 +220,7 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
     setStepIndex((i) => Math.min(i + 1, totalSteps - 1));
   };
 
-  const validateProfileStep = (): boolean => {
-    if (!initialUser) return true;
-    const errors: Record<string, string> = {};
-    if (!profileFirst.trim()) errors.first = 'First name is required';
-    if (!profileLast.trim()) errors.last = 'Last name is required';
-    if (profileUsername.trim().length < 4) errors.username = 'Username must be at least 4 characters';
-    if (profileUsername.trim().length > 24) errors.username = 'Username must be 24 characters or fewer';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileEmail.trim())) errors.email = 'Enter a valid email';
-    setProfileFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
   const handleNext = () => {
-    if (currentStep === 'account' && initialUser && !validateProfileStep()) {
-      return;
-    }
     if (stepIndex < totalSteps - 1) {
       setStepIndex((i) => i + 1);
     }
@@ -284,23 +251,9 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
   };
 
   const handleComplete = async () => {
-    if (initialUser && !validateProfileStep()) {
-      return;
-    }
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      if (initialUser) {
-        const payload: Parameters<typeof updateUser>[1] = {};
-        if (profileFirst.trim() !== (initialUser.first_name ?? '')) payload.first_name = profileFirst.trim();
-        if (profileLast.trim() !== (initialUser.last_name ?? '')) payload.last_name = profileLast.trim();
-        if (profileUsername.trim() !== initialUser.username) payload.username = profileUsername.trim();
-        if (profileEmail.trim() !== initialUser.email) payload.email = profileEmail.trim();
-        if (Object.keys(payload).length > 0) {
-          await updateUser(initialUser.public_id, payload);
-        }
-      }
-
       const updatedUser = await completeOnboarding({
         diet_type: dietarySkipped ? null : ({ ...dietaryRestrictions } as Record<string, boolean>),
         allergies: selectedAllergies,
@@ -483,7 +436,9 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
           <div className="space-y-5">
             {stepHeading('Which recipes would you actually try?', 'Tap a few favorites—we use this to tune recommendations.')}
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-              {mockRecipes.map((recipe) => {
+              {mockRecipes
+                .filter((recipe) => !EXCLUDE_ONBOARDING_RECIPE_NAMES.test(recipe.name.trim()))
+                .map((recipe) => {
                 const selected = selectedRecipes.includes(recipe.id);
                 const src = recipeImageSrc(recipe);
                 return (
@@ -498,14 +453,18 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
                       }
                     }}
                     className={cn(
-                      'cursor-pointer overflow-hidden border-2 transition-all hover:shadow-md',
+                      'cursor-pointer gap-0 overflow-hidden border-2 transition-all hover:shadow-md',
                       selected ? 'border-[#6ec257] ring-2 ring-[#6ec257]/30' : 'border-transparent'
                     )}
                     onClick={() => handleRecipeToggle(recipe.id)}
                   >
-                    <div className="relative aspect-[4/3] w-full bg-muted">
+                    <div className="relative h-[7rem] min-h-[7rem] max-h-[7rem] w-full shrink-0 overflow-hidden bg-muted sm:h-[8rem] sm:min-h-[8rem] sm:max-h-[8rem]">
                       {src ? (
-                        <ImageWithFallback src={src} alt={recipe.name} className="h-full w-full object-cover" />
+                        <ImageWithFallback
+                          src={src}
+                          alt={recipe.name}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
                       ) : null}
                       {selected && (
                         <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#6ec257] text-xs font-bold text-white shadow-md">
@@ -569,77 +528,13 @@ export function RegistrationModal({ isOpen, onComplete, initialUser = null }: Re
           </div>
         );
 
-      case 'account':
-        if (initialUser) {
-          return (
-            <div className="space-y-5">
-              {stepHeading('Almost there—confirm your account', 'Your name, username, and email. Edit anything that needs a tweak.')}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="ob-first">First name</Label>
-                    <Input
-                      id="ob-first"
-                      value={profileFirst}
-                      onChange={(e) => setProfileFirst(e.target.value)}
-                      className={profileFieldErrors.first ? 'border-red-500' : ''}
-                      autoComplete="given-name"
-                    />
-                    {profileFieldErrors.first && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.first}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="ob-last">Last name</Label>
-                    <Input
-                      id="ob-last"
-                      value={profileLast}
-                      onChange={(e) => setProfileLast(e.target.value)}
-                      className={profileFieldErrors.last ? 'border-red-500' : ''}
-                      autoComplete="family-name"
-                    />
-                    {profileFieldErrors.last && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.last}</p>}
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="ob-user">Username</Label>
-                  <Input
-                    id="ob-user"
-                    value={profileUsername}
-                    onChange={(e) => setProfileUsername(e.target.value)}
-                    className={profileFieldErrors.username ? 'border-red-500' : ''}
-                    autoComplete="username"
-                  />
-                  {profileFieldErrors.username && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.username}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="ob-email">Email</Label>
-                  <Input
-                    id="ob-email"
-                    type="email"
-                    value={profileEmail}
-                    onChange={(e) => setProfileEmail(e.target.value)}
-                    className={profileFieldErrors.email ? 'border-red-500' : ''}
-                    autoComplete="email"
-                  />
-                  {profileFieldErrors.email && <p className="text-xs text-red-600 dark:text-red-400">{profileFieldErrors.email}</p>}
-                </div>
-              </div>
-            </div>
-          );
-        }
-        return (
-          <div className="flex flex-col items-center space-y-5 py-6 text-center">
-            <ChefHat className="h-16 w-16 text-[#6ec257]" />
-            {stepHeading('You are ready', 'Save your preferences and start exploring recipes.')}
-          </div>
-        );
-
       default:
         return null;
     }
   };
 
   const isLastStep = stepIndex === totalSteps - 1;
-  const primaryLabel = isLastStep ? (initialUser ? 'Save & start' : 'Finish') : 'Continue';
+  const primaryLabel = isLastStep ? 'Finish' : 'Continue';
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
