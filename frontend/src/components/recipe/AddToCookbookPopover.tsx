@@ -18,7 +18,7 @@ export function AddToCookbookPopover({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          className="w-full rounded-lg bg-[#6ec257] py-2 text-sm font-semibold text-white transition-colors hover:bg-[#5ba045] sm:py-3 sm:text-base 2xl:text-lg"
+          className="h-7 min-h-7 shrink-0 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#5ba045] sm:h-9 sm:min-h-9 sm:py-3 sm:text-base 2xl:text-lg w-full rounded-lg bg-[#6ec257]"
         >
           Add to Cookbook
         </Button>

@@ -347,28 +347,6 @@ export const mockRecipes: Recipe[] = [
     ]
   },
   {
-    id: '14',
-    name: 'Chicken Tikka Masala',
-    description: 'Creamy Indian curry with tender marinated chicken.',
-    image: 'https://images.unsplash.com/photo-1633945274309-2c16f968155f?w=1080',
-    dietary_tags: ['Gluten-Free'],
-    ingredients: [
-      '2 lbs chicken breast, cubed',
-      '1 cup heavy cream',
-      '1 can tomato sauce',
-      'Yogurt for marinating',
-      'Garam masala',
-      'Basmati rice for serving'
-    ],
-    instructions: [
-      'Marinate chicken in yogurt and spices for 30 minutes.',
-      'Grill or pan-fry chicken until cooked.',
-      'Simmer tomato sauce with spices.',
-      'Add cream and cooked chicken.',
-      'Serve over basmati rice.'
-    ]
-  },
-  {
     id: '15',
     name: 'Vegetable Lasagna',
     description: 'Layered pasta dish with vegetables and cheese.',
@@ -410,29 +388,6 @@ export const mockRecipes: Recipe[] = [
       'Add shrimp and cook until pink.',
       'Deglaze with white wine and lemon juice.',
       'Toss with pasta and serve.'
-    ]
-  },
-  {
-    id: '17',
-    name: 'Chicken Tacos',
-    description: 'Seasoned chicken in warm tortillas with fresh toppings.',
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c5e67e3?w=1080',
-    dietary_tags: ['Gluten-Free'],
-    ingredients: [
-      '2 lbs chicken thighs',
-      'Taco seasoning',
-      'Corn tortillas',
-      'Lettuce',
-      'Tomatoes',
-      'Cheese',
-      'Sour cream'
-    ],
-    instructions: [
-      'Season and cook chicken until done.',
-      'Shred chicken.',
-      'Warm tortillas.',
-      'Fill tortillas with chicken and toppings.',
-      'Serve immediately.'
     ]
   },
   {
