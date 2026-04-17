@@ -382,7 +382,7 @@ export function CookbookViewPage() {
           </button>
 
           <div
-            className={`flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch rounded-lg border border-teal-900/25 bg-teal-950/[0.11] shadow-2xl dark:border-teal-950/45 dark:bg-[#050f12]/85 ${
+            className={`flex min-h-0 min-w-0 w-full flex-1 flex-col self-stretch rounded-lg border border-teal-300/60 bg-[#f3faf8] shadow-2xl dark:border-teal-950/45 dark:bg-[#050f12]/85 ${
               flipBusy ? 'overflow-visible' : 'overflow-hidden'
             }`}
             onTouchStart={(e) => {

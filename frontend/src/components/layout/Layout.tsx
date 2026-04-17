@@ -17,6 +17,9 @@ export function Layout() {
   const location = useLocation();
   const isCookbookView = /^\/cookbooks\/[^/]+$/.test(location.pathname);
   const isCookbookRoute = /^\/cookbooks(?:\/[^/]+)?$/.test(location.pathname);
+  const pageBackgroundClass = isCookbookRoute
+    ? 'bg-[#6ec257]/15 dark:bg-[#0a2629]'
+    : 'bg-[#6ec257]/15 dark:bg-gray-900';
 
   return (
     <RecipeActionsProvider>
@@ -26,8 +29,8 @@ export function Layout() {
               <div
                 className={
                   isCookbookView
-                    ? `flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden ${isCookbookRoute ? 'bg-[#0a2629]' : 'bg-[#6ec257]/15 dark:bg-gray-900'}`
-                    : `flex min-h-[100dvh] flex-col ${isCookbookRoute ? 'bg-[#0a2629]' : 'bg-[#6ec257]/15 dark:bg-gray-900'}`
+                    ? `flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden ${pageBackgroundClass}`
+                    : `flex min-h-[100dvh] flex-col ${pageBackgroundClass}`
                 }
               >
                 {/* Single sticky stack: avoids nav sliding under/over header; header is opaque */}
