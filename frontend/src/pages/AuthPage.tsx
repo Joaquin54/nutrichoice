@@ -14,7 +14,6 @@ export function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [onboardingUser, setOnboardingUser] = useState<User | null>(null);
 
   const handleLogin = async (username: string, password: string) => {
     setIsLoading(true);
@@ -25,7 +24,6 @@ export function AuthPage() {
       if (response.user.profile?.is_onboarded) {
         navigate('/home');
       } else {
-        setOnboardingUser(response.user);
         setShowRegistrationModal(true);
       }
     } catch (err) {
@@ -55,7 +53,6 @@ export function AuthPage() {
       if (response.user.profile?.is_onboarded) {
         navigate('/home');
       } else {
-        setOnboardingUser(response.user);
         setShowRegistrationModal(true);
       }
     } catch (err) {
@@ -79,7 +76,6 @@ export function AuthPage() {
 
   const handleRegistrationComplete = (_user: User) => {
     setShowRegistrationModal(false);
-    setOnboardingUser(null);
     navigate('/home');
   };
 
@@ -148,7 +144,6 @@ export function AuthPage() {
       <RegistrationModal
         isOpen={showRegistrationModal}
         onComplete={handleRegistrationComplete}
-        initialUser={onboardingUser}
       />
     </div>
   );

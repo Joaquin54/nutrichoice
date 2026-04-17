@@ -4,7 +4,7 @@ import { Leaf } from 'lucide-react';
 
 export const Header = memo(function Header() {
   return (
-    <header className="relative flex w-full items-center bg-[color-mix(in_srgb,#6ec257_15%,white)] dark:bg-gray-900">
+    <header className="relative hidden w-full items-center bg-[color-mix(in_srgb,#6ec257_15%,white)] dark:bg-gray-900 md:flex">
       <div className="mx-auto flex w-full max-w-full items-center justify-center px-4 py-2.5 sm:max-w-page-sm sm:py-2.5 md:max-w-page-md xl:max-w-7xl 2xl:max-w-screen-2xl">
         <Link
           to="/home"
