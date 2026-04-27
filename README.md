@@ -76,7 +76,8 @@ nutrichoice/
 │   ├── server/
 │   ├── api/
 │   │   ├── views/
-│   │   └── serializers/
+│   │   ├── serializers/
+│   │   └── tests/
 │   ├── users/
 │   ├── profiles/
 │   ├── recipes/
@@ -122,7 +123,7 @@ Feature-based component organization. Each subfolder corresponds to a distinct a
 
 **nutrition** - Nutrition dashboard components. `DailyOverview` summarizes the current day's intake. `GoalsCard` displays the user's macro targets. `MealLogger` handles logging individual meals. `WeeklyProgress` renders a chart of intake across the week.
 
-**recipe** - Recipe browsing and creation components. `RecipeCard` is the card used in grids and feeds. `RecipeModal` is the full detail view. `CreateRecipeModal` handles user-submitted recipes. `RecipeReviewsModal` shows ratings and reviews. `CuisineFilter` and `DietaryPreferencesDropdown` are filter controls. `IngredientInput` and `IngredientListItem` manage ingredient entry during recipe creation. `AddToCookbookPopover` handles adding a recipe to a cookbook from the card. `ImageUploadGrid` and `RecipeFeedDesktopCarouselFrame` handle image display in the feed.
+**recipe** - Recipe browsing and creation components. `RecipeCard` is the card used in grids and feeds. `RecipeModal` is the full detail view. `CreateRecipeModal` handles user-submitted recipes. `RecipeReviewsModal` shows ratings and reviews. `CuisineFilter`, `DietaryPreferences`, and `DietaryPreferencesDropdown` are filter controls. `IngredientInput` and `IngredientListItem` manage ingredient entry during recipe creation. `AddToCookbookPopover` handles adding a recipe to a cookbook from the card. `RecipeFeedDescriptionPanel` renders the description panel in the feed view. `ImageUploadGrid` and `RecipeFeedDesktopCarouselFrame` handle image display in the feed.
 
 **ui** - Base component library built on Radix UI primitives and wrapped with shadcn/ui patterns. Contains `accordion`, `badge`, `button`, `card`, `checkbox`, `dialog`, `input`, `label`, `popover`, `select`, `slider`, `tabs`, `ImageWithFallback`, and `CookingIcons`. Variants are managed with `class-variance-authority` and class merging uses `clsx` combined with `tailwind-merge`.
 
@@ -148,11 +149,11 @@ Centralized TypeScript type definitions. The primary file is `recipe.ts`, which 
 
 ### src/utils
 
-Utility functions shared across the application.
+Utility functions shared across the application. Currently contains `convertToWebP.ts` for converting image files to WebP format before upload.
 
 ### src/data
 
-Static data used throughout the app such as cuisine lists and dietary tag definitions.
+Mock data and sample assets used during development. Contains `mockRecipes.ts`, `mockReviews.ts`, and `mockUsers.ts` for local testing, along with sample recipe images in `.jpg` format.
 
 ### src/lib
 
@@ -171,6 +172,8 @@ The primary Django app. All routes are registered in `api/urls.py` under the `/a
 **api/views/** - View modules split by domain. Each file corresponds to a feature area: `recipes.py`, `nutrition.py`, `social.py`, `profiles.py`, `users.py`, `ingredients.py`, `meal_planning.py`, `feed.py`, `lookup.py`, `storage.py`, and `health.py`.
 
 **api/serializers/** - Serializer modules split by domain, mirroring the views structure. Each file handles input validation and output formatting for its respective models.
+
+**api/tests/** - Integration tests for the API layer. Covers recipe feed allergy filtering, recipe lookup behavior, and production response shape validation.
 
 ### users/
 
@@ -194,7 +197,7 @@ Nutrition log models for tracking daily meal entries. Contains a `services/` dir
 
 ### social/
 
-Models and services for the social graph. Handles follows, likes, and any user-to-user interaction data.
+Models and services for the social graph. The `services/` directory contains `follows.py` for managing the follow relationship between users and `blocks.py` for user blocking.
 
 ### meal_planning/
 
