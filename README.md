@@ -17,27 +17,131 @@ NutriChoice is a full-stack web application for recipe discovery, meal planning,
 - Database: PostgreSQL (Supabase)
 - Deployment: Docker Compose, Render
 
-## Running Locally
+## Prerequisites
 
-Frontend:
+Before running the project, make sure the following are installed on your machine:
+
+- Python 3.12
+- Node.js 18 or later
+- npm
+- PostgreSQL (or a Supabase project with connection credentials)
+- Docker and Docker Compose (only required for the containerized option)
+
+## Installation and Local Setup
+
+### 1. Clone the repository
+
 ```bash
-cd frontend
-npm install
-npm run dev
+git clone https://github.com/Joaquin54/nutrichoice.git
+cd nutrichoice
 ```
 
-Backend:
+### 2. Backend setup
+
+Navigate into the backend directory and create a virtual environment:
+
 ```bash
 cd backend
+python3 -m venv .nutri-env
+source .nutri-env/bin/activate
+```
+
+On Windows use `.nutri-env\Scripts\activate` instead.
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
+```
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Open `backend/.env` and set the following variables:
+
+```
+DJANGO_SECRET_KEY=your-secret-key
+DEBUG=True
+
+ALLOWED_HOSTS=localhost,127.0.0.1
+CSRF_TRUSTED_ORIGINS=http://localhost:8000
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+
+SUPABASE_DB_NAME=postgres
+SUPABASE_DB_USER=your-db-user
+SUPABASE_DB_PASSWORD=your-db-password
+SUPABASE_DB_HOST=your-db-host
+SUPABASE_DB_PORT=6543
+
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+POSTMARK_SERVER_TOKEN=your-postmark-token
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+
+FRONTEND_URL=http://localhost:5173
+```
+
+Apply database migrations:
+
+```bash
 python manage.py migrate
+```
+
+Start the backend server:
+
+```bash
 python manage.py runserver 0.0.0.0:8000
 ```
 
-Full stack via Docker:
+The API will be available at `http://localhost:8000`.
+
+### 3. Frontend setup
+
+Open a new terminal and navigate to the frontend directory:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Open `frontend/.env` and set the API URL to point to your local backend:
+
+```
+VITE_API_URL=http://localhost:8000/
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`.
+
+### 4. Running with Docker (optional)
+
+If you prefer to run the full stack in containers, make sure Docker Desktop is running, then from the project root:
+
 ```bash
 docker-compose up
 ```
+
+This starts both the frontend and backend. The frontend is served on port 3000 and the backend on port 8000. You will still need a valid `backend/.env` file with your database and service credentials before starting.
 
 ## Directory Structure
 
